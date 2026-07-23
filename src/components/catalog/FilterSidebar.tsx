@@ -6,6 +6,7 @@ import { MOCK_BRANDS, MOCK_CATEGORIES, MOCK_PRODUCTS } from '@/data/mock';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface FilterSidebarProps {
   searchTerm: string;
@@ -20,6 +21,8 @@ interface FilterSidebarProps {
   setSelectedGender: (v: string) => void;
   selectedSize: string;
   setSelectedSize: (v: string) => void;
+  selectedPrice: string;
+  setSelectedPrice: (v: string) => void;
   resetFilters: () => void;
 }
 
@@ -36,9 +39,12 @@ export function FilterSidebar({
   setSelectedGender,
   selectedSize,
   setSelectedSize,
+  selectedPrice,
+  setSelectedPrice,
   resetFilters,
 }: FilterSidebarProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
 
   const brandOptions = [
     { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
@@ -70,6 +76,13 @@ export function FilterSidebar({
   const sizeOptions = [
     { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
     ...uniqueSizes.map((s) => ({ label: String(s), value: String(s) })),
+  ];
+
+  const priceOptions = [
+    { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
+    { label: '$0 - $50', value: '0-50' },
+    { label: '$51 - $100', value: '51-100' },
+    { label: '+$100', value: '100+' },
   ];
 
   return (
@@ -149,6 +162,15 @@ export function FilterSidebar({
         value={selectedSize}
         onChange={(e) => setSelectedSize(e.target.value)}
       />
+
+      {user && (
+        <Select
+          label={t('catalog.filter.price' as any)}
+          options={priceOptions}
+          value={selectedPrice}
+          onChange={(e) => setSelectedPrice(e.target.value)}
+        />
+      )}
     </aside>
   );
 }

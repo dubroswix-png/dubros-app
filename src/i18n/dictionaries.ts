@@ -62,6 +62,7 @@ export const dictionaries = {
     'catalog.filter.material': 'Material',
     'catalog.filter.gender': 'Género',
     'catalog.filter.size': 'Talla',
+    'catalog.filter.price': 'Precio',
     'catalog.filter.country': 'País de Fabricación',
     'catalog.filter.all': 'Todos',
 
@@ -195,6 +196,7 @@ export const dictionaries = {
     'catalog.filter.material': 'Material',
     'catalog.filter.gender': 'Gender',
     'catalog.filter.size': 'Size',
+    'catalog.filter.price': 'Price',
     'catalog.filter.country': 'Country of Origin',
     'catalog.filter.all': 'All',
 

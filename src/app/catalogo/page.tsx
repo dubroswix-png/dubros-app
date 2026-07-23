@@ -14,6 +14,8 @@ function CatalogContent() {
   const isFavOnly = searchParams.get('type') === 'fav';
   const { favorites } = useFavorites();
 
+  const [selectedPrice, setSelectedPrice] = useState('all');
+
   const {
     searchTerm,
     setSearchTerm,
@@ -35,6 +37,7 @@ function CatalogContent() {
     products: MOCK_PRODUCTS,
     favorites,
     isFavOnly,
+    selectedPrice,
   });
 
   return (
@@ -108,6 +111,8 @@ function CatalogContent() {
           setSelectedGender={setSelectedGender}
           selectedSize={selectedSize}
           setSelectedSize={setSelectedSize}
+          selectedPrice={selectedPrice}
+          setSelectedPrice={setSelectedPrice}
           resetFilters={resetFilters}
         />
 

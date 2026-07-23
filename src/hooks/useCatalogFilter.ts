@@ -7,9 +7,10 @@ interface UseCatalogFilterOptions {
   products: Product[];
   favorites: string[];
   isFavOnly?: boolean;
+  selectedPrice?: string;
 }
 
-export function useCatalogFilter({ products, favorites, isFavOnly = false }: UseCatalogFilterOptions) {
+export function useCatalogFilter({ products, favorites, isFavOnly = false, selectedPrice = 'all' }: UseCatalogFilterOptions) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -49,6 +50,12 @@ export function useCatalogFilter({ products, favorites, isFavOnly = false }: Use
       if (product.restrictedCountries?.includes(selectedCountry)) {
         return false;
       }
+      if (selectedPrice !== 'all') {
+        if (selectedPrice === '0-50' && (product.price < 0 || product.price > 50)) return false;
+        if (selectedPrice === '51-100' && (product.price <= 50 || product.price > 100)) return false;
+        if (selectedPrice === '100+' && product.price <= 100) return false;
+      }
+
       return true;
     });
   }, [
@@ -62,6 +69,7 @@ export function useCatalogFilter({ products, favorites, isFavOnly = false }: Use
     selectedCountry,
     isFavOnly,
     favorites,
+    selectedPrice,
   ]);
 
   const resetFilters = () => {
