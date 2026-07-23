@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS public.campaigns (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   subject TEXT,
-  content HTML,
+  content TEXT,
   sent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now()
 );
