@@ -1,9 +1,10 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MOCK_PRODUCTS, LATAM_COUNTRIES } from '@/data/mock';
 import { useFavorites } from '@/context/FavoritesContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useCatalogFilter } from '@/hooks/useCatalogFilter';
 import { FilterSidebar } from '@/components/catalog/FilterSidebar';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
@@ -13,6 +14,7 @@ function CatalogContent() {
   const searchParams = useSearchParams();
   const isFavOnly = searchParams.get('type') === 'fav';
   const { favorites } = useFavorites();
+  const { t } = useLanguage();
 
   const [selectedPrice, setSelectedPrice] = useState('all');
 
