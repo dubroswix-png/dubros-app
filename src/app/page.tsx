@@ -47,6 +47,7 @@ export default function HomePage() {
 
             <h1
               style={{
+                color: '#FFFFFF',
                 fontSize: 'clamp(2.5rem, 5.5vw, 4.2rem)',
                 fontWeight: 800,
                 lineHeight: 1.1,
