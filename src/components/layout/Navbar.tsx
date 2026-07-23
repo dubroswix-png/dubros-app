@@ -75,9 +75,11 @@ export function Navbar() {
           <Link href="/contacto" style={{ color: 'var(--text-primary)', transition: 'color 0.2s' }}>
             Contacto
           </Link>
-          <Link href="/mi-cuenta/pedidos" style={{ color: 'var(--text-primary)', transition: 'color 0.2s' }}>
-            Pedidos
-          </Link>
+          {isLoggedIn && (
+            <Link href="/mi-cuenta/pedidos" style={{ color: 'var(--text-primary)', transition: 'color 0.2s' }}>
+              Pedidos
+            </Link>
+          )}
         </nav>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -119,40 +121,42 @@ export function Navbar() {
             )}
           </Link>
 
-          <Link
-            href="/mi-cuenta/carrito"
-            aria-label="Carrito"
-            style={{
-              padding: '0.5rem',
-              color: 'var(--text-primary)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              position: 'relative',
-            }}
-          >
-            <ShoppingCart size={20} />
-            {totalArticles > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '2px',
-                  right: '0px',
-                  backgroundColor: 'var(--blue)',
-                  color: '#FFF',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {totalArticles}
-              </span>
-            )}
-          </Link>
+          {isLoggedIn && (
+            <Link
+              href="/mi-cuenta/carrito"
+              aria-label="Carrito"
+              style={{
+                padding: '0.5rem',
+                color: 'var(--text-primary)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                position: 'relative',
+              }}
+            >
+              <ShoppingCart size={20} />
+              {totalArticles > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '2px',
+                    right: '0px',
+                    backgroundColor: 'var(--blue)',
+                    color: '#FFF',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {totalArticles}
+                </span>
+              )}
+            </Link>
+          )}
 
           {isLoggedIn ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
