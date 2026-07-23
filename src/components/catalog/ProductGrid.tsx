@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Product } from '@/data/mock';
 import { Heart, ShoppingCart, Search } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -64,11 +65,13 @@ export function ProductGrid({ products, resetFilters }: ProductGridProps) {
                 backgroundColor: '#F3F4F6',
               }}
             >
-              <img
-                src={product.thumbnailUrl}
-                alt={product.reference}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <Link href={`/catalogo/${product.id}`} style={{ display: 'block', width: '100%', height: '100%' }}>
+                <img
+                  src={product.thumbnailUrl}
+                  alt={product.reference}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </Link>
               <button
                 onClick={() => toggleFavorite(product.id)}
                 style={{
@@ -115,7 +118,13 @@ export function ProductGrid({ products, resetFilters }: ProductGridProps) {
                   <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--blue)' }}>{product.brand}</span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{product.material}</span>
                 </div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>{product.reference}</h3>
+                <Link href={`/catalogo/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', transition: 'color 0.2s' }}
+                      onMouseOver={(e) => (e.currentTarget.style.color = 'var(--blue)')}
+                      onMouseOut={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}>
+                    {product.reference}
+                  </h3>
+                </Link>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
                   Cód: {product.code}
                 </div>

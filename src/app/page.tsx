@@ -203,7 +203,7 @@ export default function HomePage() {
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Precio por {product.saleType}</span>
                         <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>${product.price.toFixed(2)}</div>
                       </div>
-                      <Link href={`/catalogo`} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                      <Link href={`/catalogo/${product.id}`} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
                         <Eye size={16} /> Ver
                       </Link>
                     </>
@@ -212,7 +212,7 @@ export default function HomePage() {
                       <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>
                         🔒 Inicia sesión para ver precio
                       </span>
-                      <Link href={`/catalogo`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                      <Link href={`/catalogo/${product.id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
                         <Eye size={16} /> Ver
                       </Link>
                     </div>
