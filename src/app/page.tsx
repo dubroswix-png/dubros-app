@@ -26,24 +26,6 @@ export default function HomePage() {
       >
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: '780px' }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
-                padding: '0.45rem 1.1rem',
-                borderRadius: 'var(--radius-full)',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                marginBottom: '1.5rem',
-              }}
-            >
-              <Sparkles size={16} color="#60A5FA" />
-              <span>Plataforma B2B de Alta Fidelidad para Ópticas & Distribuidores</span>
-            </div>
 
             <h1
               style={{
