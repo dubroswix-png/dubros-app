@@ -17,7 +17,7 @@ interface ProductGridProps {
 export function ProductGrid({ products, resetFilters }: ProductGridProps) {
   const { addItem } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
-  const { user } = useAuth();
+  const { isLoggedIn } = useAuth();
   const { t } = useLanguage();
 
   if (products.length === 0) {
@@ -137,7 +137,7 @@ export function ProductGrid({ products, resetFilters }: ProductGridProps) {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)' }}>
-                {user ? (
+                {isLoggedIn ? (
                   <>
                     <div>
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Precio PIEZA</span>

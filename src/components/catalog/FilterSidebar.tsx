@@ -44,7 +44,7 @@ export function FilterSidebar({
   resetFilters,
 }: FilterSidebarProps) {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { isLoggedIn } = useAuth();
 
   const brandOptions = [
     { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
@@ -163,7 +163,7 @@ export function FilterSidebar({
         onChange={(e) => setSelectedSize(e.target.value)}
       />
 
-      {user && (
+      {isLoggedIn && (
         <Select
           label={t('catalog.filter.price' as any)}
           options={priceOptions}
