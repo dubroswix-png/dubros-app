@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Filter, RotateCcw, Search } from 'lucide-react';
-import { MOCK_BRANDS, MOCK_CATEGORIES } from '@/data/mock';
+import { MOCK_BRANDS, MOCK_CATEGORIES, MOCK_PRODUCTS } from '@/data/mock';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 
@@ -17,6 +17,8 @@ interface FilterSidebarProps {
   setSelectedMaterial: (v: string) => void;
   selectedGender: string;
   setSelectedGender: (v: string) => void;
+  selectedSize: string;
+  setSelectedSize: (v: string) => void;
   resetFilters: () => void;
 }
 
@@ -31,6 +33,8 @@ export function FilterSidebar({
   setSelectedMaterial,
   selectedGender,
   setSelectedGender,
+  selectedSize,
+  setSelectedSize,
   resetFilters,
 }: FilterSidebarProps) {
   const brandOptions = [
@@ -57,6 +61,12 @@ export function FilterSidebar({
     { label: 'Hombre', value: 'Hombre' },
     { label: 'Mujer', value: 'Mujer' },
     { label: 'Unisex', value: 'Unisex' },
+  ];
+
+  const uniqueSizes = Array.from(new Set(MOCK_PRODUCTS.map((p) => p.eyeSize))).sort();
+  const sizeOptions = [
+    { label: 'Todas las tallas', value: 'all' },
+    ...uniqueSizes.map((s) => ({ label: String(s), value: String(s) })),
   ];
 
   return (
@@ -128,6 +138,13 @@ export function FilterSidebar({
         options={genderOptions}
         value={selectedGender}
         onChange={(e) => setSelectedGender(e.target.value)}
+      />
+
+      <Select
+        label="Talla (Eye Size)"
+        options={sizeOptions}
+        value={selectedSize}
+        onChange={(e) => setSelectedSize(e.target.value)}
       />
     </aside>
   );

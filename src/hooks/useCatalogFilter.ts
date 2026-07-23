@@ -15,6 +15,7 @@ export function useCatalogFilter({ products, favorites, isFavOnly = false }: Use
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMaterial, setSelectedMaterial] = useState<string>('all');
   const [selectedGender, setSelectedGender] = useState<string>('all');
+  const [selectedSize, setSelectedSize] = useState<string>('all');
   const [selectedCountry, setSelectedCountry] = useState<string>('PA');
 
   const filteredProducts = useMemo(() => {
@@ -42,6 +43,9 @@ export function useCatalogFilter({ products, favorites, isFavOnly = false }: Use
       if (selectedGender !== 'all' && product.gender !== selectedGender) {
         return false;
       }
+      if (selectedSize !== 'all' && product.eyeSize !== parseInt(selectedSize)) {
+        return false;
+      }
       if (product.restrictedCountries?.includes(selectedCountry)) {
         return false;
       }
@@ -54,6 +58,7 @@ export function useCatalogFilter({ products, favorites, isFavOnly = false }: Use
     selectedCategory,
     selectedMaterial,
     selectedGender,
+    selectedSize,
     selectedCountry,
     isFavOnly,
     favorites,
@@ -65,6 +70,7 @@ export function useCatalogFilter({ products, favorites, isFavOnly = false }: Use
     setSelectedCategory('all');
     setSelectedMaterial('all');
     setSelectedGender('all');
+    setSelectedSize('all');
   };
 
   return {
@@ -78,6 +84,8 @@ export function useCatalogFilter({ products, favorites, isFavOnly = false }: Use
     setSelectedMaterial,
     selectedGender,
     setSelectedGender,
+    selectedSize,
+    setSelectedSize,
     selectedCountry,
     setSelectedCountry,
     filteredProducts,

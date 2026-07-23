@@ -25,6 +25,8 @@ function CatalogContent() {
     setSelectedMaterial,
     selectedGender,
     setSelectedGender,
+    selectedSize,
+    setSelectedSize,
     selectedCountry,
     setSelectedCountry,
     filteredProducts,
@@ -106,6 +108,8 @@ function CatalogContent() {
           setSelectedMaterial={setSelectedMaterial}
           selectedGender={selectedGender}
           setSelectedGender={setSelectedGender}
+          selectedSize={selectedSize}
+          setSelectedSize={setSelectedSize}
           resetFilters={resetFilters}
         />
 

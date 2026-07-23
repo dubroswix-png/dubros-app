@@ -5,6 +5,7 @@ import { Product } from '@/data/mock';
 import { Heart, ShoppingCart, Search } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface ProductGridProps {
   products: Product[];
@@ -14,6 +15,7 @@ interface ProductGridProps {
 export function ProductGrid({ products, resetFilters }: ProductGridProps) {
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { isLoggedIn } = useAuth();
 
   if (products.length === 0) {
     return (
@@ -123,17 +125,27 @@ export function ProductGrid({ products, resetFilters }: ProductGridProps) {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)' }}>
-                <div>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Precio PIEZA</span>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>${product.price.toFixed(2)}</div>
-                </div>
-                <button
-                  onClick={() => addToCart(product, 1)}
-                  className="btn-primary"
-                  style={{ padding: '0.45rem 0.8rem', fontSize: '0.85rem' }}
-                >
-                  <ShoppingCart size={16} /> Agregar
-                </button>
+                {isLoggedIn ? (
+                  <>
+                    <div>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Precio PIEZA</span>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>${product.price.toFixed(2)}</div>
+                    </div>
+                    <button
+                      onClick={() => addToCart(product, 1)}
+                      className="btn-primary"
+                      style={{ padding: '0.45rem 0.8rem', fontSize: '0.85rem' }}
+                    >
+                      <ShoppingCart size={16} /> Agregar
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ width: '100%', textAlign: 'center', backgroundColor: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: 'var(--radius-md)' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+                      🔒 Inicia sesión para ver precio
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

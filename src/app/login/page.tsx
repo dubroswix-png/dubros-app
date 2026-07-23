@@ -4,15 +4,18 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
+  const { login } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    login(email);
     if (email === 'dubroswix@gmail.com') {
       router.push('/dashboard');
     } else if (isRegister) {
@@ -23,7 +26,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    // Simular Google login -> Si es registro o falta onboarding redirige a /onboarding
+    login('google-user@gmail.com');
     router.push('/onboarding');
   };
 

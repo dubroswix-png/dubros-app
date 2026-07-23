@@ -4,8 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import { MOCK_BRANDS, MOCK_COLLECTIONS, MOCK_BLOG_POSTS, MOCK_PRODUCTS } from '@/data/mock';
 import { ArrowRight, ShieldCheck, Globe2, Truck, Award, Sparkles, Eye, Heart } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
+  const { isLoggedIn } = useAuth();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem', paddingBottom: '4rem' }}>
       
@@ -193,13 +195,26 @@ export default function HomePage() {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)' }}>
-                  <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Precio por {product.saleType}</span>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>${product.price.toFixed(2)}</div>
-                  </div>
-                  <Link href={`/catalogo`} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                    <Eye size={16} /> Ver
-                  </Link>
+                  {isLoggedIn ? (
+                    <>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Precio por {product.saleType}</span>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>${product.price.toFixed(2)}</div>
+                      </div>
+                      <Link href={`/catalogo`} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                        <Eye size={16} /> Ver
+                      </Link>
+                    </>
+                  ) : (
+                    <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>
+                        🔒 Inicia sesión para ver precio
+                      </span>
+                      <Link href={`/catalogo`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                        <Eye size={16} /> Ver
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

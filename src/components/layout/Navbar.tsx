@@ -6,12 +6,14 @@ import { ThemeToggle } from './ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
-import { ShoppingCart, Heart, Shield, Menu, X } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { ShoppingCart, Heart, Shield, Menu, X, User, LogOut } from 'lucide-react';
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { totalArticles } = useCart();
   const { favorites } = useFavorites();
+  const { isLoggedIn, logout } = useAuth();
 
   return (
     <header
@@ -152,20 +154,54 @@ export function Navbar() {
             )}
           </Link>
 
-          <Link
-            href="/dashboard"
-            className="btn-secondary"
-            style={{
-              padding: '0.45rem 0.9rem',
-              fontSize: '0.85rem',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Shield size={16} />
-            Dashboard
-          </Link>
+          {isLoggedIn ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Link
+                href="/dashboard"
+                className="btn-secondary"
+                style={{
+                  padding: '0.45rem 0.9rem',
+                  fontSize: '0.85rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                }}
+              >
+                <Shield size={16} />
+                Dashboard
+              </Link>
+              <button
+                onClick={logout}
+                aria-label="Cerrar sesión"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-tertiary)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '0.45rem',
+                }}
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              style={{
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                marginLeft: '0.5rem'
+              }}
+            >
+              Iniciar sesión <User size={18} />
+            </Link>
+          )}
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
