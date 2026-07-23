@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { MOCK_BRANDS, MOCK_COLLECTIONS, MOCK_BLOG_POSTS, MOCK_PRODUCTS } from '@/data/mock';
 import { ArrowRight, ShieldCheck, Globe2, Truck, Award, Sparkles, Eye, Heart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function HomePage() {
   const { isLoggedIn } = useAuth();
+  const { t } = useLanguage();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem', paddingBottom: '4rem' }}>
       
@@ -41,7 +43,7 @@ export default function HomePage() {
                 textShadow: '0 4px 20px rgba(0,0,0,0.5)',
               }}
             >
-              El crecimiento de tu negocio óptico empieza aquí
+              {t('hero.title' as any)}
             </h1>
 
             <p
@@ -53,12 +55,12 @@ export default function HomePage() {
                 maxWidth: '680px',
               }}
             >
-              Más de 25 años distribuyendo innovación, calidad y vanguardia en monturas ópticas de titanio, acetato y gafas de sol en toda Latinoamérica.
+              {t('hero.subtitle' as any)}
             </p>
 
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Link href="/catalogo" className="btn-primary" style={{ padding: '1rem 2.25rem', fontSize: '1.05rem', boxShadow: '0 8px 25px rgba(26, 86, 219, 0.4)' }}>
-                Explorar Catálogo <ArrowRight size={20} />
+                {t('hero.btn.catalog' as any)} <ArrowRight size={20} />
               </Link>
               <Link
                 href="/contacto"
@@ -76,7 +78,7 @@ export default function HomePage() {
                   gap: '0.5rem',
                 }}
               >
-                Contacto Comercial
+                {t('hero.btn.contact' as any)}
               </Link>
             </div>
           </div>

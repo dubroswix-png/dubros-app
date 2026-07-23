@@ -7,6 +7,7 @@ import { LanguageSwitcher } from './LanguageSwitcher';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { ShoppingCart, Heart, Shield, Menu, X, User, LogOut } from 'lucide-react';
 
 export function Navbar() {
@@ -14,6 +15,7 @@ export function Navbar() {
   const { totalArticles } = useCart();
   const { favorites } = useFavorites();
   const { isLoggedIn, logout } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <header
@@ -64,20 +66,20 @@ export function Navbar() {
           className="desktop-nav"
         >
           <Link href="/" style={{ color: 'var(--text-primary)', transition: 'color 0.2s' }}>
-            Inicio
+            {t('nav.home' as any)}
           </Link>
           <Link href="/catalogo" style={{ color: 'var(--text-primary)', transition: 'color 0.2s' }}>
-            Catálogo
+            {t('nav.catalog' as any)}
           </Link>
           <Link href="/blog" style={{ color: 'var(--text-primary)', transition: 'color 0.2s' }}>
-            Blog
+            {t('nav.blog' as any)}
           </Link>
           <Link href="/contacto" style={{ color: 'var(--text-primary)', transition: 'color 0.2s' }}>
-            Contacto
+            {t('nav.contact' as any)}
           </Link>
           {isLoggedIn && (
             <Link href="/mi-cuenta/pedidos" style={{ color: 'var(--text-primary)', transition: 'color 0.2s' }}>
-              Pedidos
+              {t('nav.orders' as any)}
             </Link>
           )}
         </nav>
@@ -172,7 +174,7 @@ export function Navbar() {
                 }}
               >
                 <Shield size={16} />
-                Dashboard
+                {t('nav.dashboard' as any)}
               </Link>
               <button
                 onClick={logout}
@@ -203,7 +205,7 @@ export function Navbar() {
                 marginLeft: '0.5rem'
               }}
             >
-              Iniciar sesión <User size={18} />
+              {t('nav.login' as any)} <User size={18} />
             </Link>
           )}
 

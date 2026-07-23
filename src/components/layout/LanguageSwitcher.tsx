@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function LanguageSwitcher() {
-  const [currentLang, setCurrentLang] = useState<'es' | 'en'>('es');
+  const { locale, setLocale } = useLanguage();
 
   const toggleLanguage = () => {
-    const nextLang = currentLang === 'es' ? 'en' : 'es';
-    setCurrentLang(nextLang);
-    // Transición suave o navegación de locale
+    const nextLang = locale === 'es' ? 'en' : 'es';
+    setLocale(nextLang);
   };
 
   return (
@@ -30,7 +30,7 @@ export function LanguageSwitcher() {
         transition: 'background-color 0.2s ease',
       }}
     >
-      {currentLang === 'es' ? '🇪🇸 ES' : '🇺🇸 EN'}
+      {locale === 'es' ? '🇪🇸 ES' : '🇺🇸 EN'}
     </button>
   );
 }

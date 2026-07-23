@@ -6,6 +6,7 @@ import { WhatsAppWidget } from "@/components/shared/WhatsAppWidget";
 import { CartProvider } from "@/context/CartContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export const metadata: Metadata = {
   title: "Dubros | Distribución Óptica en Latinoamérica",
@@ -21,16 +22,18 @@ export default function RootLayout({
   return (
     <html lang="es" data-theme="light">
       <body>
-        <AuthProvider>
-          <CartProvider>
-            <FavoritesProvider>
-              <Navbar />
-              <main>{children}</main>
-              <WhatsAppWidget />
-              <Footer />
-            </FavoritesProvider>
-          </CartProvider>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <CartProvider>
+              <FavoritesProvider>
+                <Navbar />
+                <main>{children}</main>
+                <WhatsAppWidget />
+                <Footer />
+              </FavoritesProvider>
+            </CartProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
