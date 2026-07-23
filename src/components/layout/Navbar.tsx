@@ -12,7 +12,7 @@ import { ShoppingCart, Heart, Shield, Menu, X, User, LogOut } from 'lucide-react
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { totalArticles } = useCart();
+  const { totalArticles, openCart } = useCart();
   const { favorites } = useFavorites();
   const { isLoggedIn, logout } = useAuth();
   const { t } = useLanguage();
@@ -124,8 +124,8 @@ export function Navbar() {
           </Link>
 
           {isLoggedIn && (
-            <Link
-              href="/mi-cuenta/carrito"
+            <button
+              onClick={openCart}
               aria-label="Carrito"
               style={{
                 padding: '0.5rem',
@@ -133,6 +133,9 @@ export function Navbar() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 position: 'relative',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
               }}
             >
               <ShoppingCart size={20} />
@@ -157,7 +160,7 @@ export function Navbar() {
                   {totalArticles}
                 </span>
               )}
-            </Link>
+            </button>
           )}
 
           {isLoggedIn ? (

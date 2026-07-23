@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { CartDrawer } from "@/components/cart/CartDrawer";
 
 export const metadata: Metadata = {
   title: "Dubros | Distribución Óptica en Latinoamérica",
@@ -27,6 +28,7 @@ export default function RootLayout({
             <CartProvider>
               <FavoritesProvider>
                 <Navbar />
+                <CartDrawer />
                 <main>{children}</main>
                 <WhatsAppWidget />
                 <Footer />
