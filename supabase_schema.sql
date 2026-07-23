@@ -2,8 +2,23 @@
 -- ESQUEMA COMPLETO DE BASE DE DATOS DUBROS - SUPABASE (14 TABLAS)
 -- ==========================================================================
 
+-- LIMPIEZA DE TABLAS PREVIAS (SI EXISTÍAN)
+DROP TABLE IF EXISTS public.contact_submissions CASCADE;
+DROP TABLE IF EXISTS public.campaigns CASCADE;
+DROP TABLE IF EXISTS public.promotions CASCADE;
+DROP TABLE IF EXISTS public.order_items CASCADE;
+DROP TABLE IF EXISTS public.orders CASCADE;
+DROP TABLE IF EXISTS public.favorites CASCADE;
+DROP TABLE IF EXISTS public.products CASCADE;
+DROP TABLE IF EXISTS public.collections CASCADE;
+DROP TABLE IF EXISTS public.categories CASCADE;
+DROP TABLE IF EXISTS public.brand_country_access CASCADE;
+DROP TABLE IF EXISTS public.brands CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+DROP TABLE IF EXISTS public.countries CASCADE;
+
 -- 1. TABLA DE PAÍSES (LATAM)
-CREATE TABLE IF NOT EXISTS public.countries (
+CREATE TABLE public.countries (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   code TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
@@ -13,22 +28,22 @@ CREATE TABLE IF NOT EXISTS public.countries (
 );
 
 -- 2. TABLA DE PERFILES DE USUARIOS (EXTENSIÓN DE AUTH.USERS)
-CREATE TABLE IF NOT EXISTS public.profiles (
+CREATE TABLE public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
   company_name TEXT,
-  business_type TEXT, -- 'distribuidor_optico', 'cadena_opticas', 'optica_independiente', 'consultorio'
+  business_type TEXT,
   country_code TEXT REFERENCES public.countries(code),
   whatsapp TEXT,
-  role TEXT DEFAULT 'client', -- 'client', 'admin', 'super_admin'
+  role TEXT DEFAULT 'client',
   onboarding_completed BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 3. TABLA DE MARCAS (172 MARCAS)
-CREATE TABLE IF NOT EXISTS public.brands (
+CREATE TABLE public.brands (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT UNIQUE NOT NULL,
   slug TEXT UNIQUE NOT NULL,
@@ -38,7 +53,7 @@ CREATE TABLE IF NOT EXISTS public.brands (
 );
 
 -- 4. RESTRICCIONES GEOGRÁFICAS DE MARCAS POR PAÍS
-CREATE TABLE IF NOT EXISTS public.brand_country_access (
+CREATE TABLE public.brand_country_access (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   brand_id UUID REFERENCES public.brands(id) ON DELETE CASCADE,
   country_code TEXT REFERENCES public.countries(code) ON DELETE CASCADE,
@@ -47,7 +62,7 @@ CREATE TABLE IF NOT EXISTS public.brand_country_access (
 );
 
 -- 5. CATEGORÍAS
-CREATE TABLE IF NOT EXISTS public.categories (
+CREATE TABLE public.categories (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT UNIQUE NOT NULL,
   slug TEXT UNIQUE NOT NULL,
@@ -55,7 +70,7 @@ CREATE TABLE IF NOT EXISTS public.categories (
 );
 
 -- 6. COLECCIONES DE DISEÑO
-CREATE TABLE IF NOT EXISTS public.collections (
+CREATE TABLE public.collections (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
@@ -64,7 +79,7 @@ CREATE TABLE IF NOT EXISTS public.collections (
 );
 
 -- 7. TABLA DE PRODUCTOS (14,466 REGISTROS)
-CREATE TABLE IF NOT EXISTS public.products (
+CREATE TABLE public.products (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   reference TEXT UNIQUE NOT NULL,
   code TEXT NOT NULL,
@@ -74,8 +89,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   brand_id UUID REFERENCES public.brands(id),
   category_id UUID REFERENCES public.categories(id),
   collection_id UUID REFERENCES public.collections(id),
-  material TEXT, -- 'Titanio', 'Acetato', 'Metal', 'TR90', 'Combinado'
-  gender TEXT,   -- 'Hombre', 'Mujer', 'Unisex'
+  material TEXT,
+  gender TEXT,
   sale_type TEXT DEFAULT 'PIEZA',
   quantity INTEGER DEFAULT 0,
   flex BOOLEAN DEFAULT true,
@@ -86,7 +101,7 @@ CREATE TABLE IF NOT EXISTS public.products (
 );
 
 -- 8. PRODUCTOS FAVORITOS DE USUARIO
-CREATE TABLE IF NOT EXISTS public.favorites (
+CREATE TABLE public.favorites (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
@@ -95,20 +110,20 @@ CREATE TABLE IF NOT EXISTS public.favorites (
 );
 
 -- 9. PEDIDOS DE CLIENTES
-CREATE TABLE IF NOT EXISTS public.orders (
+CREATE TABLE public.orders (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   order_number TEXT UNIQUE NOT NULL,
   user_id UUID REFERENCES public.profiles(id),
   total_pieces INTEGER NOT NULL,
   subtotal NUMERIC(10,2) NOT NULL,
-  status TEXT DEFAULT 'Pendiente', -- 'Pendiente', 'Sincronizado', 'Enviado', 'Completado'
+  status TEXT DEFAULT 'Pendiente',
   switch_order_number TEXT,
   switch_synced BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 10. ÍTEMS DEL PEDIDO
-CREATE TABLE IF NOT EXISTS public.order_items (
+CREATE TABLE public.order_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
   product_id UUID REFERENCES public.products(id),
@@ -121,7 +136,7 @@ CREATE TABLE IF NOT EXISTS public.order_items (
 CREATE TABLE IF NOT EXISTS public.promotions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   description TEXT NOT NULL,
-  promo_type TEXT NOT NULL, -- 'fixed_amount', 'percentage'
+  promo_type TEXT NOT NULL,
   value NUMERIC(10,2) NOT NULL,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
@@ -130,7 +145,7 @@ CREATE TABLE IF NOT EXISTS public.promotions (
 );
 
 -- 12. CAMPAÑAS EMAIL MARKETING
-CREATE TABLE IF NOT EXISTS public.campaigns (
+CREATE TABLE public.campaigns (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   subject TEXT,
@@ -140,7 +155,7 @@ CREATE TABLE IF NOT EXISTS public.campaigns (
 );
 
 -- 13. MENSAJES DE CONTACTO (LEADS)
-CREATE TABLE IF NOT EXISTS public.contact_submissions (
+CREATE TABLE public.contact_submissions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
