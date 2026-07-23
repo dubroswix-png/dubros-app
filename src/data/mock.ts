@@ -221,3 +221,54 @@ export const LATAM_COUNTRIES = [
   { name: 'República Dominicana', code: 'DO', dialCode: '+1', flag: '🇩🇴' },
   { name: 'El Salvador', code: 'SV', dialCode: '+503', flag: '🇸🇻' },
 ];
+
+export interface OrderItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  switchOrderNumber: string;
+  date: string;
+  status: 'Completada' | 'Pendiente' | 'Cancelada';
+  clientName: string;
+  clientEmail: string;
+  clientCode: string;
+  items: OrderItem[];
+  subtotal: number;
+}
+
+export const MOCK_ORDERS: Order[] = [
+  {
+    id: '1',
+    orderNumber: '1198',
+    switchOrderNumber: '16-000003355',
+    date: 'Mie, Jul 22, 2026',
+    status: 'Completada',
+    clientName: 'SARA TEJADA',
+    clientEmail: 'sara.tejada@gmail.com',
+    clientCode: '2639',
+    subtotal: 308.42,
+    items: [
+      { product: MOCK_PRODUCTS[0], quantity: 52 },
+      { product: MOCK_PRODUCTS[1], quantity: 52 },
+      { product: MOCK_PRODUCTS[2], quantity: 7 },
+    ]
+  },
+  {
+    id: '2',
+    orderNumber: '1197',
+    switchOrderNumber: '16-000003354',
+    date: 'Mie, Jul 15, 2026',
+    status: 'Completada',
+    clientName: 'OPTICA VISION SUR',
+    clientEmail: 'compras@visionsur.com',
+    clientCode: '1045',
+    subtotal: 540.00,
+    items: [
+      { product: MOCK_PRODUCTS[3], quantity: 100 },
+    ]
+  }
+];
