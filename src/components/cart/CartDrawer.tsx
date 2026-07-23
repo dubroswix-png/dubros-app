@@ -7,7 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 
 export function CartDrawer() {
-  const { isCartOpen, closeCart, items, updateQuantity, removeFromCart, subtotal, totalArticles } = useCart();
+  const { isCartOpen, closeCart, cartItems: items, updateQuantity, removeFromCart, subtotal, totalArticles } = useCart();
   const { t } = useLanguage();
 
   // Prevent scrolling on body when drawer is open
