@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, use } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Globe2, Award, ChevronRight, Heart } from 'lucide-react';
@@ -10,13 +10,14 @@ import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { isLoggedIn } = useAuth();
   const { t } = useLanguage();
   
-  const product = MOCK_PRODUCTS.find((p) => p.id === params.id);
+  const product = MOCK_PRODUCTS.find((p) => p.id === resolvedParams.id);
   
   if (!product) {
     notFound();

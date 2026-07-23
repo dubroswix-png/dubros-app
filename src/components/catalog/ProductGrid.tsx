@@ -156,9 +156,11 @@ export function ProductGrid({ products, resetFilters }: ProductGridProps) {
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>
                       {t('common.price.locked' as any)}
                     </span>
-                    <span className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                      <Eye size={16} /> {t('common.view' as any)}
-                    </span>
+                    <Link href={`/catalogo/${product.id}`} style={{ textDecoration: 'none' }}>
+                      <span className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                        <Eye size={16} /> {t('common.view' as any)}
+                      </span>
+                    </Link>
                   </div>
                 )}
               </div>
