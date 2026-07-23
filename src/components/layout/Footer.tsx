@@ -2,8 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function Footer() {
+  const { t } = useLanguage();
   return (
     <footer
       style={{
@@ -37,7 +39,7 @@ export function Footer() {
               <span style={{ color: 'var(--blue)' }}>DU</span> BROS
             </div>
             <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-footer)' }}>
-              Más de 25 años distribuyendo monturas ópticas y gafas de sol de alta calidad para ópticas y distribuidores en toda Latinoamérica.
+              {t('footer.about' as any)}
             </p>
           </div>
 
@@ -52,27 +54,27 @@ export function Footer() {
                 fontFamily: 'var(--font-heading)',
               }}
             >
-              Navegación
+              {t('footer.navigation' as any)}
             </h3>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
               <li>
                 <Link href="/" style={{ color: 'var(--text-footer)', transition: 'color 0.2s' }}>
-                  Inicio
+                  {t('nav.home' as any)}
                 </Link>
               </li>
               <li>
                 <Link href="/catalogo" style={{ color: 'var(--text-footer)', transition: 'color 0.2s' }}>
-                  Catálogo de Productos
+                  {t('nav.catalog' as any)}
                 </Link>
               </li>
               <li>
                 <Link href="/blog" style={{ color: 'var(--text-footer)', transition: 'color 0.2s' }}>
-                  Blog y Novedades
+                  {t('nav.blog' as any)}
                 </Link>
               </li>
               <li>
                 <Link href="/contacto" style={{ color: 'var(--text-footer)', transition: 'color 0.2s' }}>
-                  Contacto Directo
+                  {t('nav.contact' as any)}
                 </Link>
               </li>
             </ul>
@@ -89,16 +91,16 @@ export function Footer() {
                 fontFamily: 'var(--font-heading)',
               }}
             >
-              Contáctanos
+              {t('footer.contact' as any)}
             </h3>
             <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-              📍 Zona Libre de Colón, Panamá
+              📍 {t('footer.address' as any)}
             </p>
             <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
               📧 ventas@dubros.com
             </p>
             <p style={{ fontSize: '0.9rem' }}>
-              💬 WhatsApp Servicio al Cliente: +507 6000-0000
+              💬 {t('footer.whatsapp' as any)}
             </p>
           </div>
 
@@ -113,10 +115,10 @@ export function Footer() {
                 fontFamily: 'var(--font-heading)',
               }}
             >
-              Mantente Informado
+              {t('footer.newsletter' as any)}
             </h3>
             <p style={{ fontSize: '0.85rem', marginBottom: '1rem', lineHeight: '1.5' }}>
-              Manténgase al día con los anuncios, innovaciones y actualizaciones importantes de Dubros hoy.
+              {t('footer.newsletter_desc' as any)}
             </p>
             <form
               onSubmit={(e) => e.preventDefault()}
@@ -124,7 +126,7 @@ export function Footer() {
             >
               <input
                 type="email"
-                placeholder="Tu correo electrónico"
+                placeholder={t('footer.email_placeholder' as any)}
                 style={{
                   padding: '0.6rem 0.9rem',
                   borderRadius: 'var(--radius-md)',
@@ -141,7 +143,7 @@ export function Footer() {
                 className="btn-primary"
                 style={{ padding: '0.6rem 1rem', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
               >
-                Suscribirme
+                {t('footer.subscribe' as any)}
               </button>
             </form>
           </div>
@@ -161,14 +163,14 @@ export function Footer() {
           }}
         >
           <div>
-            © {new Date().getFullYear()} Dubros. Todos los derechos reservados.
+            {t('footer.rights' as any)}
           </div>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
             <Link href="#" style={{ color: 'var(--text-footer)' }}>
-              Política de Privacidad
+              {t('footer.privacy' as any)}
             </Link>
             <Link href="#" style={{ color: 'var(--text-footer)' }}>
-              Términos y Condiciones
+              {t('footer.terms' as any)}
             </Link>
           </div>
         </div>

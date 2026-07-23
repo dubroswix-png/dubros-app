@@ -2,11 +2,13 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { X, Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingCart, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function CartDrawer() {
   const { isCartOpen, closeCart, items, updateQuantity, removeFromCart, subtotal, totalArticles } = useCart();
+  const { t } = useLanguage();
 
   // Prevent scrolling on body when drawer is open
   useEffect(() => {
@@ -61,7 +63,7 @@ export function CartDrawer() {
         {/* Header */}
         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShoppingCart size={20} /> Mi Pedido
+            <ShoppingCart size={20} /> {t('cart.title' as any)}
           </h2>
           <button
             onClick={closeCart}
@@ -85,7 +87,7 @@ export function CartDrawer() {
           {items.length === 0 ? (
             <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', paddingTop: '3rem' }}>
               <ShoppingCart size={48} style={{ opacity: 0.3, margin: '0 auto 1rem auto' }} />
-              <p>Tu carrito está vacío.</p>
+              <p>{t('cart.empty' as any)}</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -103,7 +105,7 @@ export function CartDrawer() {
                       <div>
                         <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>{item.product.brand}</span>
                         <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>{item.product.reference}</h4>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Por pieza: ${item.product.price.toFixed(2)}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{t('cart.perPiece' as any)}: ${item.product.price.toFixed(2)}</span>
                       </div>
                       <button
                         onClick={() => removeFromCart(item.product.id)}
@@ -147,20 +149,20 @@ export function CartDrawer() {
         {items.length > 0 && (
           <div style={{ padding: '1.5rem', backgroundColor: '#F9FAFB', borderTop: '1px solid var(--border-medium)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Referencias:</span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t('cart.references' as any)}:</span>
               <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{totalArticles}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '1.1rem' }}>Subtotal:</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '1.1rem' }}>{t('cart.subtotal' as any)}:</span>
               <span style={{ fontWeight: 800, color: 'var(--blue)', fontSize: '1.4rem' }}>${subtotal.toFixed(2)}</span>
             </div>
             
             <Link href="/mi-cuenta/carrito" onClick={closeCart} style={{ textDecoration: 'none' }}>
               <button
                 className="btn-primary"
-                style={{ width: '100%', padding: '0.9rem', fontSize: '1rem', marginBottom: '0.75rem', display: 'flex', justifyContent: 'center' }}
+                style={{ width: '100%', padding: '0.9rem', fontSize: '1rem', marginBottom: '0.75rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
               >
-                Completar pedido
+                {t('cart.checkout' as any)} <ArrowRight size={18} />
               </button>
             </Link>
             

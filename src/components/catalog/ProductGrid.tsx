@@ -3,10 +3,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { Product } from '@/data/mock';
-import { Heart, ShoppingCart, Search } from 'lucide-react';
+import { Heart, ShoppingBag, Eye, Search } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ProductGridProps {
   products: Product[];
@@ -14,9 +15,10 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ products, resetFilters }: ProductGridProps) {
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
-  const { isLoggedIn } = useAuth();
+  const { user } = useAuth();
+  const { t } = useLanguage();
 
   if (products.length === 0) {
     return (
@@ -25,18 +27,19 @@ export function ProductGrid({ products, resetFilters }: ProductGridProps) {
         style={{
           textAlign: 'center',
           padding: '4rem 2rem',
-          color: 'var(--text-secondary)',
+          backgroundColor: 'var(--bg-card)',
+          borderRadius: 'var(--radius-lg)',
         }}
       >
-        <Search size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+        <Search size={48} style={{ opacity: 0.3, marginBottom: '1rem', marginInline: 'auto' }} />
         <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-          No se encontraron productos
+          {t('catalog.empty' as any)}
         </h3>
-        <p style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-          Intenta cambiando los términos de búsqueda o limpiando los filtros.
+        <p style={{ fontSize: '0.9rem', marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
+          {t('catalog.emptyDesc' as any)}
         </p>
-        <button onClick={resetFilters} className="btn-secondary">
-          Restablecer Filtros
+        <button onClick={resetFilters} className="btn-secondary" style={{ padding: '0.6rem 1.25rem' }}>
+          {t('catalog.resetFilters' as any)}
         </button>
       </div>
     );
@@ -134,24 +137,27 @@ export function ProductGrid({ products, resetFilters }: ProductGridProps) {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)' }}>
-                {isLoggedIn ? (
+                {user ? (
                   <>
                     <div>
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Precio PIEZA</span>
                       <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>${product.price.toFixed(2)}</div>
                     </div>
                     <button
-                      onClick={() => addToCart(product, 1)}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem(product); }}
                       className="btn-primary"
-                      style={{ padding: '0.45rem 0.8rem', fontSize: '0.85rem' }}
+                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                     >
-                      <ShoppingCart size={16} /> Agregar
+                      <ShoppingBag size={16} /> {t('common.addCart' as any)}
                     </button>
                   </>
                 ) : (
-                  <div style={{ width: '100%', textAlign: 'center', backgroundColor: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: 'var(--radius-md)' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-                      🔒 Inicia sesión para ver precio
+                  <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>
+                      {t('common.price.locked' as any)}
+                    </span>
+                    <span className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                      <Eye size={16} /> {t('common.view' as any)}
                     </span>
                   </div>
                 )}

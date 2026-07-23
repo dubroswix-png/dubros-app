@@ -87,10 +87,10 @@ export default function HomePage() {
 
       {/* 2. BRANDS BAR */}
       <section className="container">
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)' }}>
-            Nuestras Marcas Exclusivas
-          </span>
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+            {t('home.blog.title' as any)}
+          </h2>
         </div>
         <div
           style={{
@@ -129,11 +129,15 @@ export default function HomePage() {
       <section className="container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
           <div>
-            <span className="badge badge-blue" style={{ marginBottom: '0.5rem' }}>Destacados</span>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800 }}>Modelos Más Solicitados</h2>
+            <span style={{ color: 'var(--blue)', fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Dubros
+            </span>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem', color: 'var(--text-primary)' }}>
+              {t('home.brands.title' as any)}
+            </h2>
           </div>
-          <Link href="/catalogo" className="btn-secondary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
-            Ver todo el catálogo <ArrowRight size={16} />
+          <Link href="/marcas" style={{ color: 'var(--blue)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+            {t('home.brands.viewAll' as any)} <ArrowRight size={16} />
           </Link>
         </div>
 
@@ -204,16 +208,16 @@ export default function HomePage() {
                         <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>${product.price.toFixed(2)}</div>
                       </div>
                       <Link href={`/catalogo/${product.id}`} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                        <Eye size={16} /> Ver
+                        <Eye size={16} /> {t('common.view' as any)}
                       </Link>
                     </>
                   ) : (
                     <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>
-                        🔒 Inicia sesión para ver precio
+                        {t('common.price.locked' as any)}
                       </span>
                       <Link href={`/catalogo/${product.id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                        <Eye size={16} /> Ver
+                        <Eye size={16} /> {t('common.view' as any)}
                       </Link>
                     </div>
                   )}
@@ -238,9 +242,9 @@ export default function HomePage() {
             gap: '2rem',
           }}
         >
-          {MOCK_COLLECTIONS.map((col, idx) => (
+          {MOCK_COLLECTIONS.map((collection, idx) => (
             <div
-              key={col.id}
+              key={collection.id}
               className="card"
               style={{
                 padding: 0,
@@ -251,20 +255,20 @@ export default function HomePage() {
             >
               <div style={{ height: '200px', width: '100%', overflow: 'hidden' }}>
                 <img
-                  src={idx === 0 ? '/images/collection-titanium.jpg' : col.imageUrl}
-                  alt={col.name}
+                  src={idx === 0 ? '/images/collection-titanium.jpg' : collection.imageUrl}
+                  alt={collection.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
                 />
               </div>
               <div style={{ padding: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem' }}>{col.name}</h3>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem' }}>{collection.name}</h3>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
-                  {col.description}
+                  {collection.description}
                 </p>
-                <Link href="/catalogo" className="btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
-                  Explorar Colección
-                </Link>
-              </div>
+                  <Link href={`/colecciones/${collection.id}`} className="btn-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.9rem', width: 'fit-content' }}>
+                    {t('home.collections.btn' as any)}
+                  </Link>
+                </div>
             </div>
           ))}
         </div>
@@ -274,8 +278,14 @@ export default function HomePage() {
       <section style={{ backgroundColor: 'var(--bg-secondary)', padding: '5rem 0', borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)' }}>
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto 3.5rem auto' }}>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '1rem' }}>Por qué las ópticas eligen Dubros</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Comprometidos con la excelencia en el suministro y la atención personalizada para tu óptica.</p>
+            <div style={{ flex: '1', minWidth: '300px' }}>
+              <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--text-primary)' }}>
+                {t('why.title' as any)}
+              </h2>
+              <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '2rem' }}>
+                {t('why.subtitle' as any)}
+              </p>
+            </div>
           </div>
 
           <div
@@ -285,44 +295,52 @@ export default function HomePage() {
               gap: '2rem',
             }}
           >
-            <div className="card" style={{ textAlign: 'center' }}>
-              <div style={{ display: 'inline-flex', padding: '1rem', borderRadius: '50%', backgroundColor: 'var(--blue-light)', color: 'var(--blue)', marginBottom: '1.25rem' }}>
-                <ShieldCheck size={32} />
+            <div className="card" style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ width: '48px', height: '48px', backgroundColor: '#E0E7FF', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--blue)' }}>
+                <ShieldCheck size={24} />
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Garantía Directa</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                Respaldo completo de fábrica en cada pieza distribuida.
-              </p>
+              <div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{t('why.1.title' as any)}</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  {t('why.1.desc' as any)}
+                </p>
+              </div>
             </div>
 
-            <div className="card" style={{ textAlign: 'center' }}>
-              <div style={{ display: 'inline-flex', padding: '1rem', borderRadius: '50%', backgroundColor: 'var(--blue-light)', color: 'var(--blue)', marginBottom: '1.25rem' }}>
-                <Globe2 size={32} />
+            <div className="card" style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ width: '48px', height: '48px', backgroundColor: '#E0E7FF', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--blue)' }}>
+                <Globe2 size={24} />
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Cobertura LATAM</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                Envíos asegurados y eficientes a más de 12 países de la región.
-              </p>
+              <div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{t('why.2.title' as any)}</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  {t('why.2.desc' as any)}
+                </p>
+              </div>
             </div>
 
-            <div className="card" style={{ textAlign: 'center' }}>
-              <div style={{ display: 'inline-flex', padding: '1rem', borderRadius: '50%', backgroundColor: 'var(--blue-light)', color: 'var(--blue)', marginBottom: '1.25rem' }}>
-                <Truck size={32} />
+            <div className="card" style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ width: '48px', height: '48px', backgroundColor: '#E0E7FF', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--blue)' }}>
+                <Truck size={24} />
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Despacho Rápido</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                Procesamiento ágil desde Zona Libre de Colón para recibir a tiempo.
-              </p>
+              <div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{t('why.3.title' as any)}</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  {t('why.3.desc' as any)}
+                </p>
+              </div>
             </div>
 
-            <div className="card" style={{ textAlign: 'center' }}>
-              <div style={{ display: 'inline-flex', padding: '1rem', borderRadius: '50%', backgroundColor: 'var(--blue-light)', color: 'var(--blue)', marginBottom: '1.25rem' }}>
-                <Award size={32} />
+            <div className="card" style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ width: '48px', height: '48px', backgroundColor: '#E0E7FF', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--blue)' }}>
+                <Award size={24} />
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>25+ Años</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                Trayectoria sólida y confianza demostrada en el sector óptico.
-              </p>
+              <div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{t('why.4.title' as any)}</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  {t('why.4.desc' as any)}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -330,14 +348,10 @@ export default function HomePage() {
 
       {/* 6. BLOG HIGHLIGHTS */}
       <section className="container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
-          <div>
-            <span className="badge badge-blue" style={{ marginBottom: '0.5rem' }}>Novedades</span>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800 }}>Artículos Recientes del Blog</h2>
-          </div>
-          <Link href="/blog" className="btn-secondary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
-            Ir al Blog <ArrowRight size={16} />
-          </Link>
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+            {t('home.blog.title' as any)}
+          </h2>
         </div>
 
         <div
@@ -358,8 +372,8 @@ export default function HomePage() {
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: '1.5' }}>
                   {post.shortDescription}
                 </p>
-                <Link href={`/blog/${post.slug}`} style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--blue)' }}>
-                  Leer artículo →
+                <Link href={`/blog/${post.slug}`} style={{ color: 'var(--blue)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {t('home.blog.readMore' as any)} <ArrowRight size={16} />
                 </Link>
               </div>
             </div>

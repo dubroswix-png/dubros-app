@@ -1,4 +1,7 @@
 export const dictionaries = {
+  // ==========================================
+  // Español (ES)
+  // ==========================================
   es: {
     // Navbar
     'nav.home': 'Inicio',
@@ -6,30 +9,29 @@ export const dictionaries = {
     'nav.blog': 'Blog',
     'nav.contact': 'Contacto',
     'nav.orders': 'Pedidos',
+    'nav.search': 'Buscar',
     'nav.login': 'Iniciar sesión',
-    'nav.dashboard': 'Dashboard',
-    
-    // Home - Hero
-    'hero.badge': 'Plataforma B2B de Alta Fidelidad para Ópticas & Distribuidores',
+    'nav.signup': 'Crear cuenta',
+    'nav.dashboard': 'Mi Cuenta',
+    'nav.logout': 'Cerrar sesión',
+
+    // Hero
     'hero.title': 'El crecimiento de tu negocio óptico empieza aquí',
     'hero.subtitle': 'Más de 25 años distribuyendo innovación, calidad y vanguardia en monturas ópticas de titanio, acetato y gafas de sol en toda Latinoamérica.',
     'hero.btn.catalog': 'Explorar Catálogo',
     'hero.btn.contact': 'Contacto Comercial',
 
-    // Home - Brands
-    'brands.title': 'Nuestras Marcas Exclusivas',
-
-    // Home - Featured
-    'featured.badge': 'Destacados',
-    'featured.title': 'Modelos Más Solicitados',
-    'featured.btn': 'Ver todo el catálogo',
-
-    // Home - Collections
-    'collections.badge': 'Colecciones',
-    'collections.title': 'Líneas de Diseño Exclusivas',
-    'collections.btn': 'Explorar Colección',
-
-    // Home - Why Choose Us
+    // Home Sections
+    'home.brands.title': 'Nuestras Marcas Recomendadas',
+    'home.brands.viewAll': 'Ver todas las marcas',
+    'home.featured.badge': 'Destacados',
+    'home.featured.title': 'Modelos Más Solicitados',
+    'home.featured.btn': 'Ver todo el catálogo',
+    'home.collections.badge': 'Colecciones',
+    'home.collections.title': 'Colecciones Destacadas',
+    'home.collections.btn': 'Explorar Colección',
+    'home.blog.title': 'Últimos Artículos',
+    'home.blog.readMore': 'Leer más',
     'why.title': 'Por qué las ópticas eligen Dubros',
     'why.subtitle': 'Comprometidos con la excelencia en el suministro y la atención personalizada para tu óptica.',
     'why.1.title': 'Garantía Directa',
@@ -38,21 +40,101 @@ export const dictionaries = {
     'why.2.desc': 'Envíos asegurados y eficientes a más de 12 países de la región.',
     'why.3.title': 'Despacho Rápido',
     'why.3.desc': 'Procesamiento ágil desde Zona Libre de Colón para recibir a tiempo.',
-    'why.4.title': '25+ Años',
-    'why.4.desc': 'Trayectoria sólida y confianza demostrada en el sector óptico.',
+    'why.4.title': 'Calidad Premium',
+    'why.4.desc': 'Materiales de alta gama comprobados para la máxima durabilidad.',
 
-    // Home - Blog Highlights
-    'blog.badge': 'Novedades',
-    'blog.title': 'Artículos Recientes del Blog',
-    'blog.btn': 'Ir al Blog',
-    'blog.read': 'Leer artículo →',
+    // Global / Common
+    'common.price.locked': '🔒 Inicia sesión para ver precio',
+    'common.price.locked.full': '🔒 Inicia sesión para ver precio y comprar',
+    'common.price.perPiece': 'Precio PIEZA',
+    'common.price.perBox': 'Precio CAJA',
+    'common.addCart': 'Agregar',
+    'common.addCartFull': 'Agregar al carrito',
+    'common.view': 'Ver',
 
-    // Product Grid (General)
-    'product.price.label': 'Precio por',
-    'product.price.lock': '🔒 Inicia sesión para ver precio',
-    'product.btn.view': 'Ver',
-    'product.btn.add': 'Agregar'
+    // Catalog & Filters
+    'catalog.title': 'Catálogo de Lentes',
+    'catalog.subtitle': 'Encuentra los armazones perfectos para tu óptica. Filtra por marca, material o tipo de cliente.',
+    'catalog.empty': 'No se encontraron productos',
+    'catalog.emptyDesc': 'Intenta cambiando los términos de búsqueda o limpiando los filtros.',
+    'catalog.resetFilters': 'Restablecer Filtros',
+    'catalog.filter.brand': 'Marca',
+    'catalog.filter.material': 'Material',
+    'catalog.filter.gender': 'Género',
+    'catalog.filter.size': 'Talla',
+    'catalog.filter.country': 'País de Fabricación',
+    'catalog.filter.all': 'Todos',
+
+    // Product Detail Page (PDP)
+    'pdp.model': 'Modelo',
+    'pdp.brand': 'Marca',
+    'pdp.material': 'Material',
+    'pdp.size': 'Tamaño ocular',
+    'pdp.benefit.shipping': 'Envío disponible a todo Latinoamérica',
+    'pdp.benefit.warranty': 'Garantía de calidad DUBROS',
+    'pdp.benefit.durability': 'Alta Durabilidad garantizada',
+    'pdp.benefit.support': 'Soporte técnico especializado',
+    'pdp.suggested': 'También te puede interesar',
+    
+    // Cart Drawer
+    'cart.title': 'Mi Pedido',
+    'cart.empty': 'Tu carrito está vacío.',
+    'cart.perPiece': 'Por pieza:',
+    'cart.references': 'Referencias:',
+    'cart.subtotal': 'Subtotal:',
+    'cart.checkout': 'Completar pedido',
+    'cart.hide': 'Ocultar',
+
+    // Footer
+    'footer.about': 'Más de 25 años distribuyendo monturas ópticas y gafas de sol de alta calidad para ópticas y distribuidores en toda Latinoamérica.',
+    'footer.navigation': 'Navegación',
+    'footer.catalog': 'Catálogo',
+    'footer.brands': 'Marcas',
+    'footer.support': 'Soporte',
+    'footer.terms': 'Términos y Condiciones',
+    'footer.privacy': 'Política de Privacidad',
+    'footer.contact': 'Contáctanos',
+    'footer.address': 'Zona Libre de Colón, Panamá',
+    'footer.whatsapp': 'WhatsApp Servicio al Cliente: +507 6000-0000',
+    'footer.newsletter': 'Mantente Informado',
+    'footer.newsletter_desc': 'Manténgase al día con los anuncios, innovaciones y actualizaciones importantes de Dubros hoy.',
+    'footer.email_placeholder': 'Tu correo electrónico',
+    'footer.subscribe': 'Suscribirme',
+    'footer.rights': '© 2026 Dubros Internacional. Todos los derechos reservados.',
+
+    // Admin Orders
+    'admin.orders.title': 'Listado de pedidos:',
+    'admin.orders.search': 'Buscar por número de pedido o correo',
+    'admin.orders.filterState': 'Filtrar por estado',
+    'admin.orders.filterDate': 'Filtrar por fecha',
+    'admin.orders.choose': 'Escoge una opción',
+    'admin.orders.switchStatus': 'Este pedido ya se encuentra ordenado en switch',
+    'admin.orders.switchId': 'Número de pedido switch:',
+    'admin.orders.date': 'Ordenado en:',
+    'admin.orders.subtotal': 'Subtotal:',
+    'admin.orders.status': 'Estado de pedido:',
+    'admin.orders.id': 'Número de orden:',
+    'admin.orders.csv': 'Descargar CSV',
+    'admin.orders.articles': 'Número de artículos:',
+    'admin.orders.client': 'Cliente:',
+    'admin.orders.clientCode': 'Código Cliente:',
+    'admin.orders.back': 'Orden de:',
+    'admin.orders.print': 'Imprimir',
+    'admin.orders.validate': 'Validar productos',
+    'admin.orders.clientValidated': 'Cliente validado',
+    'admin.orders.orderCreated': 'Pedido creado',
+    'admin.orders.price': 'Precio:',
+    'admin.orders.size': 'Tamaño:',
+    'admin.orders.material': 'Material:',
+    'admin.orders.saleType': 'Venta por:',
+    'admin.orders.qtyReq': 'Requerido por el cliente:',
+    'admin.orders.erpStatus': 'Estado Inventario ERP:',
+    'admin.orders.available': 'Disponible',
   },
+
+  // ==========================================
+  // English (EN)
+  // ==========================================
   en: {
     // Navbar
     'nav.home': 'Home',
@@ -60,53 +142,126 @@ export const dictionaries = {
     'nav.blog': 'Blog',
     'nav.contact': 'Contact',
     'nav.orders': 'Orders',
-    'nav.login': 'Log In',
-    'nav.dashboard': 'Dashboard',
-    
-    // Home - Hero
-    'hero.badge': 'High Fidelity B2B Platform for Opticians & Distributors',
+    'nav.search': 'Search',
+    'nav.login': 'Log in',
+    'nav.signup': 'Sign up',
+    'nav.dashboard': 'My Account',
+    'nav.logout': 'Log out',
+
+    // Hero
     'hero.title': 'The growth of your optical business starts here',
-    'hero.subtitle': 'Over 25 years distributing innovation, quality, and avant-garde titanium, acetate frames, and sunglasses across Latin America.',
+    'hero.subtitle': 'Over 25 years distributing innovation, quality, and avant-garde in titanium and acetate optical frames and sunglasses throughout Latin America.',
     'hero.btn.catalog': 'Explore Catalog',
     'hero.btn.contact': 'Commercial Contact',
 
-    // Home - Brands
-    'brands.title': 'Our Exclusive Brands',
-
-    // Home - Featured
-    'featured.badge': 'Featured',
-    'featured.title': 'Most Requested Models',
-    'featured.btn': 'View full catalog',
-
-    // Home - Collections
-    'collections.badge': 'Collections',
-    'collections.title': 'Exclusive Design Lines',
-    'collections.btn': 'Explore Collection',
-
-    // Home - Why Choose Us
-    'why.title': 'Why opticians choose Dubros',
-    'why.subtitle': 'Committed to excellence in supply and personalized attention for your optical business.',
+    // Home Sections
+    'home.brands.title': 'Our Recommended Brands',
+    'home.brands.viewAll': 'View all brands',
+    'home.featured.badge': 'Featured',
+    'home.featured.title': 'Most Requested Models',
+    'home.featured.btn': 'View full catalog',
+    'home.collections.badge': 'Collections',
+    'home.collections.title': 'Featured Collections',
+    'home.collections.btn': 'Explore Collection',
+    'home.blog.title': 'Latest Articles',
+    'home.blog.readMore': 'Read more',
+    'why.title': 'Why optical stores choose Dubros',
+    'why.subtitle': 'Committed to excellence in supply and personalized attention for your store.',
     'why.1.title': 'Direct Warranty',
-    'why.1.desc': 'Full factory backing on every distributed piece.',
+    'why.1.desc': 'Full factory support for every distributed piece.',
     'why.2.title': 'LATAM Coverage',
     'why.2.desc': 'Insured and efficient shipping to over 12 countries in the region.',
     'why.3.title': 'Fast Dispatch',
-    'why.3.desc': 'Agile processing from the Colon Free Zone to receive on time.',
-    'why.4.title': '25+ Years',
-    'why.4.desc': 'Solid track record and proven trust in the optical sector.',
+    'why.3.desc': 'Agile processing from Colon Free Zone for on-time delivery.',
+    'why.4.title': 'Premium Quality',
+    'why.4.desc': 'Proven high-end materials for maximum durability.',
 
-    // Home - Blog Highlights
-    'blog.badge': 'News',
-    'blog.title': 'Recent Blog Articles',
-    'blog.btn': 'Go to Blog',
-    'blog.read': 'Read article →',
+    // Global / Common
+    'common.price.locked': '🔒 Log in to view price',
+    'common.price.locked.full': '🔒 Log in to view price and buy',
+    'common.price.perPiece': 'Price / PIECE',
+    'common.price.perBox': 'Price / BOX',
+    'common.addCart': 'Add',
+    'common.addCartFull': 'Add to cart',
+    'common.view': 'View',
 
-    // Product Grid (General)
-    'product.price.label': 'Price per',
-    'product.price.lock': '🔒 Log in to view price',
-    'product.btn.view': 'View',
-    'product.btn.add': 'Add'
-  }
+    // Catalog & Filters
+    'catalog.title': 'Eyewear Catalog',
+    'catalog.subtitle': 'Find the perfect frames for your store. Filter by brand, material, or customer type.',
+    'catalog.empty': 'No products found',
+    'catalog.emptyDesc': 'Try changing your search terms or clearing the filters.',
+    'catalog.resetFilters': 'Reset Filters',
+    'catalog.filter.brand': 'Brand',
+    'catalog.filter.material': 'Material',
+    'catalog.filter.gender': 'Gender',
+    'catalog.filter.size': 'Size',
+    'catalog.filter.country': 'Country of Origin',
+    'catalog.filter.all': 'All',
+
+    // Product Detail Page (PDP)
+    'pdp.model': 'Model',
+    'pdp.brand': 'Brand',
+    'pdp.material': 'Material',
+    'pdp.size': 'Eye Size',
+    'pdp.benefit.shipping': 'Shipping available to all of Latin America',
+    'pdp.benefit.warranty': 'DUBROS Quality Warranty',
+    'pdp.benefit.durability': 'High Durability Guaranteed',
+    'pdp.benefit.support': 'Specialized Technical Support',
+    'pdp.suggested': 'You may also like',
+    
+    // Cart Drawer
+    'cart.title': 'My Order',
+    'cart.empty': 'Your cart is empty.',
+    'cart.perPiece': 'Per piece:',
+    'cart.references': 'References:',
+    'cart.subtotal': 'Subtotal:',
+    'cart.checkout': 'Checkout',
+    'cart.hide': 'Hide',
+
+    // Footer
+    'footer.about': 'Over 25 years distributing high-quality optical frames and sunglasses for optical shops and distributors across Latin America.',
+    'footer.navigation': 'Navigation',
+    'footer.catalog': 'Catalog',
+    'footer.brands': 'Brands',
+    'footer.support': 'Support',
+    'footer.terms': 'Terms & Conditions',
+    'footer.privacy': 'Privacy Policy',
+    'footer.contact': 'Contact Us',
+    'footer.address': 'Colon Free Zone, Panama',
+    'footer.whatsapp': 'Customer Service WhatsApp: +507 6000-0000',
+    'footer.newsletter': 'Stay Informed',
+    'footer.newsletter_desc': 'Keep up to date with announcements, innovations, and important updates from Dubros today.',
+    'footer.email_placeholder': 'Your email address',
+    'footer.subscribe': 'Subscribe',
+    'footer.rights': '© 2026 Dubros Internacional. All rights reserved.',
+
+    // Admin Orders
+    'admin.orders.title': 'Orders List:',
+    'admin.orders.search': 'Search by order number or email',
+    'admin.orders.filterState': 'Filter by state',
+    'admin.orders.filterDate': 'Filter by date',
+    'admin.orders.choose': 'Choose an option',
+    'admin.orders.switchStatus': 'This order has already been placed in switch',
+    'admin.orders.switchId': 'Switch order number:',
+    'admin.orders.date': 'Ordered on:',
+    'admin.orders.subtotal': 'Subtotal:',
+    'admin.orders.status': 'Order status:',
+    'admin.orders.id': 'Order number:',
+    'admin.orders.csv': 'Download CSV',
+    'admin.orders.articles': 'Number of items:',
+    'admin.orders.client': 'Client:',
+    'admin.orders.clientCode': 'Client Code:',
+    'admin.orders.back': 'Order from:',
+    'admin.orders.print': 'Print',
+    'admin.orders.validate': 'Validate products',
+    'admin.orders.clientValidated': 'Client validated',
+    'admin.orders.orderCreated': 'Order created',
+    'admin.orders.price': 'Price:',
+    'admin.orders.size': 'Size:',
+    'admin.orders.material': 'Material:',
+    'admin.orders.saleType': 'Sale by:',
+    'admin.orders.qtyReq': 'Requested by client:',
+    'admin.orders.erpStatus': 'ERP Inventory Status:',
+    'admin.orders.available': 'Available',
+  },
 };
-
-export type DictionaryKey = keyof typeof dictionaries.es;

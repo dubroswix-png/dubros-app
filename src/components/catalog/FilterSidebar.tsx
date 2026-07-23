@@ -5,6 +5,7 @@ import { Filter, RotateCcw, Search } from 'lucide-react';
 import { MOCK_BRANDS, MOCK_CATEGORIES, MOCK_PRODUCTS } from '@/data/mock';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface FilterSidebarProps {
   searchTerm: string;
@@ -37,18 +38,20 @@ export function FilterSidebar({
   setSelectedSize,
   resetFilters,
 }: FilterSidebarProps) {
+  const { t } = useLanguage();
+
   const brandOptions = [
-    { label: 'Todas las marcas', value: 'all' },
+    { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
     ...MOCK_BRANDS.map((b) => ({ label: b.name, value: b.name })),
   ];
 
   const categoryOptions = [
-    { label: 'Todas las categorías', value: 'all' },
+    { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
     ...MOCK_CATEGORIES.map((c) => ({ label: c.name, value: c.name })),
   ];
 
   const materialOptions = [
-    { label: 'Todos los materiales', value: 'all' },
+    { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
     { label: 'Titanio', value: 'Titanio' },
     { label: 'Acetato', value: 'Acetato' },
     { label: 'Metal', value: 'Metal' },
@@ -57,7 +60,7 @@ export function FilterSidebar({
   ];
 
   const genderOptions = [
-    { label: 'Todos los géneros', value: 'all' },
+    { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
     { label: 'Hombre', value: 'Hombre' },
     { label: 'Mujer', value: 'Mujer' },
     { label: 'Unisex', value: 'Unisex' },
@@ -65,7 +68,7 @@ export function FilterSidebar({
 
   const uniqueSizes = Array.from(new Set(MOCK_PRODUCTS.map((p) => p.eyeSize))).sort();
   const sizeOptions = [
-    { label: 'Todas las tallas', value: 'all' },
+    { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
     ...uniqueSizes.map((s) => ({ label: String(s), value: String(s) })),
   ];
 
@@ -100,48 +103,48 @@ export function FilterSidebar({
             gap: '0.25rem',
           }}
         >
-          <RotateCcw size={14} /> Limpiar
+          <RotateCcw size={14} /> {t('catalog.resetFilters' as any)}
         </button>
       </div>
 
       <Input
-        label="Buscar Referencia"
-        placeholder="Ej: Koroit..."
+        label={t('nav.search' as any)}
+        placeholder="..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         icon={<Search size={16} />}
       />
 
       <Select
-        label="Marca"
+        label={t('catalog.filter.brand' as any)}
         options={brandOptions}
         value={selectedBrand}
         onChange={(e) => setSelectedBrand(e.target.value)}
       />
 
       <Select
-        label="Categoría"
+        label="Category"
         options={categoryOptions}
         value={selectedCategory}
         onChange={(e) => setSelectedCategory(e.target.value)}
       />
 
       <Select
-        label="Material"
+        label={t('catalog.filter.material' as any)}
         options={materialOptions}
         value={selectedMaterial}
         onChange={(e) => setSelectedMaterial(e.target.value)}
       />
 
       <Select
-        label="Género"
+        label={t('catalog.filter.gender' as any)}
         options={genderOptions}
         value={selectedGender}
         onChange={(e) => setSelectedGender(e.target.value)}
       />
 
       <Select
-        label="Talla (Eye Size)"
+        label={t('catalog.filter.size' as any)}
         options={sizeOptions}
         value={selectedSize}
         onChange={(e) => setSelectedSize(e.target.value)}

@@ -3,16 +3,18 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ChevronRight, Heart, ShoppingCart, Truck, ShieldCheck, Award, Wrench } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Globe2, Award, ChevronRight, Heart } from 'lucide-react';
 import { MOCK_PRODUCTS } from '@/data/mock';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { isLoggedIn } = useAuth();
+  const { t } = useLanguage();
   
   const product = MOCK_PRODUCTS.find((p) => p.id === params.id);
   
@@ -110,22 +112,22 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Modelo</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{product.reference}</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Marca</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{product.brand}</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Material</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{product.material}</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Tamaño ocular</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{product.eyeSize}</span>
-              </div>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.model' as any)}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.reference}</span>
+                </div>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.brand' as any)}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.brand}</span>
+                </div>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.material' as any)}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.material}</span>
+                </div>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.size' as any)}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.eyeSize}-{product.bridgeSize}-{product.templeLength}</span>
+                </div>
             </div>
 
             <div style={{ borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)', padding: '1.5rem 0', marginBottom: '2rem' }}>
@@ -140,30 +142,37 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     className="btn-primary" 
                     style={{ padding: '0.8rem 2rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                   >
-                    <ShoppingCart size={20} /> Agregar al carrito
+                    <ShoppingBag size={20} /> Agregar al carrito
                   </button>
                 </div>
               ) : (
                 <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                    🔒 Inicia sesión para ver precio y comprar
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-tertiary)', display: 'block', marginBottom: '0.75rem' }}>
+                    {t('common.price.locked.full' as any)}
                   </span>
+                  <Link href="/login" className="btn-secondary" style={{ padding: '0.5rem 1.5rem', display: 'inline-block' }}>
+                    {t('nav.login' as any)}
+                  </Link>
                 </div>
               )}
             </div>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                <Truck size={16} color="var(--blue)" /> Envío disponible a todo Latinoamérica
+              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <Globe2 size={20} color="var(--blue)" />
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('pdp.benefit.shipping' as any)}</span>
               </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                <ShieldCheck size={16} color="var(--blue)" /> Garantía de calidad DUBROS
+              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <ShieldCheck size={20} color="var(--blue)" />
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('pdp.benefit.warranty' as any)}</span>
               </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                <Award size={16} color="var(--blue)" /> Alta Durabilidad garantizada
+              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <Award size={20} color="var(--blue)" />
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('pdp.benefit.durability' as any)}</span>
               </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                <Wrench size={16} color="var(--blue)" /> Soporte técnico especializado
+              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <Truck size={20} color="var(--blue)" />
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('pdp.benefit.support' as any)}</span>
               </li>
             </ul>
 
@@ -175,9 +184,9 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       {suggestedProducts.length > 0 && (
         <div style={{ backgroundColor: 'var(--bg-secondary)', marginTop: '5rem', padding: '4rem 0' }}>
           <div className="container">
-            <h2 style={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '2.5rem' }}>
-              También te puede interesar
-            </h2>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem', color: 'var(--text-primary)', textAlign: 'center' }}>
+              {t('pdp.suggested' as any)}
+            </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
               {suggestedProducts.map((sp) => (

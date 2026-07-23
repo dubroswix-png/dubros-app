@@ -52,13 +52,11 @@ function CatalogContent() {
         }}
       >
         <div>
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 800 }}>
-            {isFavOnly ? '❤️ Mis Productos Favoritos' : '👓 Catálogo de Productos'}
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+            {isFavOnly ? t('catalog.favorites_title') : t('catalog.title')}
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginTop: '0.25rem' }}>
-            {isFavOnly
-              ? 'Tus monturas guardadas para acceso rápido'
-              : 'Explora monturas ópticas y gafas de sol disponibles para tu región'}
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
+            {isFavOnly ? t('catalog.favorites_subtitle') : t('catalog.subtitle')}
           </p>
         </div>
 
