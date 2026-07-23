@@ -1,0 +1,89 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "catalog": "Catálogo",
+    "blog": "Blog",
+    "contact": "Contacto",
+    "orders": "Pedidos",
+    "cart": "Mi carrito",
+    "favorites": "Favoritos",
+    "dashboard": "Dashboard",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión"
+  },
+  "home": {
+    "hero_tag": "La plataforma que impulsa",
+    "hero_title": "El crecimiento de tu negocio óptico",
+    "hero_subtitle": "Más de 25 años distribuyendo innovación y calidad en toda Latinoamérica.",
+    "hero_cta": "Ver catálogo",
+    "collections_title": "Colecciones Destacadas",
+    "collections_subtitle": "Descubre nuestra selección de marcos y productos ópticos premium.",
+    "commitment_title": "Nuestro compromiso contigo",
+    "commitment_desc": "Proporcionamos soluciones integrales de distribución óptica para tu negocio con respaldo garantizado.",
+    "history_title": "La historia que nos define",
+    "brands_title": "Nuestras Marcas Exclusivas"
+  },
+  "catalog": {
+    "title": "Catálogo de Productos",
+    "search_placeholder": "Buscar por referencia...",
+    "filters": "Filtros",
+    "apply_filters": "Aplicar filtros",
+    "clear_filters": "Limpiar filtros",
+    "showing": "Mostrando",
+    "items": "artículos",
+    "pages": "Páginas",
+    "add_to_cart": "Agregar al carrito",
+    "size": "Talla Ocular",
+    "material": "Material",
+    "gender": "Género",
+    "price": "Precio",
+    "brand": "Marca",
+    "per_piece": "PIEZA",
+    "favorites_only": "Solo Mis Favoritos"
+  },
+  "contact": {
+    "title": "Contáctanos",
+    "subtitle": "Completa el siguiente formulario con tu información y nos pondremos en contacto contigo lo antes posible.",
+    "name": "Nombre",
+    "lastname": "Apellido",
+    "email": "Correo electrónico",
+    "company": "Compañía / Óptica",
+    "country": "País de compañía",
+    "whatsapp": "WhatsApp",
+    "message": "Mensaje",
+    "send": "Enviar mensaje"
+  },
+  "onboarding": {
+    "welcome": "¡Bienvenido a Dubros!",
+    "subtitle": "Para personalizar tu experiencia y mostrarte las marcas disponibles en tu país, necesitamos algunos datos:",
+    "country": "País *",
+    "business_type": "Tipo de negocio *",
+    "optical_distributor": "Distribuidor óptico",
+    "optical_chain": "Cadena de ópticas",
+    "independent_optical": "Óptica independiente",
+    "ophthalmology_office": "Consultorio oftalmológico",
+    "company_name": "Nombre de la empresa *",
+    "complete": "Completar registro"
+  },
+  "footer": {
+    "contact_us": "Contáctanos",
+    "stay_informed": "Mantente Informado",
+    "newsletter_text": "Manténgase al día con los anuncios, innovaciones y actualizaciones importantes de Dubros hoy.",
+    "subscribe": "Suscribirme ahora",
+    "rights": "Todos los derechos reservados.",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos y Condiciones"
+  },
+  "common": {
+    "explore": "Explorar",
+    "view_more": "Ver más",
+    "loading": "Cargando...",
+    "no_results": "Sin resultados encontrados",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar"
+  }
+}

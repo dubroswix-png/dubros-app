@@ -1,0 +1,89 @@
+{
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "blog": "Blog",
+    "contact": "Contact",
+    "orders": "Orders",
+    "cart": "My Cart",
+    "favorites": "Favorites",
+    "dashboard": "Dashboard",
+    "logout": "Log Out",
+    "login": "Log In"
+  },
+  "home": {
+    "hero_tag": "The platform that drives",
+    "hero_title": "The growth of your optical business",
+    "hero_subtitle": "Over 25 years distributing innovation and quality across Latin America.",
+    "hero_cta": "View Catalog",
+    "collections_title": "Featured Collections",
+    "collections_subtitle": "Discover our selection of premium optical frames and products.",
+    "commitment_title": "Our Commitment to You",
+    "commitment_desc": "We provide comprehensive optical distribution solutions for your business with guaranteed support.",
+    "history_title": "The History That Defines Us",
+    "brands_title": "Our Exclusive Brands"
+  },
+  "catalog": {
+    "title": "Product Catalog",
+    "search_placeholder": "Search by reference...",
+    "filters": "Filters",
+    "apply_filters": "Apply Filters",
+    "clear_filters": "Clear Filters",
+    "showing": "Showing",
+    "items": "items",
+    "pages": "Pages",
+    "add_to_cart": "Add to Cart",
+    "size": "Eye Size",
+    "material": "Material",
+    "gender": "Gender",
+    "price": "Price",
+    "brand": "Brand",
+    "per_piece": "PIECE",
+    "favorites_only": "My Favorites Only"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Fill out the form below with your information and we will get back to you as soon as possible.",
+    "name": "First Name",
+    "lastname": "Last Name",
+    "email": "Email Address",
+    "company": "Company / Optical Shop",
+    "country": "Company Country",
+    "whatsapp": "WhatsApp",
+    "message": "Message",
+    "send": "Send Message"
+  },
+  "onboarding": {
+    "welcome": "Welcome to Dubros!",
+    "subtitle": "To customize your experience and display the brands available in your country, we need a few details:",
+    "country": "Country *",
+    "business_type": "Business Type *",
+    "optical_distributor": "Optical Distributor",
+    "optical_chain": "Optical Chain",
+    "independent_optical": "Independent Optical Shop",
+    "ophthalmology_office": "Ophthalmology Practice",
+    "company_name": "Company Name *",
+    "complete": "Complete Registration"
+  },
+  "footer": {
+    "contact_us": "Contact Us",
+    "stay_informed": "Stay Informed",
+    "newsletter_text": "Stay up to date with Dubros announcements, innovations, and important updates.",
+    "subscribe": "Subscribe Now",
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions"
+  },
+  "common": {
+    "explore": "Explore",
+    "view_more": "View More",
+    "loading": "Loading...",
+    "no_results": "No results found",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search"
+  }
+}

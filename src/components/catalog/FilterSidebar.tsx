@@ -1,0 +1,134 @@
+'use client';
+
+import React from 'react';
+import { Filter, RotateCcw, Search } from 'lucide-react';
+import { MOCK_BRANDS, MOCK_CATEGORIES } from '@/data/mock';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+
+interface FilterSidebarProps {
+  searchTerm: string;
+  setSearchTerm: (v: string) => void;
+  selectedBrand: string;
+  setSelectedBrand: (v: string) => void;
+  selectedCategory: string;
+  setSelectedCategory: (v: string) => void;
+  selectedMaterial: string;
+  setSelectedMaterial: (v: string) => void;
+  selectedGender: string;
+  setSelectedGender: (v: string) => void;
+  resetFilters: () => void;
+}
+
+export function FilterSidebar({
+  searchTerm,
+  setSearchTerm,
+  selectedBrand,
+  setSelectedBrand,
+  selectedCategory,
+  setSelectedCategory,
+  selectedMaterial,
+  setSelectedMaterial,
+  selectedGender,
+  setSelectedGender,
+  resetFilters,
+}: FilterSidebarProps) {
+  const brandOptions = [
+    { label: 'Todas las marcas', value: 'all' },
+    ...MOCK_BRANDS.map((b) => ({ label: b.name, value: b.name })),
+  ];
+
+  const categoryOptions = [
+    { label: 'Todas las categorías', value: 'all' },
+    ...MOCK_CATEGORIES.map((c) => ({ label: c.name, value: c.name })),
+  ];
+
+  const materialOptions = [
+    { label: 'Todos los materiales', value: 'all' },
+    { label: 'Titanio', value: 'Titanio' },
+    { label: 'Acetato', value: 'Acetato' },
+    { label: 'Metal', value: 'Metal' },
+    { label: 'TR90', value: 'TR90' },
+    { label: 'Combinado', value: 'Combinado' },
+  ];
+
+  const genderOptions = [
+    { label: 'Todos los géneros', value: 'all' },
+    { label: 'Hombre', value: 'Hombre' },
+    { label: 'Mujer', value: 'Mujer' },
+    { label: 'Unisex', value: 'Unisex' },
+  ];
+
+  return (
+    <aside
+      style={{
+        backgroundColor: 'var(--bg-card)',
+        padding: '1.5rem',
+        borderRadius: 'var(--radius-lg)',
+        border: '1px solid var(--border-light)',
+        height: 'fit-content',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.25rem',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Filter size={18} /> Filtros
+        </h2>
+        <button
+          onClick={resetFilters}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--blue)',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+          }}
+        >
+          <RotateCcw size={14} /> Limpiar
+        </button>
+      </div>
+
+      <Input
+        label="Buscar Referencia"
+        placeholder="Ej: Koroit..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        icon={<Search size={16} />}
+      />
+
+      <Select
+        label="Marca"
+        options={brandOptions}
+        value={selectedBrand}
+        onChange={(e) => setSelectedBrand(e.target.value)}
+      />
+
+      <Select
+        label="Categoría"
+        options={categoryOptions}
+        value={selectedCategory}
+        onChange={(e) => setSelectedCategory(e.target.value)}
+      />
+
+      <Select
+        label="Material"
+        options={materialOptions}
+        value={selectedMaterial}
+        onChange={(e) => setSelectedMaterial(e.target.value)}
+      />
+
+      <Select
+        label="Género"
+        options={genderOptions}
+        value={selectedGender}
+        onChange={(e) => setSelectedGender(e.target.value)}
+      />
+    </aside>
+  );
+}
