@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,19 +23,17 @@ export default function LoginPage() {
 
     try {
       if (isRegister) {
-        const success = await register(email, password);
-        if (!success) {
-          setError('El correo ya está registrado.');
+        const result = await register(email, password);
+        if (!result.success) {
+          setError(result.error || 'Error al registrar la cuenta.');
         } else {
           router.push('/onboarding');
         }
       } else {
-        const success = await login(email, password);
-        if (!success) {
-          setError('Correo o contraseña incorrectos.');
+        const result = await login(email, password);
+        if (!result.success) {
+          setError(result.error || 'Correo o contraseña incorrectos.');
         } else {
-          // Relies on the updated Context state (but we can't reliably read `userProfile` synchronously here).
-          // We'll let a useEffect handle redirect, or do a simple hardcoded check:
           if (email === 'dubroswix@gmail.com') {
             router.push('/dashboard');
           } else {
@@ -51,15 +50,16 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const mockEmail = 'google-user@gmail.com';
-    const loginSuccess = await login(mockEmail);
-    if (loginSuccess) {
-      router.push('/catalogo');
-    } else {
-      await register(mockEmail);
-      router.push('/onboarding');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/catalogo`,
+      },
+    });
+    if (error) {
+      setError(error.message);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

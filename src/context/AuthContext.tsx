@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { User, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'admin' | 'client' | 'pending';
 
@@ -17,105 +19,136 @@ export interface UserProfile {
 interface AuthContextType {
   isLoggedIn: boolean;
   userProfile: UserProfile | null;
-  login: (email: string, password?: string) => Promise<boolean>;
-  register: (email: string, password?: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   completeOnboarding: (data: Partial<UserProfile>) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Simulated database
-const MOCK_USERS: Record<string, UserProfile> = {
-  'dubroswix@gmail.com': { email: 'dubroswix@gmail.com', role: 'admin', name: 'Super Admin' },
-  'duque.jdavid@gmail.com': { email: 'duque.jdavid@gmail.com', role: 'client', name: 'Juan David' },
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
-  useEffect(() => {
-    // Check localStorage on mount
-    const savedAuth = localStorage.getItem('dubros_auth_v2');
-    if (savedAuth) {
-      try {
-        const parsed = JSON.parse(savedAuth);
-        if (parsed.isLoggedIn && parsed.profile) {
-          setIsLoggedIn(true);
-          setUserProfile(parsed.profile);
-        }
-      } catch (e) {
-        console.error('Error parsing auth state', e);
-      }
+  // Fetch profile from Supabase
+  const fetchProfile = async (user: User) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (data && !error) {
+      const profile: UserProfile = {
+        email: data.email,
+        role: data.role as UserRole,
+        name: data.name || undefined,
+        phone: data.phone || undefined,
+        country: data.country || undefined,
+        companyName: data.company_name || undefined,
+        businessType: data.business_type || undefined,
+      };
+      setUserProfile(profile);
+      setIsLoggedIn(true);
+    } else {
+      // Profile not found yet (maybe trigger hasn't fired), create a minimal one
+      const profile: UserProfile = {
+        email: user.email || '',
+        role: 'pending',
+      };
+      setUserProfile(profile);
+      setIsLoggedIn(true);
     }
+  };
+
+  useEffect(() => {
+    // Check current session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user);
+      }
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          await fetchProfile(session.user);
+        } else {
+          setIsLoggedIn(false);
+          setUserProfile(null);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const persistAuth = (status: boolean, profile: UserProfile | null) => {
-    setIsLoggedIn(status);
-    setUserProfile(profile);
-    if (status && profile) {
-      localStorage.setItem('dubros_auth_v2', JSON.stringify({ isLoggedIn: true, profile }));
-    } else {
-      localStorage.removeItem('dubros_auth_v2');
-    }
-  };
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  const login = async (email: string, password?: string) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Check local storage for newly registered users, fallback to MOCK_USERS
-    const localUsersStr = localStorage.getItem('dubros_users_db');
-    const localUsers = localUsersStr ? JSON.parse(localUsersStr) : {};
-    const db = { ...MOCK_USERS, ...localUsers };
-
-    const user = db[email];
-    if (user) {
-      // Valid user found (ignoring password validation for mock simplicity)
-      persistAuth(true, user);
-      return true;
-    }
-    return false; // User not found
-  };
-
-  const register = async (email: string, password?: string) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const localUsersStr = localStorage.getItem('dubros_users_db');
-    const localUsers = localUsersStr ? JSON.parse(localUsersStr) : {};
-    const db = { ...MOCK_USERS, ...localUsers };
-
-    if (db[email]) {
-      return false; // Already exists
+    if (error) {
+      return { success: false, error: error.message };
     }
 
-    const newUser: UserProfile = { email, role: 'pending' };
-    localUsers[email] = newUser;
-    localStorage.setItem('dubros_users_db', JSON.stringify(localUsers));
-    
-    // Automatically log them in as pending
-    persistAuth(true, newUser);
-    return true;
+    if (data.user) {
+      await fetchProfile(data.user);
+    }
+    return { success: true };
   };
 
-  const completeOnboarding = (data: Partial<UserProfile>) => {
+  const register = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (data.user) {
+      await fetchProfile(data.user);
+    }
+    return { success: true };
+  };
+
+  const completeOnboarding = async (data: Partial<UserProfile>) => {
     if (!userProfile) return;
 
-    const updatedProfile = { ...userProfile, ...data, role: 'client' as UserRole };
-    
-    // Update local DB
-    const localUsersStr = localStorage.getItem('dubros_users_db');
-    const localUsers = localUsersStr ? JSON.parse(localUsersStr) : {};
-    localUsers[updatedProfile.email] = updatedProfile;
-    localStorage.setItem('dubros_users_db', JSON.stringify(localUsers));
+    // Get current user id
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-    // Update current session
-    persistAuth(true, updatedProfile);
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        role: 'client',
+        name: data.name,
+        phone: data.phone,
+        country: data.country,
+        company_name: data.companyName,
+        business_type: data.businessType,
+      })
+      .eq('id', user.id);
+
+    if (!error) {
+      setUserProfile({
+        ...userProfile,
+        ...data,
+        role: 'client',
+      });
+    }
   };
 
-  const logout = () => {
-    persistAuth(false, null);
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+    setUserProfile(null);
   };
 
   return (
