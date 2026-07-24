@@ -2,10 +2,20 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MOCK_PRODUCTS } from '@/data/mock';
 import { ShoppingCart, Trash2, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CartPage() {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
+
+  React.useEffect(() => {
+    if (!isLoggedIn) router.push('/login');
+  }, [isLoggedIn, router]);
+
+  if (!isLoggedIn) return null;
   const [orderCreated, setOrderCreated] = useState(false);
   const [cartItems, setCartItems] = useState([
     { product: MOCK_PRODUCTS[0], quantity: 12 },

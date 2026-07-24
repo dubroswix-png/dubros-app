@@ -76,7 +76,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               Panel de Administración
             </span>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <ShieldAlert size={14} color="#EF4444" /> dubroswix@gmail.com
+              <ShieldAlert size={14} color="#EF4444" /> {userProfile?.email}
             </div>
           </div>
 

@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { login, register, userProfile } = useAuth();
+  const { login, register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

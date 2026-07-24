@@ -2,9 +2,19 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Package, Clock, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function MyOrdersPage() {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
+
+  React.useEffect(() => {
+    if (!isLoggedIn) router.push('/login');
+  }, [isLoggedIn, router]);
+
+  if (!isLoggedIn) return null;
   const mockOrders = [
     {
       id: 'ord-101',
