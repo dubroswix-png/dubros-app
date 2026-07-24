@@ -1,123 +1,197 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Package, Clock, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
+import { Package, Clock, CheckCircle, ExternalLink, RefreshCw, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { getUserOrders, OrderRecord } from '@/lib/orders';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function MyOrdersPage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
-    if (!isLoggedIn) router.push('/login');
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+
+    const loadOrders = async () => {
+      setLoading(true);
+      const userOrders = await getUserOrders();
+      setOrders(userOrders);
+      setLoading(false);
+    };
+
+    loadOrders();
   }, [isLoggedIn, router]);
 
   if (!isLoggedIn) return null;
-  const mockOrders = [
-    {
-      id: 'ord-101',
-      orderNumber: 'DB-2026-089',
-      date: '2026-07-22',
-      itemsCount: 42,
-      subtotal: 984.00,
-      status: 'Completada',
-      switchOrderNumber: 'SW-98214',
-      switchSynced: true,
-    },
-    {
-      id: 'ord-102',
-      orderNumber: 'DB-2026-074',
-      date: '2026-06-15',
-      itemsCount: 24,
-      subtotal: 516.00,
-      status: 'Pendiente',
-      switchOrderNumber: 'SW-95102',
-      switchSynced: true,
-    },
-    {
-      id: 'ord-103',
-      orderNumber: 'DB-2026-012',
-      date: '2026-04-03',
-      itemsCount: 120,
-      subtotal: 2840.50,
-      status: 'Completada',
-      switchOrderNumber: 'SW-89411',
-      switchSynced: true,
-    },
-  ];
 
   return (
     <div className="container" style={{ padding: '3rem 1.5rem 5rem 1.5rem' }}>
-      
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2.2rem', fontWeight: 800 }}>📦 Mis Pedidos Realizados</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-          Historial completo de tus compras y estado de sincronización con el sistema ERP Switch.
-        </p>
+      <div style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '2.2rem', fontWeight: 800 }}>📦 Historial de Pedidos</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+            Consulta el estado de tus compras y la sincronización con el sistema ERP.
+          </p>
+        </div>
+
+        <Link href="/catalogo" className="btn-primary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.9rem' }}>
+          + Nuevo Pedido
+        </Link>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-light)' }}>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 700 }}>Nº Pedido</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 700 }}>Fecha</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 700 }}>Artículos</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 700 }}>Subtotal</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 700 }}>Estado</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 700 }}>ERP Switch</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 700, textAlign: 'right' }}>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mockOrders.map((order) => (
-                <tr key={order.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                  <td style={{ padding: '1.25rem 1.5rem', fontWeight: 700, color: 'var(--blue)' }}>
-                    {order.orderNumber}
-                  </td>
-                  <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
-                    {order.date}
-                  </td>
-                  <td style={{ padding: '1.25rem 1.5rem', fontWeight: 600 }}>
-                    {order.itemsCount} piezas
-                  </td>
-                  <td style={{ padding: '1.25rem 1.5rem', fontWeight: 800 }}>
-                    ${order.subtotal.toFixed(2)}
-                  </td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-tertiary)' }}>
+          Cargando pedidos...
+        </div>
+      ) : orders.length === 0 ? (
+        <EmptyState
+          icon={Package}
+          title="Aún no tienes pedidos registrados"
+          description="Explora nuestro catálogo B2B y genera tu primer pedido de armazones."
+          actionLabel="Ir al Catálogo"
+          onAction={() => router.push('/catalogo')}
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {orders.map((order) => (
+            <div
+              key={order.id}
+              className="card"
+              style={{
+                padding: '1.75rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.25rem',
+              }}
+            >
+              {/* HEADER ROW */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingBottom: '1rem',
+                  borderBottom: '1px solid var(--border-light)',
+                  flexWrap: 'wrap',
+                  gap: '1rem',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                    <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--navy)' }}>
+                      #{order.order_number}
+                    </span>
                     <span
                       style={{
-                        padding: '0.3rem 0.75rem',
-                        borderRadius: 'var(--radius-full)',
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: 'var(--radius-sm)',
                         fontSize: '0.75rem',
                         fontWeight: 700,
-                        backgroundColor: order.status === 'Completada' ? '#DCFCE7' : '#FEF3C7',
-                        color: order.status === 'Completada' ? '#15803D' : '#B45309',
+                        backgroundColor:
+                          order.status === 'Completada'
+                            ? '#DEF7EC'
+                            : order.status === 'Cancelada'
+                            ? '#FEE2E2'
+                            : '#FEF08A',
+                        color:
+                          order.status === 'Completada'
+                            ? '#03543F'
+                            : order.status === 'Cancelada'
+                            ? '#9B1C1C'
+                            : '#713F12',
                       }}
                     >
                       {order.status}
                     </span>
-                  </td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                      <RefreshCw size={14} color="#16A34A" />
-                      <span>{order.switchOrderNumber}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
-                    <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
-                      Ver Detalles
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+                    Realizado el {new Date(order.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>Subtotal</div>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                    ${Number(order.subtotal).toFixed(2)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    {order.total_items} piezas
+                  </div>
+                </div>
+              </div>
+
+              {/* ERP SWITCH STATUS BADGE */}
+              <div
+                style={{
+                  backgroundColor: 'var(--bg-secondary)',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.82rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <RefreshCw size={15} color="var(--blue)" />
+                  <span>
+                    Integración ERP <strong>Switch</strong>:
+                  </span>
+                  <span style={{ fontWeight: 700, color: order.switch_synced ? 'var(--green)' : 'var(--text-secondary)' }}>
+                    {order.switch_synced ? `Sincronizado (${order.switch_order_number || 'SW-OK'})` : 'En cola de sincronización'}
+                  </span>
+                </div>
+                {order.shipping_address && (
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
+                    Destino: {order.shipping_address}
+                  </span>
+                )}
+              </div>
+
+              {/* ITEMS BREAKDOWN */}
+              {order.order_items && order.order_items.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingTop: '0.5rem' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+                    Detalle de Piezas ({order.order_items.length} modelos)
+                  </span>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
+                    {order.order_items.map((item) => (
+                      <div
+                        key={item.id || item.product_id}
+                        style={{
+                          padding: '0.65rem 0.85rem',
+                          backgroundColor: 'var(--bg-primary)',
+                          border: '1px solid var(--border-light)',
+                          borderRadius: 'var(--radius-md)',
+                          fontSize: '0.82rem',
+                        }}
+                      >
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{item.reference}</div>
+                        <div style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>
+                          {item.brand} | Cód: {item.code}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem', fontWeight: 600 }}>
+                          <span>{item.quantity} pzs x ${Number(item.unit_price).toFixed(2)}</span>
+                          <span style={{ color: 'var(--blue)' }}>${Number(item.total_price).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }
