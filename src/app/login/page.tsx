@@ -223,11 +223,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-light)', textAlign: 'center' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-            Super Admin demo: <strong>dubroswix@gmail.com</strong>
-          </span>
-        </div>
+
       </div>
     </div>
   );

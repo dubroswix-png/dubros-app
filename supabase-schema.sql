@@ -37,26 +37,33 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- 4. Políticas de Seguridad (RLS)
 
+-- Función segura para evitar recursión infinita
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+END;
+$$;
+
 -- Los usuarios leen su propio perfil o los administradores leen todos
 CREATE POLICY "Users can view own profile or admins view all"
   ON public.profiles FOR SELECT
   USING (
-    auth.uid() = id
-    OR EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
+    auth.uid() = id OR public.is_admin()
   );
 
 -- Los usuarios editan su propio perfil o los administradores editan todos
 CREATE POLICY "Users can update own profile or admins update all"
   ON public.profiles FOR UPDATE
   USING (
-    auth.uid() = id
-    OR EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
+    auth.uid() = id OR public.is_admin()
   );
 
 -- Permitir creación de perfiles desde el trigger de registro

@@ -41,9 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .single();
 
     if (data && !error) {
+      const isAdminEmail = data.email === 'dubroswix@gmail.com';
       const profile: UserProfile = {
         email: data.email,
-        role: data.role as UserRole,
+        role: isAdminEmail ? 'admin' : (data.role as UserRole),
         name: data.name || undefined,
         phone: data.phone || undefined,
         country: data.country || undefined,
@@ -54,9 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoggedIn(true);
     } else {
       // Profile not found yet (maybe trigger hasn't fired), create a minimal one
+      const isAdminEmail = user.email === 'dubroswix@gmail.com';
       const profile: UserProfile = {
         email: user.email || '',
-        role: 'pending',
+        role: isAdminEmail ? 'admin' : 'pending',
       };
       setUserProfile(profile);
       setIsLoggedIn(true);
