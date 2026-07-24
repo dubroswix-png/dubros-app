@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Product } from '@/data/mock';
 
 interface UseCatalogFilterOptions {
@@ -10,16 +10,49 @@ interface UseCatalogFilterOptions {
   selectedPrice?: string;
 }
 
-export function useCatalogFilter({ products, favorites, isFavOnly = false, selectedPrice = 'all' }: UseCatalogFilterOptions) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState<string>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedMaterial, setSelectedMaterial] = useState<string>('all');
-  const [selectedGender, setSelectedGender] = useState<string>('all');
-  const [selectedSize, setSelectedSize] = useState<string>('all');
-  const [selectedCountry, setSelectedCountry] = useState<string>('PA');
+interface FilterState {
+  searchTerm: string;
+  selectedBrand: string;
+  selectedCategory: string;
+  selectedMaterial: string;
+  selectedGender: string;
+  selectedSize: string;
+  selectedCountry: string;
+}
+
+const INITIAL_STATE: FilterState = {
+  searchTerm: '',
+  selectedBrand: 'all',
+  selectedCategory: 'all',
+  selectedMaterial: 'all',
+  selectedGender: 'all',
+  selectedSize: 'all',
+  selectedCountry: 'PA',
+};
+
+export function useCatalogFilter({
+  products,
+  favorites,
+  isFavOnly = false,
+  selectedPrice = 'all',
+}: UseCatalogFilterOptions) {
+  const [filters, setFilters] = useState<FilterState>(INITIAL_STATE);
+
+  const setFilterField = useCallback(<K extends keyof FilterState>(field: K, value: FilterState[K]) => {
+    setFilters((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const filteredProducts = useMemo(() => {
+    const {
+      searchTerm,
+      selectedBrand,
+      selectedCategory,
+      selectedMaterial,
+      selectedGender,
+      selectedSize,
+      selectedCountry,
+    } = filters;
+
     return products.filter((product) => {
       if (isFavOnly && !favorites.includes(product.id)) {
         return false;
@@ -59,44 +92,27 @@ export function useCatalogFilter({ products, favorites, isFavOnly = false, selec
 
       return true;
     });
-  }, [
-    products,
-    searchTerm,
-    selectedBrand,
-    selectedCategory,
-    selectedMaterial,
-    selectedGender,
-    selectedSize,
-    selectedCountry,
-    isFavOnly,
-    favorites,
-    selectedPrice,
-  ]);
+  }, [products, favorites, isFavOnly, selectedPrice, filters]);
 
-  const resetFilters = () => {
-    setSearchTerm('');
-    setSelectedBrand('all');
-    setSelectedCategory('all');
-    setSelectedMaterial('all');
-    setSelectedGender('all');
-    setSelectedSize('all');
-  };
+  const resetFilters = useCallback(() => {
+    setFilters(INITIAL_STATE);
+  }, []);
 
   return {
-    searchTerm,
-    setSearchTerm,
-    selectedBrand,
-    setSelectedBrand,
-    selectedCategory,
-    setSelectedCategory,
-    selectedMaterial,
-    setSelectedMaterial,
-    selectedGender,
-    setSelectedGender,
-    selectedSize,
-    setSelectedSize,
-    selectedCountry,
-    setSelectedCountry,
+    searchTerm: filters.searchTerm,
+    setSearchTerm: (v: string) => setFilterField('searchTerm', v),
+    selectedBrand: filters.selectedBrand,
+    setSelectedBrand: (v: string) => setFilterField('selectedBrand', v),
+    selectedCategory: filters.selectedCategory,
+    setSelectedCategory: (v: string) => setFilterField('selectedCategory', v),
+    selectedMaterial: filters.selectedMaterial,
+    setSelectedMaterial: (v: string) => setFilterField('selectedMaterial', v),
+    selectedGender: filters.selectedGender,
+    setSelectedGender: (v: string) => setFilterField('selectedGender', v),
+    selectedSize: filters.selectedSize,
+    setSelectedSize: (v: string) => setFilterField('selectedSize', v),
+    selectedCountry: filters.selectedCountry,
+    setSelectedCountry: (v: string) => setFilterField('selectedCountry', v),
     filteredProducts,
     resetFilters,
   };

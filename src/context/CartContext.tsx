@@ -24,51 +24,68 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    { product: MOCK_PRODUCTS[0], quantity: 12 },
-    { product: MOCK_PRODUCTS[1], quantity: 6 },
-    { product: MOCK_PRODUCTS[2], quantity: 24 },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Load saved cart on mount
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('dubros_cart');
+      if (saved) {
+        setCartItems(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error('Error loading cart from localStorage', e);
+    }
+  }, []);
+
+  // Sync cart to localStorage on change
+  const updateCartState = (newItems: CartItem[]) => {
+    setCartItems(newItems);
+    try {
+      localStorage.setItem('dubros_cart', JSON.stringify(newItems));
+    } catch (e) {
+      console.error('Error saving cart to localStorage', e);
+    }
+  };
 
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
 
   const addToCart = (product: Product, quantity: number = 1) => {
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...prev, { product, quantity }];
-    });
+    const existing = cartItems.find((item) => item.product.id === product.id);
+    let updated: CartItem[];
+    if (existing) {
+      updated = cartItems.map((item) =>
+        item.product.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+      );
+    } else {
+      updated = [...cartItems, { product, quantity }];
+    }
+    updateCartState(updated);
     openCart();
   };
 
   const updateQuantity = (productId: string, delta: number) => {
-    setCartItems((prev) =>
-      prev
-        .map((item) => {
-          if (item.product.id === productId) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
-          }
-          return item;
-        })
-        .filter(Boolean) as CartItem[]
-    );
+    const updated = cartItems
+      .map((item) => {
+        if (item.product.id === productId) {
+          const newQty = item.quantity + delta;
+          return newQty > 0 ? { ...item, quantity: newQty } : null;
+        }
+        return item;
+      })
+      .filter(Boolean) as CartItem[];
+    updateCartState(updated);
   };
 
   const removeFromCart = (productId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.product.id !== productId));
+    const updated = cartItems.filter((item) => item.product.id !== productId);
+    updateCartState(updated);
   };
 
   const clearCart = () => {
-    setCartItems([]);
+    updateCartState([]);
   };
 
   const totalArticles = cartItems.reduce((acc, item) => acc + item.quantity, 0);
