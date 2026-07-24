@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard,
   Users,
@@ -22,6 +23,21 @@ import {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { userProfile, isLoggedIn } = useAuth();
+
+  React.useEffect(() => {
+    // If we're fully loaded and not an admin, boot them out
+    if (!isLoggedIn) {
+      router.push('/login');
+    } else if (userProfile?.role !== 'admin') {
+      router.push('/catalogo');
+    }
+  }, [isLoggedIn, userProfile, router]);
+
+  if (!isLoggedIn || userProfile?.role !== 'admin') {
+    return null; // Don't render dashboard while redirecting
+  }
 
   const navItems = [
     { label: 'Inicio', href: '/dashboard', icon: LayoutDashboard },

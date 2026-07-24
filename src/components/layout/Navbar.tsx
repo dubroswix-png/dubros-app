@@ -14,7 +14,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { totalArticles, openCart } = useCart();
   const { favorites } = useFavorites();
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, userProfile, logout } = useAuth();
   const { t } = useLanguage();
 
   return (
@@ -165,20 +165,22 @@ export function Navbar() {
 
           {isLoggedIn ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Link
-                href="/dashboard"
-                className="btn-secondary"
-                style={{
-                  padding: '0.45rem 0.9rem',
-                  fontSize: '0.85rem',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                }}
-              >
-                <Shield size={16} />
-                {t('nav.dashboard' as any)}
-              </Link>
+              {userProfile?.role === 'admin' && (
+                <Link
+                  href="/dashboard"
+                  className="btn-secondary"
+                  style={{
+                    padding: '0.45rem 0.9rem',
+                    fontSize: '0.85rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                  }}
+                >
+                  <Shield size={16} />
+                  {t('nav.dashboard' as any)}
+                </Link>
+              )}
               <button
                 onClick={logout}
                 aria-label="Cerrar sesión"

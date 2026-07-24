@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LATAM_COUNTRIES } from '@/data/mock';
 import { Building2, Globe, Phone, CheckCircle2, ArrowRight, Shield } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { completeOnboarding } = useAuth();
   const [formData, setFormData] = useState({
     pais: 'Panamá',
     tipoNegocio: 'optica_independiente',
@@ -26,7 +28,12 @@ export default function OnboardingPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Guardar estado de onboarding completo
+    completeOnboarding({
+      country: formData.pais,
+      businessType: formData.tipoNegocio,
+      companyName: formData.nombreEmpresa,
+      phone: `${formData.whatsappCodigo} ${formData.whatsappNumero}`,
+    });
     router.push('/catalogo');
   };
 

@@ -11,23 +11,55 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
-  const { login } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { login, register, userProfile } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email);
-    if (email === 'dubroswix@gmail.com') {
-      router.push('/dashboard');
-    } else if (isRegister) {
-      router.push('/onboarding');
-    } else {
-      router.push('/catalogo');
+    setError(null);
+    setLoading(true);
+
+    try {
+      if (isRegister) {
+        const success = await register(email, password);
+        if (!success) {
+          setError('El correo ya está registrado.');
+        } else {
+          router.push('/onboarding');
+        }
+      } else {
+        const success = await login(email, password);
+        if (!success) {
+          setError('Correo o contraseña incorrectos.');
+        } else {
+          // Relies on the updated Context state (but we can't reliably read `userProfile` synchronously here).
+          // We'll let a useEffect handle redirect, or do a simple hardcoded check:
+          if (email === 'dubroswix@gmail.com') {
+            router.push('/dashboard');
+          } else {
+            router.push('/catalogo');
+          }
+        }
+      }
+    } catch (err) {
+      setError('Ocurrió un error inesperado.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    login('google-user@gmail.com');
-    router.push('/onboarding');
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    const mockEmail = 'google-user@gmail.com';
+    const loginSuccess = await login(mockEmail);
+    if (loginSuccess) {
+      router.push('/catalogo');
+    } else {
+      await register(mockEmail);
+      router.push('/onboarding');
+    }
+    setLoading(false);
   };
 
   return (
@@ -125,6 +157,12 @@ export default function LoginPage() {
           <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-light)' }} />
         </div>
 
+        {error && (
+          <div style={{ padding: '0.8rem', backgroundColor: '#FEE2E2', color: '#EF4444', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'block' }}>
@@ -176,8 +214,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button type="submit" className="btn-primary" style={{ width: '100%', padding: '0.85rem', marginTop: '0.5rem', fontSize: '0.95rem' }}>
-            {isRegister ? 'Crear Cuenta' : 'Iniciar Sesión'} <ArrowRight size={16} />
+          <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', padding: '0.85rem', marginTop: '0.5rem', fontSize: '0.95rem', opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Cargando...' : (isRegister ? 'Crear Cuenta' : 'Iniciar Sesión')} {!loading && <ArrowRight size={16} />}
           </button>
         </form>
 
