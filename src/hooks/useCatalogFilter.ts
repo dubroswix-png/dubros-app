@@ -51,9 +51,10 @@ export function useCatalogFilter({ products, favorites, isFavOnly = false, selec
         return false;
       }
       if (selectedPrice !== 'all') {
-        if (selectedPrice === '0-50' && (product.price < 0 || product.price > 50)) return false;
-        if (selectedPrice === '51-100' && (product.price <= 50 || product.price > 100)) return false;
-        if (selectedPrice === '100+' && product.price <= 100) return false;
+        if (selectedPrice === '1-5' && (product.price < 1 || product.price > 5)) return false;
+        if (selectedPrice === '5-10' && (product.price <= 5 || product.price > 10)) return false;
+        if (selectedPrice === '10-20' && (product.price <= 10 || product.price > 20)) return false;
+        if (selectedPrice === '20+' && product.price <= 20) return false;
       }
 
       return true;
