@@ -11,13 +11,14 @@ DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Service role can insert profiles" ON public.profiles;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 DROP TYPE IF EXISTS public.user_role CASCADE;
 
--- Enum de roles
+-- 1. Enum de roles
 CREATE TYPE public.user_role AS ENUM ('admin', 'client', 'pending');
 
--- Tabla de perfiles
+-- 2. Tabla de perfiles
 CREATE TABLE public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
@@ -31,20 +32,34 @@ CREATE TABLE public.profiles (
   updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
--- RLS
+-- 3. Habilitar RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Politica: usuario lee su propio perfil
-CREATE POLICY "Users can view own profile"
+-- 4. Políticas de Seguridad (RLS)
+
+-- Los usuarios leen su propio perfil o los administradores leen todos
+CREATE POLICY "Users can view own profile or admins view all"
   ON public.profiles FOR SELECT
-  USING ( auth.uid() = id );
+  USING (
+    auth.uid() = id
+    OR EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+    )
+  );
 
--- Politica: usuario edita su propio perfil
-CREATE POLICY "Users can update own profile"
+-- Los usuarios editan su propio perfil o los administradores editan todos
+CREATE POLICY "Users can update own profile or admins update all"
   ON public.profiles FOR UPDATE
-  USING ( auth.uid() = id );
+  USING (
+    auth.uid() = id
+    OR EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+    )
+  );
 
--- Politica: permitir INSERT desde el trigger (service_role)
+-- Permitir creación de perfiles desde el trigger de registro
 CREATE POLICY "Service role can insert profiles"
   ON public.profiles FOR INSERT
   WITH CHECK ( true );
