@@ -1,78 +1,50 @@
 -- ========================================================
--- SCRIPT DE MIGRACIÓN SUPABASE: Usuarios, Roles y Perfiles
+-- DUBROS: Usuarios, Roles y Perfiles para Supabase
+-- Ejecutar este script completo en el SQL Editor de Supabase
 -- ========================================================
 
--- 1. Crear tipo de dato (Enum) para los Roles
+-- Limpieza previa
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user();
+DROP FUNCTION IF EXISTS public.is_admin();
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+DROP TYPE IF EXISTS public.user_role CASCADE;
+
+-- Enum de roles
 CREATE TYPE public.user_role AS ENUM ('admin', 'client', 'pending');
 
--- 2. Crear tabla de Perfiles (Profiles) que extiende la tabla auth.users de Supabase
+-- Tabla de perfiles
 CREATE TABLE public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
-  role public.user_role DEFAULT 'pending'::public.user_role NOT NULL,
+  role public.user_role DEFAULT 'pending' NOT NULL,
   name TEXT,
   phone TEXT,
   country TEXT,
   company_name TEXT,
   business_type TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+  created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
--- 3. Habilitar Seguridad a Nivel de Filas (Row Level Security - RLS)
+-- RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- 4. Políticas de Seguridad (RLS Policies)
+-- Politica: usuario lee su propio perfil
+CREATE POLICY "Users can view own profile"
+  ON public.profiles FOR SELECT
+  USING ( auth.uid() = id );
 
--- Un usuario puede leer su propio perfil
-CREATE POLICY "Users can view own profile" 
-ON public.profiles FOR SELECT 
-USING (auth.uid() = id);
+-- Politica: usuario edita su propio perfil
+CREATE POLICY "Users can update own profile"
+  ON public.profiles FOR UPDATE
+  USING ( auth.uid() = id );
 
--- Un usuario puede actualizar su propio perfil (útil para el onboarding)
-CREATE POLICY "Users can update own profile" 
-ON public.profiles FOR UPDATE 
-USING (auth.uid() = id);
-
--- Los administradores pueden leer todos los perfiles
-CREATE POLICY "Admins can view all profiles" 
-ON public.profiles FOR SELECT 
-USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-  )
-);
-
--- Los administradores pueden actualizar cualquier perfil (para aprobar cuentas 'pending' a 'client')
-CREATE POLICY "Admins can update all profiles" 
-ON public.profiles FOR UPDATE 
-USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-  )
-);
-
--- 5. Trigger (Disparador) para crear automáticamente un perfil cuando alguien se registra
-CREATE OR REPLACE FUNCTION public.handle_new_user() 
-RETURNS TRIGGER AS $$
-BEGIN
-  -- Dubroswix siempre nace como admin
-  IF NEW.email = 'dubroswix@gmail.com' THEN
-    INSERT INTO public.profiles (id, email, role, name)
-    VALUES (NEW.id, NEW.email, 'admin', 'Super Admin');
-  -- Todos los demás nacen como pending
-  ELSE
-    INSERT INTO public.profiles (id, email, role)
-    VALUES (NEW.id, NEW.email, 'pending');
-  END IF;
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Enlazar el Trigger a auth.users
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+-- Politica: permitir INSERT desde el trigger (service_role)
+CREATE POLICY "Service role can insert profiles"
+  ON public.profiles FOR INSERT
+  WITH CHECK ( true );
