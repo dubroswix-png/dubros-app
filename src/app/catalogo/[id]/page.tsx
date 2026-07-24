@@ -28,9 +28,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   // Suggested products (same brand or category, excluding current)
   const suggestedProducts = useMemo(() => {
     return MOCK_PRODUCTS
-      .filter((p) => p.id !== product.id && (p.brand === product.brand || p.categoryId === product.categoryId))
+      .filter((p) => p.id !== product.id && (p.brand === product.brand || p.category === product.category))
       .slice(0, 4);
-  }, [product.id, product.brand, product.categoryId]);
+  }, [product.id, product.brand, product.category]);
 
   return (
     <div style={{ paddingBottom: '4rem' }}>
@@ -41,7 +41,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <ChevronRight size={14} />
           <Link href="/catalogo" style={{ color: 'inherit', textDecoration: 'none' }}>Catálogo</Link>
           <ChevronRight size={14} />
-          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{product.name}</span>
+          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{product.reference}</span>
         </div>
       </div>
 
@@ -61,15 +61,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               minHeight: '400px'
             }}>
               <img 
-                src={product.imageUrl} 
-                alt={product.name} 
+                src={product.largeImageUrl} 
+                alt={product.reference} 
                 style={{ width: '100%', maxWidth: '400px', height: 'auto', objectFit: 'contain' }}
               />
             </div>
             
             {/* Thumbnails (mocked by duplicating the same image) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-              {[product.imageUrl, product.thumbnailUrl, product.imageUrl].map((img, idx) => (
+              {[product.largeImageUrl, product.thumbnailUrl, ...(product.extraImages || [])].slice(0, 4).map((img, idx) => (
                 <div key={idx} style={{ 
                   backgroundColor: '#F9FAFB', 
                   borderRadius: 'var(--radius-md)', 
@@ -105,7 +105,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '1rem', lineHeight: 1.2 }}>
-              {product.name}
+              {product.reference}
             </h1>
             
             <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem' }}>
@@ -127,7 +127,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 <div>
                   <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.size' as any)}</span>
-                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.eyeSize}-{product.bridgeSize}-{product.templeLength}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.eyeSize}</span>
                 </div>
             </div>
 

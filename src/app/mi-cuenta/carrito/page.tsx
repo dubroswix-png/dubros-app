@@ -6,46 +6,23 @@ import { useRouter } from 'next/navigation';
 import { MOCK_PRODUCTS } from '@/data/mock';
 import { ShoppingCart, Trash2, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 
 export default function CartPage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const { cartItems, updateQuantity, removeFromCart, clearCart, totalArticles, subtotal } = useCart();
+  const [orderCreated, setOrderCreated] = useState(false);
 
   React.useEffect(() => {
     if (!isLoggedIn) router.push('/login');
   }, [isLoggedIn, router]);
 
   if (!isLoggedIn) return null;
-  const [orderCreated, setOrderCreated] = useState(false);
-  const [cartItems, setCartItems] = useState([
-    { product: MOCK_PRODUCTS[0], quantity: 12 },
-    { product: MOCK_PRODUCTS[1], quantity: 6 },
-    { product: MOCK_PRODUCTS[2], quantity: 24 },
-  ]);
-
-  const updateQuantity = (productId: string, delta: number) => {
-    setCartItems(
-      cartItems
-        .map((item) => {
-          if (item.product.id === productId) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
-          }
-          return item;
-        })
-        .filter(Boolean) as { product: (typeof MOCK_PRODUCTS)[0]; quantity: number }[]
-    );
-  };
-
-  const removeItem = (productId: string) => {
-    setCartItems(cartItems.filter((item) => item.product.id !== productId));
-  };
-
-  const totalArticles = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
 
   const handleSendOrder = () => {
     setOrderCreated(true);
+    clearCart();
   };
 
   return (
@@ -139,7 +116,7 @@ export default function CartPage() {
                     ${(product.price * quantity).toFixed(2)}
                   </div>
                   <button
-                    onClick={() => removeItem(product.id)}
+                    onClick={() => removeFromCart(product.id)}
                     style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', marginTop: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}
                   >
                     <Trash2 size={14} /> Eliminar

@@ -15,7 +15,7 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ products, resetFilters }: ProductGridProps) {
-  const { addItem } = useCart();
+  const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { isLoggedIn } = useAuth();
   const { t } = useLanguage();
@@ -144,7 +144,7 @@ export function ProductGrid({ products, resetFilters }: ProductGridProps) {
                       <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>${product.price.toFixed(2)}</div>
                     </div>
                     <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem(product); }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToCart(product); }}
                       className="btn-primary"
                       style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                     >
