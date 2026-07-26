@@ -9,14 +9,22 @@ import { useCatalogFilter } from '@/hooks/useCatalogFilter';
 import { FilterSidebar } from '@/components/catalog/FilterSidebar';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
 import { Globe } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 function CatalogContent() {
   const searchParams = useSearchParams();
   const isFavOnly = searchParams.get('type') === 'fav';
   const { favorites } = useFavorites();
   const { t } = useLanguage();
+  const { userProfile } = useAuth();
 
   const [selectedPrice, setSelectedPrice] = useState('all');
+
+  const isAdmin = userProfile?.role === 'admin';
+  const userCountryObj = LATAM_COUNTRIES.find(
+    (c) => c.name === userProfile?.country || c.code === userProfile?.country
+  );
+  const userCountryName = userCountryObj?.name || userProfile?.country || 'Panamá';
 
   const {
     searchTerm,
@@ -41,6 +49,12 @@ function CatalogContent() {
     isFavOnly,
     selectedPrice,
   });
+
+  React.useEffect(() => {
+    if (!isAdmin && userCountryObj?.code) {
+      setSelectedCountry(userCountryObj.code);
+    }
+  }, [isAdmin, userCountryObj?.code, setSelectedCountry]);
 
   return (
     <div className="container" style={{ padding: '2.5rem 1.5rem 5rem 1.5rem' }}>
@@ -78,24 +92,30 @@ function CatalogContent() {
         >
           <Globe size={18} color="var(--blue)" />
           <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>País de venta:</span>
-          <select
-            value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
-            style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              outline: 'none',
-            }}
-          >
-            {LATAM_COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.flag} {c.name}
-              </option>
-            ))}
-          </select>
+          {isAdmin ? (
+            <select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              {LATAM_COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.flag} {c.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span style={{ fontWeight: 700, color: 'var(--navy)' }}>
+              {userCountryObj ? `${userCountryObj.flag} ${userCountryName}` : userCountryName}
+            </span>
+          )}
         </div>
       </div>
 
