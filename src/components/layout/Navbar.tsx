@@ -181,6 +181,20 @@ export function Navbar() {
                   {t('nav.dashboard' as any)}
                 </Link>
               )}
+              <Link
+                href="/mi-cuenta/perfil"
+                aria-label="Mi Perfil"
+                title="Mi Perfil y Empresa"
+                style={{
+                  color: 'var(--text-primary)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '0.45rem',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                <User size={18} />
+              </Link>
               <button
                 onClick={logout}
                 aria-label="Cerrar sesión"

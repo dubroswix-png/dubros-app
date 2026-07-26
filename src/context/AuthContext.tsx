@@ -14,6 +14,8 @@ export interface UserProfile {
   country?: string;
   companyName?: string;
   businessType?: string;
+  taxId?: string;
+  address?: string;
 }
 
 interface AuthContextType {
@@ -23,6 +25,7 @@ interface AuthContextType {
   register: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   completeOnboarding: (data: Partial<UserProfile>) => void;
+  updateProfile: (data: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
 
@@ -50,6 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         country: data.country || undefined,
         companyName: data.company_name || undefined,
         businessType: data.business_type || undefined,
+        taxId: data.tax_id || undefined,
+        address: data.address || undefined,
       };
       setUserProfile(profile);
       setIsLoggedIn(true);
@@ -162,6 +167,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (data: Partial<UserProfile>) => {
+    if (!userProfile) return { success: false, error: 'No hay usuario activo' };
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'No autenticado' };
+
+    const payload: any = {};
+    if (data.name !== undefined) payload.name = data.name;
+    if (data.phone !== undefined) payload.phone = data.phone;
+    if (data.country !== undefined) payload.country = data.country;
+    if (data.companyName !== undefined) payload.company_name = data.companyName;
+    if (data.businessType !== undefined) payload.business_type = data.businessType;
+    if (data.taxId !== undefined) payload.tax_id = data.taxId;
+    if (data.address !== undefined) payload.address = data.address;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(payload)
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error updating profile in Supabase:', error);
+      return { success: false, error: error.message };
+    }
+
+    setUserProfile({
+      ...userProfile,
+      ...data,
+    });
+    return { success: true };
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
     setIsLoggedIn(false);
@@ -169,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, userProfile, login, register, loginWithGoogle, completeOnboarding, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, userProfile, login, register, loginWithGoogle, completeOnboarding, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );

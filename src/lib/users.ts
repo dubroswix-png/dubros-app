@@ -10,6 +10,8 @@ export interface UserProfileRecord {
   country?: string;
   company_name?: string;
   business_type?: string;
+  tax_id?: string;
+  address?: string;
   created_at?: string;
 }
 
