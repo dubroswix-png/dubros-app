@@ -13,7 +13,7 @@ export default function CartPage() {
   const { isLoggedIn, userProfile } = useAuth();
   const { cartItems, updateQuantity, removeFromCart, clearCart, totalArticles, subtotal } = useCart();
   
-  const [shippingAddress, setShippingAddress] = useState(userProfile?.country ? `Ciudad de ${userProfile.country}` : '');
+  const [shippingAddress] = useState('A coordinar por WhatsApp (V2)');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -193,31 +193,8 @@ export default function CartPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div className="card" style={{ padding: '1.75rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-light)' }}>
-                Datos de Entrega
+                Notas de Despacho (Opcional)
               </h2>
-
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <MapPin size={14} color="var(--blue)" /> Dirección / Destino de Entrega
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Zona Libre Colón, Manzana 5, Panamá"
-                  value={shippingAddress}
-                  onChange={(e) => setShippingAddress(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 0.9rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--input-border)',
-                    backgroundColor: 'var(--input-bg)',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.85rem',
-                    outline: 'none',
-                  }}
-                />
-              </div>
 
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
