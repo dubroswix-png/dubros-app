@@ -29,6 +29,8 @@ export interface OrderRecord {
   subtotal: number;
   switch_order_number?: string;
   switch_synced?: boolean;
+  payment_url?: string;
+  erp_order_id?: string;
   created_at: string;
   order_items?: OrderItemRecord[];
 }
@@ -45,7 +47,7 @@ export async function createOrder({
   shippingAddress = '',
   notes = '',
   whatsappPhone = '',
-}: CreateOrderParams): Promise<{ success: boolean; orderNumber?: string; whatsappUrl?: string; error?: string }> {
+}: CreateOrderParams): Promise<{ success: boolean; orderId?: string; orderNumber?: string; whatsappUrl?: string; error?: string }> {
   try {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
@@ -135,6 +137,7 @@ export async function createOrder({
 
     return {
       success: true,
+      orderId: orderData.id,
       orderNumber,
       whatsappUrl,
     };

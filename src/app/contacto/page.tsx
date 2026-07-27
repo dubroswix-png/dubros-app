@@ -6,6 +6,8 @@ import { Mail, Phone, MapPin, Send, MessageSquare, CheckCircle2 } from 'lucide-r
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -17,9 +19,43 @@ export default function ContactPage() {
     mensaje: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.nombre,
+          lastName: formData.apellido,
+          email: formData.email,
+          company: formData.empresa,
+          country: formData.pais,
+          whatsapp: `${formData.whatsappCodigo} ${formData.whatsappNumero}`,
+          message: formData.mensaje,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Error al enviar el mensaje.');
+      } else {
+        setSubmitted(true);
+        // Reset form
+        setFormData({
+          nombre: '', apellido: '', email: '', empresa: '',
+          pais: 'Panamá', whatsappCodigo: '+507', whatsappNumero: '', mensaje: '',
+        });
+      }
+    } catch (err) {
+      setError('Error de conexión. Verifica tu internet e intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -293,9 +329,34 @@ export default function ContactPage() {
                 />
               </div>
 
-              <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem', width: '100%', padding: '0.85rem' }}>
-                <Send size={18} /> Enviar Mensaje a Dubros
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={loading}
+                style={{
+                  marginTop: '0.5rem',
+                  width: '100%',
+                  padding: '0.85rem',
+                  opacity: loading ? 0.7 : 1,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <Send size={18} /> {loading ? 'Enviando...' : 'Enviar Mensaje a Dubros'}
               </button>
+
+              {error && (
+                <div style={{
+                  marginTop: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: '#FEE2E2',
+                  color: '#DC2626',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                }}>
+                  {error}
+                </div>
+              )}
             </form>
           )}
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, Database } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
 import { UserRole } from '@/context/AuthContext';
 
@@ -47,6 +47,53 @@ export default function AdminUsersPage() {
         type: 'error',
         message: res.error || 'Error al actualizar el usuario.',
       });
+    }
+  };
+
+  const handleValidateErp = async (user: UserProfileRecord) => {
+    setProcessingId(user.id);
+    setNotification(null);
+
+    try {
+      const res = await fetch('/api/admin/validate-client', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer placeholder_admin_token', // Admin auth checked server-side via session
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.email,
+          taxId: user.tax_id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setNotification({
+          type: 'error',
+          message: data.error || 'Error al validar cliente en ERP.',
+        });
+      } else if (data.matched) {
+        setNotification({
+          type: 'success',
+          message: data.message,
+        });
+      } else {
+        setNotification({
+          type: 'error',
+          message: data.message || 'Cliente no encontrado en ERP Switch-Soft.',
+        });
+      }
+    } catch (err) {
+      setNotification({
+        type: 'error',
+        message: 'Error de conexión con el servidor.',
+      });
+    } finally {
+      setProcessingId(null);
+      setTimeout(() => setNotification(null), 5000);
     }
   };
 
@@ -319,6 +366,24 @@ export default function AdminUsersPage() {
                             <UserCheck size={14} /> Aprobar Cliente
                           </button>
                         )}
+
+                        <button
+                          disabled={processingId === user.id}
+                          onClick={() => handleValidateErp(user)}
+                          className="btn-secondary"
+                          style={{
+                            padding: '0.4rem 0.75rem',
+                            fontSize: '0.78rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            color: 'var(--blue)',
+                            borderColor: 'var(--blue)',
+                          }}
+                          title="Buscar y vincular código de cliente en el ERP Switch-Soft"
+                        >
+                          <Database size={13} /> Validar ERP
+                        </button>
 
                         {user.role === 'client' && (
                           <button

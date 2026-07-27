@@ -1,11 +1,170 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Tag, Upload, Plus, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
+import { Tag, Upload, Plus, FileSpreadsheet, CheckCircle2, RefreshCw, AlertCircle, Cloud } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+interface SyncResult {
+  totalFromERP: number;
+  totalProcessed: number;
+  brandsCreated: number;
+  categoriesCreated: number;
+  fetchTimeMs: number;
+  totalTimeMs: number;
+  errors?: string[];
+}
 
 export default function AdminArticlesPage() {
-  const [activeTab, setActiveTab] = useState<'create' | 'bulk'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'bulk' | 'sync'>('create');
   const [uploadSuccess, setUploadSuccess] = useState(false);
+
+  // ERP Sync state
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  // CSV Bulk Import state
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvRows, setCsvRows] = useState<Record<string, string>[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    success: boolean;
+    count?: number;
+    message?: string;
+    brandsCreated?: number;
+    categoriesCreated?: number;
+    error?: string;
+  } | null>(null);
+
+  const parseCSV = (text: string): Record<string, string>[] => {
+    const lines = text
+      .split(/\r\n|\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    if (lines.length < 2) return [];
+
+    const splitCSVLine = (str: string): string[] => {
+      const result: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim().replace(/^"|"$/g, ''));
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim().replace(/^"|"$/g, ''));
+      return result;
+    };
+
+    const headers = splitCSVLine(lines[0]);
+    const rows: Record<string, string>[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = splitCSVLine(lines[i]);
+      if (values.length === 0 || (values.length === 1 && !values[0])) continue;
+      const row: Record<string, string> = {};
+      headers.forEach((header, idx) => {
+        row[header] = values[idx] || '';
+      });
+      rows.push(row);
+    }
+
+    return rows;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsvFile(file);
+    setImportResult(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) {
+        const rows = parseCSV(text);
+        setCsvRows(rows);
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+
+  const handleBulkImport = async () => {
+    if (csvRows.length === 0) {
+      setImportResult({ success: false, error: 'Por favor selecciona un archivo CSV válido con filas de datos.' });
+      return;
+    }
+
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const res = await fetch('/api/admin/bulk-import-csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows: csvRows }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setImportResult({ success: false, error: data.error || 'Error en la importación masiva.' });
+      } else {
+        setImportResult({
+          success: true,
+          count: data.count,
+          message: data.message,
+          brandsCreated: data.brandsCreated,
+          categoriesCreated: data.categoriesCreated,
+        });
+      }
+    } catch (err) {
+      setImportResult({ success: false, error: 'Error de red conectando con el servidor.' });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleSyncERP = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    setSyncError(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setSyncError('No hay sesión activa. Inicia sesión como administrador.');
+        setSyncing(false);
+        return;
+      }
+
+      const response = await fetch('/api/admin/sync-erp', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setSyncError(data.error || 'Error desconocido al sincronizar');
+      } else {
+        setSyncResult(data.summary);
+      }
+    } catch (err) {
+      setSyncError(err instanceof Error ? err.message : 'Error de conexión');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <div>
@@ -31,7 +190,14 @@ export default function AdminArticlesPage() {
           className={activeTab === 'bulk' ? 'btn-primary' : 'btn-secondary'}
           style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem' }}
         >
-          <FileSpreadsheet size={16} /> Carga Masiva de Artículos (CSV)
+          <FileSpreadsheet size={16} /> Carga Masiva (CSV)
+        </button>
+        <button
+          onClick={() => setActiveTab('sync')}
+          className={activeTab === 'sync' ? 'btn-primary' : 'btn-secondary'}
+          style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem' }}
+        >
+          <Cloud size={16} /> Sincronizar con ERP
         </button>
       </div>
 
@@ -120,7 +286,7 @@ export default function AdminArticlesPage() {
             </div>
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'bulk' ? (
         <div className="card" style={{ padding: '2rem' }}>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1rem' }}>Carga Masiva de Artículos</h2>
           <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: '0.88rem' }}>
@@ -131,18 +297,203 @@ export default function AdminArticlesPage() {
               <li><strong>12 Columnas requeridas:</strong> <code>Codigo, Marca, Categoria, Descripcion, Genero, Material, Precio, Referencia, Tipo de Venta, Talla Ocular, Cantidad, Flex</code>.</li>
             </ul>
           </div>
-          <div style={{ border: '2px dashed var(--border-medium)', borderRadius: 'var(--radius-lg)', padding: '3rem 2rem', textAlign: 'center', marginBottom: '1.5rem' }}>
-            <FileSpreadsheet size={48} color="var(--blue)" style={{ marginBottom: '1rem' }} />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>Haz click para seleccionar archivo CSV</h3>
-          </div>
-          <button onClick={() => setUploadSuccess(true)} className="btn-primary" style={{ padding: '0.8rem 2rem' }}>
-            <Upload size={18} /> Upload Now
+          <label
+            style={{
+              border: '2px dashed var(--border-medium)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '3rem 2rem',
+              textAlign: 'center',
+              marginBottom: '1.5rem',
+              cursor: 'pointer',
+              display: 'block',
+              backgroundColor: csvFile ? '#F0F9FF' : 'transparent',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+            <FileSpreadsheet size={48} color="var(--blue)" style={{ marginBottom: '1rem', marginInline: 'auto' }} />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--blue)' }}>
+              {csvFile ? `📄 ${csvFile.name} (${csvRows.length} filas listas para procesar)` : 'Haz click para seleccionar archivo CSV'}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
+              {csvFile ? 'Haz clic aquí si deseas cambiar el archivo seleccionado' : 'Soporta archivos .csv con codificación UTF-8 (hasta 10,000 productos)'}
+            </p>
+          </label>
+
+          <button
+            onClick={handleBulkImport}
+            disabled={importing || csvRows.length === 0}
+            className="btn-primary"
+            style={{
+              padding: '0.9rem 2rem',
+              width: '100%',
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              opacity: (importing || csvRows.length === 0) ? 0.6 : 1,
+            }}
+          >
+            {importing ? (
+              <>
+                <RefreshCw size={18} className="spin" /> Procesando {csvRows.length} productos...
+              </>
+            ) : (
+              <>
+                <Upload size={18} /> Importar y Actualizar {csvRows.length > 0 ? `(${csvRows.length} filas)` : 'catálogo'}
+              </>
+            )}
           </button>
-          {uploadSuccess && (
-            <div style={{ marginTop: '1.5rem', padding: '1rem', borderRadius: 'var(--radius-md)', backgroundColor: '#DCFCE7', color: '#15803D', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-              <CheckCircle2 size={20} /> ¡Carga masiva procesada exitosamente! Se actualizaron los productos.
+
+          {importResult && (
+            <div
+              style={{
+                marginTop: '1.5rem',
+                padding: '1.25rem',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: importResult.success ? '#DCFCE7' : '#FEE2E2',
+                color: importResult.success ? '#15803D' : '#9B1C1C',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+              }}
+            >
+              {importResult.success ? <CheckCircle2 size={22} style={{ flexShrink: 0 }} /> : <AlertCircle size={22} style={{ flexShrink: 0 }} />}
+              <div>
+                <p style={{ margin: '0 0 0.3rem 0', fontWeight: 700 }}>
+                  {importResult.success ? importResult.message : importResult.error}
+                </p>
+                {importResult.success && (
+                  <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 500 }}>
+                    Marcas nuevas creadas: <strong>{importResult.brandsCreated || 0}</strong> | Categorías nuevas creadas: <strong>{importResult.categoriesCreated || 0}</strong>
+                  </p>
+                )}
+              </div>
             </div>
           )}
+        </div>
+      ) : (
+        <div className="card" style={{ padding: '2rem' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Cloud size={24} color="var(--blue)" /> Sincronización con ERP (Switch-Soft)
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            Descarga todo el catálogo de productos desde tu ERP y actualiza automáticamente la base de datos.
+            Este proceso puede tardar entre 15 y 60 segundos dependiendo de la conexión.
+          </p>
+
+          <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: '0.88rem' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--blue)' }}>¿Qué hace esta sincronización?</h3>
+            <ul style={{ listStylePosition: 'inside', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
+              <li>Se autentica en el ERP de Dubros (Zona Libre).</li>
+              <li>Descarga las <strong>28 páginas</strong> del catálogo (~13,787 productos).</li>
+              <li>Crea marcas y categorías automáticamente si no existen.</li>
+              <li>Actualiza precios, stock y descripciones de productos existentes.</li>
+              <li>Agrega productos nuevos que aún no estén en la base de datos.</li>
+            </ul>
+          </div>
+
+          <button
+            onClick={handleSyncERP}
+            disabled={syncing}
+            className="btn-primary"
+            style={{
+              padding: '0.9rem 2.5rem',
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              opacity: syncing ? 0.7 : 1,
+              cursor: syncing ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <RefreshCw size={20} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
+            {syncing ? 'Sincronizando... Espera por favor' : 'Iniciar Sincronización'}
+          </button>
+
+          {syncError && (
+            <div style={{
+              marginTop: '1.5rem',
+              padding: '1rem 1.25rem',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: '#FEE2E2',
+              color: '#DC2626',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+            }}>
+              <AlertCircle size={20} /> {syncError}
+            </div>
+          )}
+
+          {syncResult && (
+            <div style={{ marginTop: '1.5rem' }}>
+              <div style={{
+                padding: '1rem 1.25rem',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: '#DCFCE7',
+                color: '#15803D',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontWeight: 600,
+                marginBottom: '1rem',
+              }}>
+                <CheckCircle2 size={20} /> ¡Sincronización completada exitosamente!
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+                <div className="card" style={{ padding: '1rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--blue)' }}>{syncResult.totalFromERP.toLocaleString()}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Productos del ERP</div>
+                </div>
+                <div className="card" style={{ padding: '1rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: '#15803D' }}>{syncResult.totalProcessed.toLocaleString()}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Procesados en Supabase</div>
+                </div>
+                <div className="card" style={{ padding: '1rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: '#7C3AED' }}>{syncResult.brandsCreated}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Marcas Sincronizadas</div>
+                </div>
+                <div className="card" style={{ padding: '1rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: '#EA580C' }}>{syncResult.categoriesCreated}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Categorías Sincronizadas</div>
+                </div>
+                <div className="card" style={{ padding: '1rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{(syncResult.totalTimeMs / 1000).toFixed(1)}s</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Tiempo Total</div>
+                </div>
+              </div>
+
+              {syncResult.errors && syncResult.errors.length > 0 && (
+                <div style={{ marginTop: '1rem', padding: '1rem', borderRadius: 'var(--radius-md)', backgroundColor: '#FEF3C7', color: '#92400E', fontSize: '0.85rem' }}>
+                  <strong>Advertencias:</strong>
+                  <ul style={{ marginTop: '0.5rem', listStylePosition: 'inside' }}>
+                    {syncResult.errors.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          <style>{`
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       )}
     </div>

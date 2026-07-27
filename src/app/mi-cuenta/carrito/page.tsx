@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Trash2, ArrowRight, CheckCircle2, ShieldCheck, MapPin, FileText, MessageSquare } from 'lucide-react';
+import { ShoppingCart, Trash2, ArrowRight, CheckCircle2, ShieldCheck, MapPin, FileText, MessageSquare, CreditCard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { createOrder } from '@/lib/orders';
@@ -21,6 +21,8 @@ export default function CartPage() {
   const [createdOrder, setCreatedOrder] = useState<{
     orderNumber: string;
     whatsappUrl?: string;
+    paymentUrl?: string;
+    switchOrderNumber?: string;
   } | null>(null);
 
   React.useEffect(() => {
@@ -45,9 +47,31 @@ export default function CartPage() {
     setLoading(false);
 
     if (result.success && result.orderNumber) {
+      let paymentUrl: string | undefined;
+      let switchOrderNumber: string | undefined;
+
+      if (result.orderId) {
+        try {
+          const erpRes = await fetch('/api/checkout/erp-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: result.orderId }),
+          });
+          const erpData = await erpRes.json();
+          if (erpRes.ok && erpData.success) {
+            paymentUrl = erpData.paymentUrl;
+            switchOrderNumber = erpData.switchOrderNumber;
+          }
+        } catch (erpErr) {
+          console.warn('ERP order sync warning (non-blocking):', erpErr);
+        }
+      }
+
       setCreatedOrder({
         orderNumber: result.orderNumber,
         whatsappUrl: result.whatsappUrl,
+        paymentUrl,
+        switchOrderNumber,
       });
       clearCart();
     } else {
@@ -71,6 +95,23 @@ export default function CartPage() {
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
             Tu pedido <strong style={{ color: 'var(--blue)' }}>#{createdOrder.orderNumber}</strong> ha sido registrado. Nuestro sistema notificará al equipo comercial para la preparación del despacho.
           </p>
+
+          {createdOrder.switchOrderNumber && (
+            <div style={{
+              display: 'inline-block',
+              backgroundColor: '#E0F2FE',
+              color: '#0369A1',
+              padding: '0.4rem 1rem',
+              borderRadius: 'var(--radius-full)',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              marginBottom: '1.5rem',
+            }}>
+              🔗 Orden ERP Switch-Soft: #{createdOrder.switchOrderNumber}
+            </div>
+          )}
+
+
 
           {createdOrder.whatsappUrl && (
             <div style={{ marginBottom: '2rem' }}>
