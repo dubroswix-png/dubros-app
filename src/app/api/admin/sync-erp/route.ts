@@ -1,16 +1,15 @@
 // =============================================================================
-// API Route: Sync ERP Catalog → Supabase
+// API Route: Sync ERP Catalog → Supabase (Paginated / Chunked)
 // =============================================================================
-// Protected admin endpoint that downloads the full product catalog from the
-// Switch-Soft ERP and upserts it into the Supabase `products` table.
+// Protected admin endpoint that downloads products page-by-page from the
+// Switch-Soft ERP and upserts them into Supabase.
+// Prevents Serverless Function timeouts on Vercel (10s limit).
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { erpFetchAllArticles, mapArticleToProduct } from '@/lib/erp';
-import type { SupabaseProductFromERP } from '@/lib/erp-types';
+import { erpListArticles, mapArticleToProduct } from '@/lib/erp';
 
-// Use service role key for admin operations (bypasses RLS)
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -57,17 +56,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const body = await request.json().catch(() => ({}));
+    const page = Math.max(1, parseInt(body.page || '1', 10));
+
     const supabase = getSupabaseAdmin();
     const startTime = Date.now();
 
-    // 2. Fetch all articles from ERP
-    const erpArticles = await erpFetchAllArticles();
-    const fetchTime = Date.now() - startTime;
+    // 2. Fetch single page from ERP
+    const erpResponse = await erpListArticles(page);
+    if (!erpResponse?.data?.articulos) {
+      return NextResponse.json(
+        { error: `No se pudieron obtener artículos de la página ${page} del ERP.` },
+        { status: 502 }
+      );
+    }
+
+    const erpArticles = erpResponse.data.articulos;
+    const paginacion = erpResponse.data.paginacion || { total: erpArticles.length, porPagina: 500, paginaActual: page };
+    const totalPages = Math.ceil(paginacion.total / (paginacion.porPagina || 500)) || 1;
 
     // 3. Map ERP articles to Supabase format
     const mappedProducts = erpArticles.map(mapArticleToProduct);
 
-    // 4. Ensure brands exist (collect unique brands)
+    // 4. Ensure brands exist for this page
     const uniqueBrands = [...new Set(mappedProducts.map(p => p.brand).filter(Boolean))];
     for (const brandName of uniqueBrands) {
       await supabase
@@ -78,7 +89,7 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    // 5. Ensure categories exist (collect unique categories)
+    // 5. Ensure categories exist for this page
     const uniqueCategories = [...new Set(mappedProducts.map(p => p.category).filter(Boolean))];
     for (const catName of uniqueCategories) {
       await supabase
@@ -99,7 +110,7 @@ export async function POST(request: NextRequest) {
     const categoryMap = new Map<string, string>();
     categories?.forEach(c => categoryMap.set(c.name, c.id));
 
-    // 7. Prepare products for upsert (match existing schema)
+    // 7. Prepare products for upsert
     const productsToUpsert = mappedProducts.map(p => ({
       reference: p.sku,
       code: p.sku,
@@ -115,10 +126,9 @@ export async function POST(request: NextRequest) {
       erp_article_id: p.erp_id || null,
     }));
 
-    // 8. Upsert in batches of 500 to avoid payload limits
+    // 8. Upsert in batches of 500
     const BATCH_SIZE = 500;
     let totalInserted = 0;
-    let totalUpdated = 0;
     const errors: string[] = [];
 
     for (let i = 0; i < productsToUpsert.length; i += BATCH_SIZE) {
@@ -130,7 +140,7 @@ export async function POST(request: NextRequest) {
         .select('id');
 
       if (error) {
-        errors.push(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
+        errors.push(`Página ${page} Lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
       } else {
         totalInserted += data?.length || 0;
       }
@@ -140,20 +150,20 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      summary: {
-        totalFromERP: erpArticles.length,
-        totalProcessed: totalInserted,
-        brandsCreated: uniqueBrands.length,
-        categoriesCreated: uniqueCategories.length,
-        fetchTimeMs: fetchTime,
-        totalTimeMs: totalTime,
-        errors: errors.length > 0 ? errors : undefined,
-      },
+      page,
+      totalPages,
+      totalFromERP: paginacion.total,
+      processedThisPage: totalInserted,
+      isFinished: page >= totalPages,
+      brandsCreated: uniqueBrands.length,
+      categoriesCreated: uniqueCategories.length,
+      timeMs: totalTime,
+      errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
-    console.error('[Sync ERP] Error:', error);
+    console.error('[Sync ERP Paginated] Error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Error desconocido al sincronizar' },
+      { error: error instanceof Error ? error.message : 'Error desconocido al sincronizar la página.' },
       { status: 500 }
     );
   }

@@ -22,6 +22,12 @@ export default function AdminArticlesPage() {
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncProgress, setSyncProgress] = useState<{
+    currentPage: number;
+    totalPages: number;
+    totalFromERP: number;
+    totalProcessed: number;
+  } | null>(null);
 
   // CSV Bulk Import state
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -135,6 +141,9 @@ export default function AdminArticlesPage() {
     setSyncing(true);
     setSyncResult(null);
     setSyncError(null);
+    setSyncProgress(null);
+
+    const startTime = Date.now();
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -144,25 +153,63 @@ export default function AdminArticlesPage() {
         return;
       }
 
-      const response = await fetch('/api/admin/sync-erp', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      let currentPage = 1;
+      let totalPages = 1;
+      let totalProcessed = 0;
+      let totalFromERP = 0;
+      let totalBrands = 0;
+      let totalCategories = 0;
+      const allErrors: string[] = [];
 
-      const data = await response.json();
+      while (currentPage <= totalPages) {
+        setSyncProgress({
+          currentPage,
+          totalPages,
+          totalFromERP,
+          totalProcessed,
+        });
 
-      if (!response.ok) {
-        setSyncError(data.error || 'Error desconocido al sincronizar');
-      } else {
-        setSyncResult(data.summary);
+        const response = await fetch('/api/admin/sync-erp', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ page: currentPage }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || `Error sincronizando la página ${currentPage}`);
+        }
+
+        totalPages = data.totalPages || 1;
+        totalFromERP = data.totalFromERP || 0;
+        totalProcessed += data.processedThisPage || 0;
+        totalBrands += data.brandsCreated || 0;
+        totalCategories += data.categoriesCreated || 0;
+        if (data.errors) allErrors.push(...data.errors);
+
+        currentPage++;
       }
+
+      const totalTimeMs = Date.now() - startTime;
+
+      setSyncResult({
+        totalFromERP,
+        totalProcessed,
+        brandsCreated: totalBrands,
+        categoriesCreated: totalCategories,
+        fetchTimeMs: totalTimeMs,
+        totalTimeMs,
+        errors: allErrors.length > 0 ? allErrors : undefined,
+      });
     } catch (err) {
-      setSyncError(err instanceof Error ? err.message : 'Error de conexión');
+      setSyncError(err instanceof Error ? err.message : 'Error de conexión durante la sincronización');
     } finally {
       setSyncing(false);
+      setSyncProgress(null);
     }
   };
 
@@ -406,18 +453,41 @@ export default function AdminArticlesPage() {
             disabled={syncing}
             className="btn-primary"
             style={{
-              padding: '0.9rem 2.5rem',
+              padding: '0.9rem 2rem',
               fontSize: '1rem',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '0.5rem',
-              opacity: syncing ? 0.7 : 1,
-              cursor: syncing ? 'not-allowed' : 'pointer',
             }}
           >
-            <RefreshCw size={20} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
-            {syncing ? 'Sincronizando... Espera por favor' : 'Iniciar Sincronización'}
+            <RefreshCw size={18} className={syncing ? 'spin' : ''} />
+            {syncing ? 'Sincronizando Catálogo ERP...' : 'Sincronizar con ERP (Switch-Soft)'}
           </button>
+
+          {syncing && (
+            <div style={{ marginTop: '1.5rem', padding: '1.25rem', backgroundColor: '#EFF6FF', borderRadius: 'var(--radius-md)', border: '1px solid #BFDBFE' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <span style={{ fontWeight: 700, color: '#1E40AF', fontSize: '0.95rem' }}>
+                  🔄 Sincronizando página {syncProgress?.currentPage || 1} de {syncProgress?.totalPages || '...'}
+                </span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1E40AF' }}>
+                  {syncProgress ? `${syncProgress.totalProcessed.toLocaleString()} de ${syncProgress.totalFromERP.toLocaleString()} productos` : 'Conectando con el ERP...'}
+                </span>
+              </div>
+
+              <div style={{ width: '100%', height: '10px', backgroundColor: '#DBEAFE', borderRadius: '5px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    height: '100%',
+                    backgroundColor: '#2563EB',
+                    width: `${syncProgress?.totalPages ? Math.min(100, Math.round((syncProgress.currentPage / syncProgress.totalPages) * 100)) : 5}%`,
+                    transition: 'width 0.3s ease',
+                  }}
+                />
+              </div>
+            </div>
+          )}
 
           {syncError && (
             <div style={{
