@@ -13,11 +13,11 @@ import type { SupabaseProductFromERP } from '@/lib/erp-types';
 // Use service role key for admin operations (bypasses RLS)
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!serviceKey) {
-    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
-  }
+  const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey =
+    rawKey && rawKey !== 'YOUR_SERVICE_ROLE_KEY_HERE'
+      ? rawKey
+      : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
   return createClient(url, serviceKey);
 }

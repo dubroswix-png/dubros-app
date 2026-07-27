@@ -140,7 +140,7 @@ export default function HomePage() {
               {t('home.brands.title' as any)}
             </h2>
           </div>
-          <Link href="/marcas" style={{ color: 'var(--blue)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+          <Link href="/catalogo" style={{ color: 'var(--blue)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
             {t('home.brands.viewAll' as any)} <ArrowRight size={16} />
           </Link>
         </div>
@@ -195,7 +195,7 @@ export default function HomePage() {
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
                   {collection.description}
                 </p>
-                <Link href={`/colecciones/${collection.id}`} className="btn-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.9rem', width: 'fit-content' }}>
+                <Link href="/catalogo" className="btn-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.9rem', width: 'fit-content' }}>
                   {t('home.collections.btn' as any)}
                 </Link>
               </div>
