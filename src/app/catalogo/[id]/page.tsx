@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useMemo, use } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Globe2, Award, ChevronRight, Heart } from 'lucide-react';
-import { MOCK_PRODUCTS } from '@/data/mock';
+import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Globe2, Award, ChevronRight, Heart, Loader2 } from 'lucide-react';
+import { getProductById, getFeaturedProducts } from '@/lib/products';
+import type { Product } from '@/data/mock';
+import { ProductCard } from '@/components/catalog/ProductCard';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
@@ -16,21 +18,43 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const { toggleFavorite, isFavorite } = useFavorites();
   const { isLoggedIn } = useAuth();
   const { t } = useLanguage();
-  
-  const product = MOCK_PRODUCTS.find((p) => p.id === resolvedParams.id);
-  
-  if (!product) {
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFoundState, setNotFoundState] = useState(false);
+
+  useEffect(() => {
+    async function loadProduct() {
+      setLoading(true);
+      const data = await getProductById(resolvedParams.id);
+      if (!data) {
+        setNotFoundState(true);
+      } else {
+        setProduct(data);
+        const featured = await getFeaturedProducts(4);
+        setSuggestedProducts(featured.filter((p) => p.id !== data.id));
+      }
+      setLoading(false);
+    }
+    loadProduct();
+  }, [resolvedParams.id]);
+
+  if (notFoundState) {
     notFound();
   }
 
-  const isFav = isFavorite(product.id);
+  if (loading || !product) {
+    return (
+      <div className="container" style={{ padding: '6rem 1.5rem', textAlign: 'center' }}>
+        <Loader2 size={40} color="var(--blue)" style={{ animation: 'spin 1s linear infinite', margin: '0 auto 1rem auto' }} />
+        <p style={{ color: 'var(--text-secondary)' }}>Cargando detalle del producto...</p>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
-  // Suggested products (same brand or category, excluding current)
-  const suggestedProducts = useMemo(() => {
-    return MOCK_PRODUCTS
-      .filter((p) => p.id !== product.id && (p.brand === product.brand || p.category === product.category))
-      .slice(0, 4);
-  }, [product.id, product.brand, product.category]);
+  const isFav = isFavorite(product.id);
 
   return (
     <div style={{ paddingBottom: '4rem' }}>

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Package, Clock, CheckCircle, ExternalLink, RefreshCw, ShoppingBag, CreditCard } from 'lucide-react';
+import { Package, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getUserOrders, OrderRecord } from '@/lib/orders';
 import { EmptyState } from '@/components/ui/EmptyState';

@@ -235,6 +235,85 @@ export default function AdminArticlesPage() {
     }
   };
 
+  const handleSaveProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.reference || !formData.price || !formData.description) {
+      setFormResult({ success: false, message: 'Por favor completa los campos obligatorios: Referencia, Descripción y Precio.' });
+      return;
+    }
+
+    setSavingProduct(true);
+    setFormResult(null);
+
+    try {
+      // 1. Upsert Brand
+      let brandId: string | null = null;
+      if (formData.brand) {
+        const { data: brandData } = await supabase
+          .from('brands')
+          .upsert({ name: formData.brand.toUpperCase(), active: true }, { onConflict: 'name' })
+          .select('id')
+          .single();
+        brandId = brandData?.id || null;
+      }
+
+      // 2. Upsert Category
+      let categoryId: string | null = null;
+      if (formData.category) {
+        const { data: catData } = await supabase
+          .from('categories')
+          .upsert({ name: formData.category, slug: formData.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') }, { onConflict: 'name' })
+          .select('id')
+          .single();
+        categoryId = catData?.id || null;
+      }
+
+      // 3. Upsert Product
+      const { error } = await supabase.from('products').upsert(
+        {
+          reference: formData.reference,
+          code: formData.code || formData.reference,
+          description: formData.description,
+          price: parseFloat(formData.price) || 0,
+          eye_size: parseInt(formData.eyeSize, 10) || null,
+          material: formData.material,
+          gender: formData.gender,
+          sale_type: formData.saleType,
+          quantity: parseInt(formData.quantity, 10) || 0,
+          thumbnail_url: formData.imageUrl,
+          large_image_url: formData.imageUrl,
+          brand_id: brandId,
+          category_id: categoryId,
+        },
+        { onConflict: 'reference' }
+      );
+
+      if (error) {
+        setFormResult({ success: false, message: `Error guardando producto: ${error.message}` });
+      } else {
+        setFormResult({ success: true, message: `¡Producto "${formData.reference}" guardado exitosamente!` });
+        setFormData({
+          reference: '',
+          code: '',
+          description: '',
+          price: '',
+          eyeSize: '',
+          brand: 'LCT',
+          material: 'Titanio',
+          gender: 'Unisex',
+          saleType: 'PIEZA',
+          category: 'Aros Ópticos',
+          quantity: '100',
+          imageUrl: '/images/product-placeholder.png',
+        });
+      }
+    } catch (err: any) {
+      setFormResult({ success: false, message: err?.message || 'Error inesperado al guardar producto.' });
+    } finally {
+      setSavingProduct(false);
+    }
+  };
+
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>

@@ -266,3 +266,35 @@ export async function getMaterials(): Promise<string[]> {
     return [];
   }
 }
+
+// ---------------------------------------------------------------------------
+// Fetch single product by ID or reference
+// ---------------------------------------------------------------------------
+
+export async function getProductById(id: string): Promise<Product | null> {
+  try {
+    let { data, error } = await supabase
+      .from('products')
+      .select('*, brands(id, name), categories(id, name)')
+      .eq('id', id)
+      .single();
+
+    if (error || !data) {
+      // Fallback: try matching reference
+      const refQuery = await supabase
+        .from('products')
+        .select('*, brands(id, name), categories(id, name)')
+        .eq('reference', id)
+        .single();
+
+      if (refQuery.error || !refQuery.data) return null;
+      data = refQuery.data;
+    }
+
+    return mapSupabaseToProduct(data);
+  } catch (e) {
+    console.error('[getProductById] Error:', e);
+    return null;
+  }
+}
+
