@@ -34,8 +34,39 @@ function getRowValue(row: Record<string, any>, possibleKeys: string[]): string {
   return '';
 }
 
+// Verify admin authorization
+async function isAdmin(request: NextRequest): Promise<boolean> {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return false;
+
+  const token = authHeader.replace('Bearer ', '');
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return false;
+
+  const adminSupabase = getSupabaseAdmin();
+  const { data: profile } = await adminSupabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  return profile?.role === 'admin';
+}
+
 export async function POST(request: NextRequest) {
   try {
+    const admin = await isAdmin(request);
+    if (!admin) {
+      return NextResponse.json(
+        { error: 'No autorizado. Solo administradores pueden importar datos.' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { rows } = body;
 

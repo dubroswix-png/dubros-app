@@ -18,6 +18,24 @@ export default function AdminArticlesPage() {
   const [activeTab, setActiveTab] = useState<'create' | 'bulk' | 'sync'>('create');
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
+  // Single Product Create state
+  const [formData, setFormData] = useState({
+    reference: '',
+    code: '',
+    description: '',
+    price: '',
+    eyeSize: '',
+    brand: 'LCT',
+    material: 'Titanio',
+    gender: 'Unisex',
+    saleType: 'PIEZA',
+    category: 'Aros Ópticos',
+    quantity: '100',
+    imageUrl: '/images/product-placeholder.png',
+  });
+  const [savingProduct, setSavingProduct] = useState(false);
+  const [formResult, setFormResult] = useState<{ success: boolean; message: string } | null>(null);
+
   // ERP Sync state
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
@@ -112,9 +130,13 @@ export default function AdminArticlesPage() {
     setImportResult(null);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch('/api/admin/bulk-import-csv', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+        },
         body: JSON.stringify({ rows: csvRows }),
       });
 
@@ -252,86 +274,181 @@ export default function AdminArticlesPage() {
         <div className="card" style={{ padding: '2rem' }}>
           <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1.5rem' }}>Formulario de Producto</h2>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 280px', gap: '2rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Referencia *</label>
-                <input type="text" placeholder="Ej: Koroit012345E" style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Código *</label>
-                <input type="text" placeholder="Código – Ej: 14001" style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Descripción *</label>
-                <textarea rows={3} placeholder="Aros ópticos..." style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Precio ($) *</label>
-                <input type="number" step="0.01" placeholder="Precio por pieza" style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Talla Ocular</label>
-                <input type="number" placeholder="Ej: 52" style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }} />
-              </div>
+          {formResult && (
+            <div
+              style={{
+                marginBottom: '1.5rem',
+                padding: '1rem 1.25rem',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: formResult.success ? '#DCFCE7' : '#FEE2E2',
+                color: formResult.success ? '#15803D' : '#9B1C1C',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              {formResult.success ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+              <span>{formResult.message}</span>
             </div>
+          )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Marca *</label>
-                <select style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}>
-                  <option>LCT</option>
-                  <option>VERONA</option>
-                  <option>GIORDANNI</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Material *</label>
-                <select style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}>
-                  <option>Titanio</option>
-                  <option>Acetato</option>
-                  <option>Metal</option>
-                  <option>TR90</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Género *</label>
-                <select style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}>
-                  <option>Hombre</option>
-                  <option>Mujer</option>
-                  <option>Unisex</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Tipo de Venta</label>
-                <input type="text" defaultValue="PIEZA" style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Categoría *</label>
-                <select style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}>
-                  <option>Aros Ópticos</option>
-                  <option>Lentes de Sol</option>
-                </select>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Thumbnail (Máx 30kb)</label>
-                <div style={{ border: '2px dashed var(--border-medium)', padding: '1.5rem 1rem', textAlign: 'center', borderRadius: 'var(--radius-md)' }}>
-                  <Upload size={24} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Agrega imagen pequeña</span>
+          <form onSubmit={handleSaveProduct}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 280px', gap: '2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Referencia *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: Koroit012345E"
+                    value={formData.reference}
+                    onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Código *</label>
+                  <input
+                    type="text"
+                    placeholder="Código – Ej: 14001"
+                    value={formData.code}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Descripción *</label>
+                  <textarea
+                    rows={3}
+                    required
+                    placeholder="Aros ópticos..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Precio ($) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="Precio por pieza"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Talla Ocular</label>
+                  <input
+                    type="number"
+                    placeholder="Ej: 52"
+                    value={formData.eyeSize}
+                    onChange={(e) => setFormData({ ...formData, eyeSize: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
                 </div>
               </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Imagen Grande</label>
-                <input type="file" style={{ fontSize: '0.8rem' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Marca *</label>
+                  <input
+                    type="text"
+                    placeholder="Marca - Ej: LCT, VERONA"
+                    value={formData.brand}
+                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Material *</label>
+                  <select
+                    value={formData.material}
+                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  >
+                    <option value="Titanio">Titanio</option>
+                    <option value="Acetato">Acetato</option>
+                    <option value="Metal">Metal</option>
+                    <option value="TR90">TR90</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Género *</label>
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  >
+                    <option value="Hombre">Hombre</option>
+                    <option value="Mujer">Mujer</option>
+                    <option value="Unisex">Unisex</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Tipo de Venta</label>
+                  <input
+                    type="text"
+                    value={formData.saleType}
+                    onChange={(e) => setFormData({ ...formData, saleType: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Categoría *</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Aros Ópticos, Lentes de Sol"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
+                </div>
               </div>
-              <button className="btn-primary" style={{ marginTop: 'auto', padding: '0.8rem', width: '100%' }}>
-                Entrar / Guardar Producto
-              </button>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>URL de Imagen</label>
+                  <input
+                    type="text"
+                    placeholder="https://..."
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Cantidad en Stock</label>
+                  <input
+                    type="number"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={savingProduct}
+                  className="btn-primary"
+                  style={{ marginTop: 'auto', padding: '0.8rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                  {savingProduct ? (
+                    <>
+                      <RefreshCw size={18} className="spin" /> Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={18} /> Guardar Producto
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
+          </form>
         </div>
       ) : activeTab === 'bulk' ? (
         <div className="card" style={{ padding: '2rem' }}>
