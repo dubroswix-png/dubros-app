@@ -96,7 +96,7 @@ export function CartDrawer() {
                   
                   {/* Image */}
                   <div style={{ width: '80px', height: '80px', backgroundColor: '#F9FAFB', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <img src={item.product.thumbnailUrl} alt={item.product.name} style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }} />
+                    <img src={item.product.thumbnailUrl} alt={item.product.reference} style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }} />
                   </div>
 
                   {/* Details */}

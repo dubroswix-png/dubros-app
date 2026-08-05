@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, Database } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
 import { UserRole } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserProfileRecord[]>([]);
@@ -55,11 +56,12 @@ export default function AdminUsersPage() {
     setNotification(null);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch('/api/admin/validate-client', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer placeholder_admin_token', // Admin auth checked server-side via session
+          'Authorization': `Bearer ${session?.access_token || ''}`,
         },
         body: JSON.stringify({
           userId: user.id,

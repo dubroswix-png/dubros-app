@@ -70,6 +70,38 @@ export default function MyOrdersPage() {
         </Link>
       </div>
 
+      {errorMsg && (
+        <div
+          style={{
+            backgroundColor: '#FEE2E2',
+            color: '#991B1B',
+            padding: '1rem 1.25rem',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '1.5rem',
+            border: '1px solid #FCA5A5',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '0.9rem',
+          }}
+        >
+          <span>⚠️ {errorMsg}</span>
+          <button
+            onClick={() => setErrorMsg(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              color: '#991B1B',
+              fontSize: '1rem',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {loading ? (
         <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-tertiary)' }}>
           Cargando pedidos...

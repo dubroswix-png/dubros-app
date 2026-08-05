@@ -12,6 +12,7 @@ export interface OrderItemRecord {
   unit_price: number;
   quantity: number;
   total_price: number;
+  product?: any;
 }
 
 export interface OrderRecord {
@@ -166,6 +167,25 @@ export async function getUserOrders(): Promise<OrderRecord[]> {
     return orders as OrderRecord[];
   } catch (e) {
     console.error('Error in getUserOrders:', e);
+    return [];
+  }
+}
+
+export async function getAllOrders(): Promise<OrderRecord[]> {
+  try {
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*, product:products(id, reference, code, description, price, material, sale_type, thumbnail_url, brand_id, brands(name)))')
+      .order('created_at', { ascending: false });
+
+    if (error || !orders) {
+      console.error('Error fetching all orders:', error);
+      return [];
+    }
+
+    return orders as OrderRecord[];
+  } catch (e) {
+    console.error('Error in getAllOrders:', e);
     return [];
   }
 }

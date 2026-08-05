@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MOCK_BRANDS, MOCK_COLLECTIONS, MOCK_BLOG_POSTS, MOCK_PRODUCTS } from '@/data/mock';
+import { MOCK_COLLECTIONS, MOCK_BLOG_POSTS } from '@/data/mock';
+import { getFeaturedProducts, getBrands, type SupabaseBrand } from '@/lib/products';
 import { ArrowRight, ShieldCheck, Globe2, Truck, Award } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { ProductCard } from '@/components/catalog/ProductCard';
@@ -10,6 +11,29 @@ import { BlogCard } from '@/components/blog/BlogCard';
 
 export default function HomePage() {
   const { t } = useLanguage();
+  const [products, setProducts] = useState<any[]>([]);
+  const [brands, setBrands] = useState<{ id: string; name: string; active?: boolean }[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingBrands, setLoadingBrands] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [fetchedProducts, fetchedBrands] = await Promise.all([
+          getFeaturedProducts(8),
+          getBrands()
+        ]);
+        setProducts(fetchedProducts);
+        setBrands(fetchedBrands);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoadingProducts(false);
+        setLoadingBrands(false);
+      }
+    }
+    loadData();
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem', paddingBottom: '4rem' }}>
@@ -93,7 +117,7 @@ export default function HomePage() {
       <section className="container">
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '1rem' }}>
-            {t('home.blog.title' as any)}
+            {t('home.brands.title' as any)}
           </h2>
         </div>
         <div
@@ -109,23 +133,27 @@ export default function HomePage() {
             border: '1px solid var(--border-light)',
           }}
         >
-          {MOCK_BRANDS.map((brand) => (
-            <div
-              key={brand.id}
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 800,
-                fontSize: '1.4rem',
-                letterSpacing: '0.05em',
-                color: 'var(--text-secondary)',
-                opacity: 0.85,
-                transition: 'opacity 0.2s, color 0.2s',
-                cursor: 'pointer',
-              }}
-            >
-              {brand.name}
-            </div>
-          ))}
+          {loadingBrands ? (
+            <div style={{ color: 'var(--text-secondary)' }}>Cargando marcas...</div>
+          ) : (
+            brands.map((brand) => (
+              <div
+                key={brand.id}
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 800,
+                  fontSize: '1.4rem',
+                  letterSpacing: '0.05em',
+                  color: 'var(--text-secondary)',
+                  opacity: 0.85,
+                  transition: 'opacity 0.2s, color 0.2s',
+                  cursor: 'pointer',
+                }}
+              >
+                {brand.name}
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -137,7 +165,7 @@ export default function HomePage() {
               Dubros
             </span>
             <h2 style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem', color: 'var(--text-primary)' }}>
-              {t('home.brands.title' as any)}
+              {t('home.featured.title' as any) || 'Productos Destacados'}
             </h2>
           </div>
           <Link href="/catalogo" style={{ color: 'var(--blue)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
@@ -152,9 +180,23 @@ export default function HomePage() {
             gap: '1.5rem',
           }}
         >
-          {MOCK_PRODUCTS.slice(0, 4).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loadingProducts ? (
+            Array(8).fill(0).map((_, i) => (
+              <div 
+                key={i} 
+                style={{ 
+                  height: '380px', 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderRadius: 'var(--radius-lg)',
+                  animation: 'pulse 1.5s infinite ease-in-out'
+                }} 
+              />
+            ))
+          ) : (
+            products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
         </div>
       </section>
 

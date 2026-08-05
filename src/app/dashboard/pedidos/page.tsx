@@ -1,15 +1,124 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, ArrowLeft, Download, Printer, CheckCircle, Package } from 'lucide-react';
-import { MOCK_ORDERS, Order } from '@/data/mock';
+import React, { useState, useEffect } from 'react';
+import { Search, ArrowLeft, Download, Printer, CheckCircle, Package, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { getAllOrders, OrderRecord } from '@/lib/orders';
+import { supabase } from '@/lib/supabase';
+
+// Status color helper
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'Completada': return '#10B981'; // green
+    case 'Pendiente': return '#F59E0B'; // yellow
+    case 'En Proceso': return '#3B82F6'; // blue
+    case 'Cancelada': return '#EF4444'; // red
+    default: return '#6B7280';
+  }
+};
 
 export default function AdminOrdersPage() {
+  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const { t } = useLanguage();
 
-  const selectedOrder = MOCK_ORDERS.find((o) => o.id === selectedOrderId);
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getAllOrders();
+      setOrders(data);
+    } catch (e) {
+      setError('Error al cargar los pedidos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filtered orders
+  const filteredOrders = orders.filter((order) => {
+    // Search
+    const searchLower = search.toLowerCase();
+    const matchSearch = 
+      !search || 
+      order.order_number?.toLowerCase().includes(searchLower) ||
+      order.customer_email?.toLowerCase().includes(searchLower) ||
+      order.customer_name?.toLowerCase().includes(searchLower) ||
+      order.company_name?.toLowerCase().includes(searchLower);
+
+    // Status
+    const matchStatus = !statusFilter || statusFilter === "Todas" || order.status === statusFilter;
+
+    // Date
+    let matchDate = true;
+    if (dateFrom || dateTo) {
+      const orderDate = new Date(order.created_at);
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        fromDate.setHours(0, 0, 0, 0);
+        if (orderDate < fromDate) matchDate = false;
+      }
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (orderDate > toDate) matchDate = false;
+      }
+    }
+
+    return matchSearch && matchStatus && matchDate;
+  });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter, dateFrom, dateTo]);
+
+  const selectedOrder = orders.find((o) => o.id === selectedOrderId);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={40} color="var(--blue)" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem', color: '#EF4444' }}>
+        <h2>{error}</h2>
+        <button onClick={fetchOrders} className="btn-primary" style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>Reintentar</button>
+      </div>
+    );
+  }
 
   if (selectedOrder) {
     return (
@@ -22,7 +131,7 @@ export default function AdminOrdersPage() {
             onClick={() => setSelectedOrderId(null)}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: 'var(--blue)', fontSize: '0.9rem', cursor: 'pointer', fontWeight: 600 }}
           >
-            <ArrowLeft size={18} /> {t('admin.orders.back' as any)} {selectedOrder.clientName} email: {selectedOrder.clientEmail}
+            <ArrowLeft size={18} /> {t('admin.orders.back' as any)} {selectedOrder.customer_name} email: {selectedOrder.customer_email}
           </button>
           
           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -43,7 +152,7 @@ export default function AdminOrdersPage() {
             </div>
             <div>
               <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.date' as any)}</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{selectedOrder.date}</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{new Date(selectedOrder.created_at).toLocaleDateString()}</span>
             </div>
             <div>
               <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.subtotal' as any)}</span>
@@ -52,69 +161,76 @@ export default function AdminOrdersPage() {
             <div>
               <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.articles' as any)}</span>
               <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                {selectedOrder.items.reduce((acc, item) => acc + item.quantity, 0)}
+                {selectedOrder.total_items}
               </span>
             </div>
             <div>
               <span style={{ display: 'block', fontSize: '0.7rem', color: '#0CA5A5' }}>{t('admin.orders.switchId' as any)}</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0CA5A5' }}>{selectedOrder.switchOrderNumber}</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0CA5A5' }}>{selectedOrder.switch_order_number || '-'}</span>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
             <div>
               <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.filterState' as any)}</span>
-              <select style={{ padding: '0.3rem', fontSize: '0.8rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
-                <option>{t('admin.orders.choose' as any)}</option>
-              </select>
+              <span style={{ 
+                padding: '0.3rem 0.8rem', 
+                fontSize: '0.8rem', 
+                borderRadius: 'var(--radius-sm)', 
+                backgroundColor: getStatusColor(selectedOrder.status), 
+                color: '#FFF',
+                fontWeight: 600 
+              }}>
+                {selectedOrder.status}
+              </span>
             </div>
             <div>
               <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.id' as any)}</span>
-              <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{selectedOrder.orderNumber}</span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{selectedOrder.order_number}</span>
             </div>
           </div>
         </div>
 
         {/* Order Items */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {selectedOrder.items.map((item, idx) => (
+          {selectedOrder.order_items?.map((item, idx) => (
             <div key={idx} style={{ display: 'flex', gap: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-light)' }}>
               <div style={{ width: '150px', height: '100px', flexShrink: 0, position: 'relative' }}>
-                <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '0.6rem', color: 'var(--text-tertiary)' }}>Model: {item.product.reference}</span>
-                <img src={item.product.thumbnailUrl} alt={item.product.reference} style={{ width: '100%', height: '100%', objectFit: 'contain', marginTop: '0.5rem' }} />
+                <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '0.6rem', color: 'var(--text-tertiary)' }}>Model: {item.product?.reference || item.reference}</span>
+                <img src={item.product?.thumbnail_url || 'https://via.placeholder.com/150'} alt={item.product?.reference || item.reference} style={{ width: '100%', height: '100%', objectFit: 'contain', marginTop: '0.5rem' }} />
               </div>
               
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--blue)', fontWeight: 600 }}>{item.product.reference}</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--blue)', fontWeight: 600 }}>{item.product?.reference || item.reference}</span>
                 </div>
                 <h3 style={{ fontSize: '1rem', color: 'var(--blue)', margin: '0 0 1rem 0', fontWeight: 700, textTransform: 'uppercase' }}>
-                  {item.product.name}
+                  {item.product?.description || ''}
                 </h3>
                 
                 <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
                   <div>
                     <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.price' as any)}</span>
                     <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                      ${item.product.price} USD.
+                      ${item.unit_price} USD.
                     </span>
                   </div>
                   <div>
                     <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.size' as any)}</span>
                     <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                      {item.product.eyeSize}
+                      N/A
                     </span>
                   </div>
                   <div>
                     <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.material' as any)}</span>
                     <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      {item.product.material}
+                      {item.product?.material || item.material || 'N/A'}
                     </span>
                   </div>
                   <div>
                     <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.saleType' as any)}</span>
                     <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      {item.product.saleType}
+                      {item.product?.sale_type || 'N/A'}
                     </span>
                   </div>
                   <div>
@@ -150,6 +266,8 @@ export default function AdminOrdersPage() {
           <input 
             type="text" 
             placeholder={t('admin.orders.search' as any)} 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             style={{ flex: 1, padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }} 
           />
           <button style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer' }}><Search size={24} /></button>
@@ -159,90 +277,184 @@ export default function AdminOrdersPage() {
       <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem' }}>
         <div>
           <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{t('admin.orders.filterState' as any)}</span>
-          <select style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)', minWidth: '150px' }}>
-            <option>{t('admin.orders.choose' as any)}</option>
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)', minWidth: '150px' }}
+          >
+            <option value="">Todas</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En Proceso">En Proceso</option>
+            <option value="Completada">Completada</option>
+            <option value="Cancelada">Cancelada</option>
           </select>
         </div>
         <div>
           <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{t('admin.orders.filterDate' as any)}</span>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input type="text" defaultValue="7/01/2026" style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)', width: '100px' }} />
-            <input type="text" defaultValue="7/31/2026" style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)', width: '100px' }} />
+            <input 
+              type="date" 
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }} 
+            />
+            <input 
+              type="date" 
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }} 
+            />
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {MOCK_ORDERS.map((order) => (
-          <div 
-            key={order.id} 
-            onClick={() => setSelectedOrderId(order.id)}
-            style={{ 
-              border: '1px solid var(--border-light)', 
-              borderRadius: 'var(--radius-md)', 
-              padding: '1.5rem',
-              cursor: 'pointer',
-              transition: 'box-shadow 0.2s ease',
-            }}
-            onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'}
-            onMouseOut={(e) => e.currentTarget.style.boxShadow = 'none'}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                <Package size={40} color="#0CA5A5" />
-                <div>
-                  <span style={{ display: 'block', color: '#0CA5A5', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.2rem' }}>
-                    {t('admin.orders.switchStatus' as any)}
-                  </span>
-                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    {t('admin.orders.switchId' as any)} <br/><strong style={{ color: '#0CA5A5' }}>{order.switchOrderNumber}</strong>
-                  </span>
-                </div>
-              </div>
+      {filteredOrders.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+          <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+          <h3>No se encontraron pedidos</h3>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {paginatedOrders.map((order) => (
+              <div 
+                key={order.id} 
+                onClick={() => setSelectedOrderId(order.id)}
+                style={{ 
+                  border: '1px solid var(--border-light)', 
+                  borderRadius: 'var(--radius-md)', 
+                  padding: '1.5rem',
+                  cursor: 'pointer',
+                  transition: 'box-shadow 0.2s ease',
+                }}
+                onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'}
+                onMouseOut={(e) => e.currentTarget.style.boxShadow = 'none'}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                    <Package size={40} color="#0CA5A5" />
+                    <div>
+                      <span style={{ display: 'block', color: '#0CA5A5', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.2rem' }}>
+                        {t('admin.orders.switchStatus' as any)}
+                      </span>
+                      <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        {t('admin.orders.switchId' as any)} <br/><strong style={{ color: '#0CA5A5' }}>{order.switch_order_number || '-'}</strong>
+                      </span>
+                    </div>
+                  </div>
 
-              <div style={{ display: 'flex', gap: '2rem' }}>
-                <div>
-                  <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.date' as any)}</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{order.date}</span>
-                </div>
-                <div>
-                  <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.subtotal' as any)}</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>${order.subtotal.toFixed(2)}</span>
-                </div>
-                <div>
-                  <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.status' as any)}</span>
-                  <select defaultValue={order.status} style={{ padding: '0.3rem', fontSize: '0.8rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)', marginTop: '0.2rem' }} onClick={(e) => e.stopPropagation()}>
-                    <option>Completada</option>
-                    <option>Pendiente</option>
-                    <option>Cancelada</option>
-                  </select>
-                </div>
-              </div>
+                  <div style={{ display: 'flex', gap: '2rem' }}>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.date' as any)}</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{new Date(order.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.subtotal' as any)}</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>${order.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.status' as any)}</span>
+                      <span style={{ 
+                        display: 'inline-block',
+                        marginTop: '0.2rem',
+                        padding: '0.3rem 0.8rem', 
+                        fontSize: '0.8rem', 
+                        borderRadius: 'var(--radius-sm)', 
+                        backgroundColor: getStatusColor(order.status), 
+                        color: '#FFF',
+                        fontWeight: 600 
+                      }}>
+                        {order.status}
+                      </span>
+                    </div>
+                  </div>
 
-              <div style={{ textAlign: 'right' }}>
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.id' as any)}</span>
-                <span style={{ display: 'block', fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem' }}>{order.orderNumber}</span>
-                <button className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }} onClick={(e) => e.stopPropagation()}>{t('admin.orders.csv' as any)}</button>
-              </div>
-            </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.id' as any)}</span>
+                    <span style={{ display: 'block', fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem' }}>{order.order_number}</span>
+                    <button className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }} onClick={(e) => e.stopPropagation()}>{t('admin.orders.csv' as any)}</button>
+                  </div>
+                </div>
 
-            <div style={{ display: 'flex', gap: '3rem', paddingTop: '1rem', borderTop: '1px solid var(--border-light)' }}>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.articles' as any)}</span>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{order.items.reduce((acc, item) => acc + item.quantity, 0)}</span>
+                <div style={{ display: 'flex', gap: '3rem', paddingTop: '1rem', borderTop: '1px solid var(--border-light)' }}>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.articles' as any)}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{order.total_items}</span>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.client' as any)}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{order.customer_email}</span>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Cliente Nombre / Empresa</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{order.company_name || order.customer_name || 'N/A'}</span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.client' as any)}</span>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{order.clientEmail}</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.clientCode' as any)}</span>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{order.clientCode}</span>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '2rem' }}>
+              <button 
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                style={{ 
+                  padding: '0.5rem 1rem', 
+                  borderRadius: 'var(--radius-sm)', 
+                  border: '1px solid var(--border-medium)', 
+                  background: currentPage === 1 ? '#f3f4f6' : '#fff',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                  color: currentPage === 1 ? '#9ca3af' : 'var(--text-primary)'
+                }}
+              >
+                Anterior
+              </button>
+              
+              <div style={{ display: 'flex', gap: '0.25rem' }}>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid',
+                      borderColor: currentPage === page ? 'var(--blue)' : 'var(--border-medium)',
+                      background: currentPage === page ? 'var(--blue)' : '#fff',
+                      color: currentPage === page ? '#fff' : 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontWeight: currentPage === page ? 'bold' : 'normal'
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button 
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                style={{ 
+                  padding: '0.5rem 1rem', 
+                  borderRadius: 'var(--radius-sm)', 
+                  border: '1px solid var(--border-medium)', 
+                  background: currentPage === totalPages ? '#f3f4f6' : '#fff',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                  color: currentPage === totalPages ? '#9ca3af' : 'var(--text-primary)'
+                }}
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

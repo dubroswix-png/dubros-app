@@ -117,7 +117,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div
           style={{
             display: 'flex',
-            justify: 'space-between',
+            justifyContent: 'space-between',
             alignItems: 'center',
             paddingTop: '0.75rem',
             borderTop: '1px solid var(--border-light)',

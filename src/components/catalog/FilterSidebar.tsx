@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Filter, RotateCcw, Search } from 'lucide-react';
-import { MOCK_BRANDS, MOCK_CATEGORIES, MOCK_PRODUCTS } from '@/data/mock';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useLanguage } from '@/context/LanguageContext';
@@ -24,6 +23,10 @@ interface FilterSidebarProps {
   selectedPrice: string;
   setSelectedPrice: (v: string) => void;
   resetFilters: () => void;
+  // Dynamic data from Supabase
+  brands?: { id: string; name: string }[];
+  categories?: { id: string; name: string }[];
+  materials?: string[];
 }
 
 export function FilterSidebar({
@@ -42,27 +45,26 @@ export function FilterSidebar({
   selectedPrice,
   setSelectedPrice,
   resetFilters,
+  brands = [],
+  categories = [],
+  materials = [],
 }: FilterSidebarProps) {
   const { t } = useLanguage();
   const { isLoggedIn } = useAuth();
 
   const brandOptions = [
     { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
-    ...MOCK_BRANDS.map((b) => ({ label: b.name, value: b.name })),
+    ...brands.map((b) => ({ label: b.name, value: b.name })),
   ];
 
   const categoryOptions = [
     { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
-    ...MOCK_CATEGORIES.map((c) => ({ label: c.name, value: c.name })),
+    ...categories.map((c) => ({ label: c.name, value: c.name })),
   ];
 
   const materialOptions = [
     { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
-    { label: 'Titanio', value: 'Titanio' },
-    { label: 'Acetato', value: 'Acetato' },
-    { label: 'Metal', value: 'Metal' },
-    { label: 'TR90', value: 'TR90' },
-    { label: 'Combinado', value: 'Combinado' },
+    ...materials.map((m) => ({ label: m, value: m })),
   ];
 
   const genderOptions = [
@@ -70,12 +72,6 @@ export function FilterSidebar({
     { label: 'Hombre', value: 'Hombre' },
     { label: 'Mujer', value: 'Mujer' },
     { label: 'Unisex', value: 'Unisex' },
-  ];
-
-  const uniqueSizes = Array.from(new Set(MOCK_PRODUCTS.map((p) => p.eyeSize))).sort();
-  const sizeOptions = [
-    { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
-    ...uniqueSizes.map((s) => ({ label: String(s), value: String(s) })),
   ];
 
   const priceOptions = [
@@ -137,7 +133,7 @@ export function FilterSidebar({
       />
 
       <Select
-        label="Category"
+        label="Categoría"
         options={categoryOptions}
         value={selectedCategory}
         onChange={(e) => setSelectedCategory(e.target.value)}
@@ -155,13 +151,6 @@ export function FilterSidebar({
         options={genderOptions}
         value={selectedGender}
         onChange={(e) => setSelectedGender(e.target.value)}
-      />
-
-      <Select
-        label={t('catalog.filter.size' as any)}
-        options={sizeOptions}
-        value={selectedSize}
-        onChange={(e) => setSelectedSize(e.target.value)}
       />
 
       {isLoggedIn && (
