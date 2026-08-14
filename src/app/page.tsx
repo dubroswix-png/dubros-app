@@ -2,12 +2,33 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MOCK_COLLECTIONS, MOCK_BLOG_POSTS } from '@/data/mock';
+import { MOCK_BLOG_POSTS } from '@/data/mock';
 import { getFeaturedProducts, getBrands, type SupabaseBrand } from '@/lib/products';
 import { ArrowRight, ShieldCheck, Globe2, Truck, Award } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { BlogCard } from '@/components/blog/BlogCard';
+
+const COLLECTIONS = [
+  {
+    id: 'col1',
+    name: 'Koroit Titanium Series',
+    description: 'Monturas ultraligeras de titanio premium para máximo confort diario.',
+    imageUrl: '/images/collection-titanium.jpg',
+  },
+  {
+    id: 'col2',
+    name: 'Verona Acetato Italiano',
+    description: 'Diseños contemporáneos en acetato pulido a mano con acabados de alta gama.',
+    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/4120.jpg',
+  },
+  {
+    id: 'col3',
+    name: 'Giordanni Flex Kids',
+    description: 'Flexibilidad 360° y durabilidad extrema diseñada para los más pequeños.',
+    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/GDR04.jpg',
+  },
+];
 
 export default function HomePage() {
   const { t } = useLanguage();
@@ -214,7 +235,7 @@ export default function HomePage() {
             gap: '2rem',
           }}
         >
-          {MOCK_COLLECTIONS.map((collection, idx) => (
+          {COLLECTIONS.map((collection, idx) => (
             <div
               key={collection.id}
               className="card"
@@ -227,7 +248,7 @@ export default function HomePage() {
             >
               <div style={{ height: '200px', width: '100%', overflow: 'hidden' }}>
                 <img
-                  src={idx === 0 ? '/images/collection-titanium.jpg' : collection.imageUrl}
+                  src={collection.imageUrl}
                   alt={collection.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
                 />

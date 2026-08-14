@@ -12,9 +12,14 @@ for (const line of env.split('\n')) {
 const supabase = createClient(URL, KEY);
 
 async function check() {
-  const { data, error } = await supabase.from('profiles').select('*');
-  console.log(JSON.stringify(data, null, 2));
-  if (error) console.error(error);
+  const { data, error, count } = await supabase.from('products').select('*, brands(id, name), categories(id, name)', { count: 'exact' }).limit(5);
+
+  console.log('--- ANON CLIENT TEST ---');
+  if (error) {
+    console.error('❌ ANON SELECT ERROR (RLS?):', error.message);
+  } else {
+    console.log('✅ ANON CAN QUERY PRODUCTS! Count:', count, 'Sample length:', data.length);
+  }
 }
 
 check();

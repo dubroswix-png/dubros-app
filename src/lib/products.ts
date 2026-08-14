@@ -25,7 +25,6 @@ export interface SupabaseProduct {
   large_image_url: string;
   brand_id: string | null;
   category_id: string | null;
-  erp_article_id: number | null;
   created_at?: string;
   brands?: { id: string; name: string } | null;
   categories?: { id: string; name: string } | null;

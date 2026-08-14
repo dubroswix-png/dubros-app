@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     // 2. Fetch order items
     const { data: items, error: itemsError } = await supabase
       .from('order_items')
-      .select('*, product:products(id, reference, code, erp_article_id)')
+      .select('*, product:products(id, reference, code)')
       .eq('order_id', orderId);
 
     if (itemsError || !items || items.length === 0) {
@@ -106,11 +106,10 @@ export async function POST(request: NextRequest) {
 
     // 4. Build ERP articles payload
     const articulos: ErpOrderArticle[] = items.map((item) => {
-      // Use stored erp_article_id, or parse numeric code as fallback
+      // Parse numeric code as the ERP article ID
       const articuloId =
-        item.product?.erp_article_id ||
         parseInt(item.product?.code || '0', 10) ||
-        parseInt(item.reference || '0', 10);
+        parseInt(item.product?.reference || '0', 10);
 
       return {
         articuloId: articuloId,

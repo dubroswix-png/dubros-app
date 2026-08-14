@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MOCK_BRANDS, LATAM_COUNTRIES } from '@/data/mock';
+import React, { useState, useEffect } from 'react';
+import { LATAM_COUNTRIES } from '@/data/mock';
+import { getBrands, type SupabaseBrand } from '@/lib/products';
 import { Globe, ShieldCheck, Save, Check } from 'lucide-react';
 
 export default function AdminCountryRestrictionsPage() {
+  const [brands, setBrands] = useState<SupabaseBrand[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(true);
   const [saved, setSaved] = useState(false);
   // Matrix state: brandId -> countryCode -> boolean (enabled)
   const [matrix, setMatrix] = useState<{ [brandId: string]: { [countryCode: string]: boolean } }>({
@@ -12,6 +15,20 @@ export default function AdminCountryRestrictionsPage() {
     '2': { PA: true, CO: true, EC: true, CR: true, GT: true, HN: true, VE: true, MX: true },
     '3': { PA: true, CO: false, EC: true, CR: false, GT: true, HN: true, VE: false, MX: true },
   });
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const fetchedBrands = await getBrands();
+        setBrands(fetchedBrands);
+      } catch (error) {
+        console.error('Error loading brands:', error);
+      } finally {
+        setLoadingBrands(false);
+      }
+    }
+    loadData();
+  }, []);
 
   const toggleAccess = (brandId: string, countryCode: string) => {
     const brandMap = matrix[brandId] || {};
@@ -60,7 +77,14 @@ export default function AdminCountryRestrictionsPage() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_BRANDS.map((brand) => (
+              {loadingBrands ? (
+                <tr>
+                  <td colSpan={9} style={{ padding: '2rem', color: 'var(--text-secondary)' }}>
+                    Cargando marcas...
+                  </td>
+                </tr>
+              ) : (
+                brands.map((brand) => (
                 <tr key={brand.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
                   <td style={{ padding: '1rem', textAlign: 'left', fontWeight: 800, color: 'var(--blue)' }}>
                     {brand.name}
@@ -86,7 +110,7 @@ export default function AdminCountryRestrictionsPage() {
                     );
                   })}
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
