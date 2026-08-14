@@ -54,7 +54,7 @@ export async function erpAuth(): Promise<string> {
   const user = getEnvVar('ERP_USER');
   const pass = getEnvVar('ERP_PASS');
 
-  const url = `${baseUrl}/auth?usuario=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+  const url = `${baseUrl}/autenticacion?usuario=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
 
   const response = await fetch(url, {
     method: 'POST',
@@ -112,6 +112,8 @@ async function erpFetch<T>(
 
   const headers: Record<string, string> = {
     'Authorization': token,
+    'AuthorizationApp': getEnvVar('ERP_AUTH_APP'),
+    'TipoApp': getEnvVar('ERP_TIPO_APP'),
     'Content-Type': 'application/json',
   };
 
@@ -151,7 +153,7 @@ export async function erpListArticles(
   page: number = 1,
   inventario?: string
 ): Promise<ErpArticlesResponse> {
-  return erpFetch<ErpArticlesResponse>('/articulos', {
+  return erpFetch<ErpArticlesResponse>('/apiarticulos/inventario', {
     params: {
       paginaActual: page,
       ...(inventario ? { inventario } : {}),
@@ -166,7 +168,7 @@ export async function erpListArticles(
 export async function erpDetailArticle(
   codigoBarra: string
 ): Promise<ErpArticleDetailResponse> {
-  return erpFetch<ErpArticleDetailResponse>('/articulos/detalle', {
+  return erpFetch<ErpArticleDetailResponse>('/apiarticulos/info', {
     params: { codigoBarra },
   });
 }
@@ -220,7 +222,7 @@ export async function erpFetchAllArticles(): Promise<ErpArticle[]> {
 export async function erpListClients(
   page: number = 1
 ): Promise<ErpClientsResponse> {
-  return erpFetch<ErpClientsResponse>('/clientes', {
+  return erpFetch<ErpClientsResponse>('/apicliente/lista', {
     params: { paginaActual: page },
   });
 }
@@ -274,7 +276,7 @@ export async function erpFindClient(
  * List all vendors/sellers from the ERP.
  */
 export async function erpListVendors(): Promise<ErpVendorsResponse> {
-  return erpFetch<ErpVendorsResponse>('/vendedores');
+  return erpFetch<ErpVendorsResponse>('/apivendedor/lista');
 }
 
 // ---------------------------------------------------------------------------
@@ -287,7 +289,7 @@ export async function erpListVendors(): Promise<ErpVendorsResponse> {
 export async function erpCreateOrder(
   payload: ErpCreateOrderPayload
 ): Promise<ErpCreateOrderResponse> {
-  return erpFetch<ErpCreateOrderResponse>('/pedidos/crear', {
+  return erpFetch<ErpCreateOrderResponse>('/apipedido/terminar', {
     method: 'POST',
     body: payload,
   });
@@ -303,7 +305,7 @@ export async function erpCreateOrder(
 export async function erpCreateLead(
   payload: ErpCreateLeadPayload
 ): Promise<ErpCreateLeadResponse> {
-  return erpFetch<ErpCreateLeadResponse>('/crm/leads', {
+  return erpFetch<ErpCreateLeadResponse>('/apicrm/leads', {
     method: 'POST',
     body: payload,
   });
