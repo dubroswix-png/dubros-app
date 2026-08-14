@@ -50,6 +50,16 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
 
 export async function POST(request: NextRequest) {
   try {
+    // 0. Verify required environment variables on Vercel
+    const requiredVars = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'ERP_BASE_URL', 'ERP_USER', 'ERP_PASS', 'ERP_AUTH_APP', 'ERP_TIPO_APP'];
+    const missingVars = requiredVars.filter((v) => !process.env[v]);
+    if (missingVars.length > 0) {
+      return NextResponse.json(
+        { error: `Variables de entorno faltantes en Vercel: ${missingVars.join(', ')}. Por favor agrégalas en Vercel Dashboard -> Settings -> Environment Variables.` },
+        { status: 500 }
+      );
+    }
+
     // 1. Verify admin access
     const admin = await isAdmin(request);
     if (!admin) {
