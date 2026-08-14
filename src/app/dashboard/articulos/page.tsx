@@ -200,10 +200,16 @@ export default function AdminArticlesPage() {
           body: JSON.stringify({ page: currentPage }),
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        let data: any = {};
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          throw new Error(`El servidor devolvió una respuesta no válida (HTTP ${response.status}). Verifica los logs del servidor.`);
+        }
 
         if (!response.ok) {
-          throw new Error(data.error || `Error sincronizando la página ${currentPage}`);
+          throw new Error(data.error || `Error sincronizando la página ${currentPage} (HTTP ${response.status})`);
         }
 
         totalPages = data.totalPages || 1;

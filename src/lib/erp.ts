@@ -64,15 +64,22 @@ export async function erpAuth(): Promise<string> {
     },
   });
 
+  const responseText = await response.text();
+
   if (!response.ok) {
-    throw new Error(`ERP Auth failed: ${response.status} ${response.statusText}`);
+    throw new Error(`ERP Auth failed (${response.status} ${response.statusText}): ${responseText.substring(0, 150)}`);
   }
 
-  const data: ErpAuthResponse = await response.json();
+  let data: ErpAuthResponse;
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    throw new Error(`El servidor ERP no devolvió JSON válido (${response.status}): ${responseText.substring(0, 150)}`);
+  }
 
   cachedToken = data.data.token;
   // Parse expires_in (seconds) or default to 55 minutes
-  const expiresInMs = (data.data.expires_in || 3300) * 1000;
+  const expiresInMs = (data.data?.expires_in || 3300) * 1000;
   tokenExpiresAt = Date.now() + expiresInMs;
 
   return cachedToken;
@@ -119,13 +126,17 @@ async function erpFetch<T>(
   }
 
   const response = await fetch(url.toString(), fetchOptions);
+  const responseText = await response.text();
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unknown error');
-    throw new Error(`ERP API Error [${method} ${path}]: ${response.status} - ${errorText}`);
+    throw new Error(`ERP API Error [${method} ${path}]: ${response.status} - ${responseText.substring(0, 150)}`);
   }
 
-  return response.json() as Promise<T>;
+  try {
+    return JSON.parse(responseText) as T;
+  } catch {
+    throw new Error(`ERP API no devolvió JSON válido [${method} ${path}] (${response.status}): ${responseText.substring(0, 150)}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
