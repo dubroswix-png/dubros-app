@@ -11,15 +11,9 @@ import { erpCreateOrder, erpFindClient } from '@/lib/erp';
 import type { ErpOrderArticle } from '@/lib/erp-types';
 
 function getSupabaseAdmin() {
-  const url =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    'https://nvjkwoahdtbnvrvqqfyb.supabase.co';
-  const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const serviceKey =
-    rawKey && rawKey !== 'YOUR_SERVICE_ROLE_KEY_HERE'
-      ? rawKey
-      : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52amt3b2FoZHRibnZydnFxZnliIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDgyMjIxMCwiZXhwIjoyMTAwMzk4MjEwfQ.WzMV59bsXtaMk-yMdMJdvoFbhrH0FvtEO0qQSsot4QQ';
-
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
   return createClient(url, serviceKey);
 }
 
