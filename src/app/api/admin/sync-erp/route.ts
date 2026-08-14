@@ -10,6 +10,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { erpListArticles, mapArticleToProduct } from '@/lib/erp';
 
+// Max execution duration for Vercel Serverless Functions (in seconds)
+export const maxDuration = 60;
+
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
