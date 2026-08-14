@@ -136,7 +136,6 @@ export async function POST(request: NextRequest) {
       large_image_url: p.image_url,
       brand_id: brandMap.get(p.brand) || null,
       category_id: categoryMap.get(p.category) || null,
-      erp_article_id: p.erp_id || null,
     }));
 
     // 8. Upsert in batches of 500
