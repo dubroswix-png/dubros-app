@@ -14,12 +14,14 @@ import { erpListArticles, mapArticleToProduct } from '@/lib/erp';
 export const maxDuration = 60;
 
 function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    'https://nvjkwoahdtbnvrvqqfyb.supabase.co';
   const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const serviceKey =
     rawKey && rawKey !== 'YOUR_SERVICE_ROLE_KEY_HERE'
       ? rawKey
-      : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52amt3b2FoZHRibnZydnFxZnliIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDgyMjIxMCwiZXhwIjoyMTAwMzk4MjEwfQ.WzMV59bsXtaMk-yMdMJdvoFbhrH0FvtEO0qQSsot4QQ';
 
   return createClient(url, serviceKey);
 }
