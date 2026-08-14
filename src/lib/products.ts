@@ -19,6 +19,7 @@ export interface SupabaseProduct {
   description: string;
   price: number;
   material: string;
+  gender?: string | null;
   quantity: number;
   sale_type: string;
   thumbnail_url: string;
@@ -75,7 +76,7 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
     eyeSize: 0, // Not stored in Supabase currently
     brand: row.brands?.name || '',
     material: row.material || 'N/A',
-    gender: 'Unisex' as const, // Default — not stored in current schema
+    gender: (row.gender as any) || 'Unisex',
     saleType: row.sale_type || 'PIEZA',
     category: row.categories?.name || '',
     quantity: row.quantity || 0,

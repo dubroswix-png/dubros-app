@@ -26,7 +26,7 @@ export interface Product {
   eyeSize: number;
   brand: string;
   material: string;
-  gender: 'Hombre' | 'Mujer' | 'Unisex';
+  gender: 'Hombre' | 'Mujer' | 'Unisex' | 'Niños';
   saleType: string;
   category: string;
   collection?: string;

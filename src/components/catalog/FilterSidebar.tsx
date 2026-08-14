@@ -72,6 +72,7 @@ export function FilterSidebar({
     { label: 'Hombre', value: 'Hombre' },
     { label: 'Mujer', value: 'Mujer' },
     { label: 'Unisex', value: 'Unisex' },
+    { label: 'Niños', value: 'Niños' },
   ];
 
   const priceOptions = [
@@ -147,7 +148,7 @@ export function FilterSidebar({
       />
 
       <Select
-        label={t('catalog.filter.gender' as any)}
+        label="Colección / Género"
         options={genderOptions}
         value={selectedGender}
         onChange={(e) => setSelectedGender(e.target.value)}

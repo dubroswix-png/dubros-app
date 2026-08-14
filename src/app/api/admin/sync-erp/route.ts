@@ -125,6 +125,20 @@ export async function POST(request: NextRequest) {
     const categoryMap = new Map<string, string>();
     categories?.forEach(c => categoryMap.set(c.name, c.id));
 
+    function detectGender(name: string = '', cat: string = '', mat: string = ''): string {
+      const text = `${name} ${cat} ${mat}`.toUpperCase();
+      if (text.includes('KIDS') || text.includes('NIÑO') || text.includes('NINO') || text.includes('NIÑA') || text.includes('NINA') || text.includes('INFANTIL') || text.includes('PEQUE') || text.includes('JUNIOR')) {
+        return 'Niños';
+      }
+      if (text.includes('DAMA') || text.includes('MUJER') || text.includes('LADY') || text.includes('WOMEN') || text.includes('FEMENIN')) {
+        return 'Mujer';
+      }
+      if (text.includes('CABALLERO') || text.includes('HOMBRE') || text.includes('MEN') || text.includes('MAN') || text.includes('MASCULIN')) {
+        return 'Hombre';
+      }
+      return 'Unisex';
+    }
+
     // 7. Prepare products for upsert
     const productsToUpsert = mappedProducts.map(p => ({
       reference: p.sku,
@@ -132,6 +146,7 @@ export async function POST(request: NextRequest) {
       description: p.name,
       price: p.price,
       material: p.material,
+      gender: detectGender(p.name, p.category, p.material),
       quantity: p.stock,
       sale_type: p.unit,
       thumbnail_url: p.image_url,
