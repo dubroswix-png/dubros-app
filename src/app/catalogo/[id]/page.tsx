@@ -88,6 +88,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 src={product.largeImageUrl} 
                 alt={product.reference} 
                 style={{ width: '100%', maxWidth: '400px', height: 'auto', objectFit: 'contain' }}
+                onError={(e) => { (e.target as HTMLImageElement).src = '/images/product-placeholder.png'; }}
               />
             </div>
             
@@ -101,7 +102,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   cursor: 'pointer',
                   border: idx === 0 ? '2px solid var(--blue)' : '1px solid var(--border-light)'
                 }}>
-                  <img src={img} alt={`Thumbnail ${idx}`} style={{ width: '100%', height: 'auto' }} />
+                  <img 
+                    src={img} 
+                    alt={`Thumbnail ${idx}`} 
+                    style={{ width: '100%', height: 'auto' }} 
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/images/product-placeholder.png'; }}
+                  />
                 </div>
               ))}
             </div>
