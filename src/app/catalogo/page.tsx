@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 function CatalogContent() {
   const searchParams = useSearchParams();
   const isFavOnly = searchParams.get('type') === 'fav';
+  const collectionId = searchParams.get('collection') || undefined;
   const { favorites } = useFavorites();
   const { t } = useLanguage();
   const { userProfile } = useAuth();
@@ -56,12 +57,12 @@ function CatalogContent() {
     loadFilterOptions();
   }, []);
 
-  // Load products when page changes
+  // Load products when page changes or collectionId changes
   const loadProducts = useCallback(async (page: number) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await getProducts({ page, pageSize: PAGE_SIZE });
+      const result = await getProducts({ page, pageSize: PAGE_SIZE, collectionId });
       setAllProducts(result.products);
       setTotalCount(result.totalCount);
       setTotalPages(result.totalPages);
@@ -72,7 +73,7 @@ function CatalogContent() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [collectionId]);
 
   useEffect(() => {
     loadProducts(currentPage);

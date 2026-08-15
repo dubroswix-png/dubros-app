@@ -50,6 +50,7 @@ export interface GetProductsParams {
   brandName?: string;
   categoryName?: string;
   material?: string;
+  collectionId?: string;
   minPrice?: number;
   maxPrice?: number;
 }
@@ -97,6 +98,7 @@ export async function getProducts({
   brandName,
   categoryName,
   material,
+  collectionId,
   minPrice,
   maxPrice,
 }: GetProductsParams = {}): Promise<GetProductsResult> {
@@ -105,6 +107,11 @@ export async function getProducts({
     let query = supabase
       .from('products')
       .select('*, brands(id, name), categories(id, name)', { count: 'exact' });
+
+    // Apply collection filter
+    if (collectionId) {
+      query = query.eq('collection_id', collectionId);
+    }
 
     // Apply search filter
     if (search && search.trim()) {
@@ -297,4 +304,60 @@ export async function getProductById(id: string): Promise<Product | null> {
     return null;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Fetch design collections from Supabase
+// ---------------------------------------------------------------------------
+
+export interface SupabaseCollection {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  createdAt?: string;
+  productCount?: number;
+}
+
+export async function getCollections(): Promise<SupabaseCollection[]> {
+  try {
+    const { data, error } = await supabase
+      .from('collections')
+      .select('*, products(count)')
+      .order('created_at', { ascending: false });
+
+    if (error || !data) {
+      console.error('[getCollections] Error fetching collections:', error);
+      return [];
+    }
+
+    return data.map((col: any) => ({
+      id: col.id,
+      name: col.name,
+      description: col.description || '',
+      imageUrl: col.image_url || '/images/collection-titanium.jpg',
+      createdAt: col.created_at,
+      productCount: col.products?.[0]?.count || 0,
+    }));
+  } catch (e) {
+    console.error('[getCollections] Unexpected error:', e);
+    return [];
+  }
+}
+
+export async function getCollectionProducts(collectionId: string): Promise<Product[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*, brands(id, name), categories(id, name)')
+      .eq('collection_id', collectionId)
+      .limit(50);
+
+    if (error || !data) return [];
+    return data.map(mapSupabaseToProduct);
+  } catch (e) {
+    console.error('[getCollectionProducts] Error:', e);
+    return [];
+  }
+}
+
 

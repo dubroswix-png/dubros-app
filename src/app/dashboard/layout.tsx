@@ -19,6 +19,7 @@ import {
   Globe,
   ShieldAlert,
   ArrowLeft,
+  Layers,
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -41,6 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navItems = [
     { label: 'Inicio', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Colecciones', href: '/dashboard/colecciones', icon: Layers },
     { label: 'Usuarios', href: '/dashboard/usuarios', icon: Users },
     { label: 'Pedidos', href: '/dashboard/pedidos', icon: PackageCheck },
     { label: 'Blog', href: '/dashboard/blog', icon: FileText },

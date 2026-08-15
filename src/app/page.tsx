@@ -3,54 +3,38 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MOCK_BLOG_POSTS } from '@/data/mock';
-import { getFeaturedProducts, getBrands, type SupabaseBrand } from '@/lib/products';
+import { getFeaturedProducts, getBrands, getCollections, type SupabaseBrand, type SupabaseCollection } from '@/lib/products';
 import { ArrowRight, ShieldCheck, Globe2, Truck, Award } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { BlogCard } from '@/components/blog/BlogCard';
 
-const COLLECTIONS = [
-  {
-    id: 'col1',
-    name: 'Koroit Titanium Series',
-    description: 'Monturas ultraligeras de titanio premium para máximo confort diario.',
-    imageUrl: '/images/collection-titanium.jpg',
-  },
-  {
-    id: 'col2',
-    name: 'Verona Acetato Italiano',
-    description: 'Diseños contemporáneos en acetato pulido a mano con acabados de alta gama.',
-    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/4120.jpg',
-  },
-  {
-    id: 'col3',
-    name: 'Giordanni Flex Kids',
-    description: 'Flexibilidad 360° y durabilidad extrema diseñada para los más pequeños.',
-    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/GDR04.jpg',
-  },
-];
-
 export default function HomePage() {
   const { t } = useLanguage();
   const [products, setProducts] = useState<any[]>([]);
   const [brands, setBrands] = useState<{ id: string; name: string; active?: boolean }[]>([]);
+  const [collections, setCollections] = useState<SupabaseCollection[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingBrands, setLoadingBrands] = useState(true);
+  const [loadingCollections, setLoadingCollections] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [fetchedProducts, fetchedBrands] = await Promise.all([
+        const [fetchedProducts, fetchedBrands, fetchedCollections] = await Promise.all([
           getFeaturedProducts(8),
-          getBrands()
+          getBrands(),
+          getCollections(),
         ]);
         setProducts(fetchedProducts);
         setBrands(fetchedBrands);
+        setCollections(fetchedCollections);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
         setLoadingProducts(false);
         setLoadingBrands(false);
+        setLoadingCollections(false);
       }
     }
     loadData();
@@ -235,35 +219,52 @@ export default function HomePage() {
             gap: '2rem',
           }}
         >
-          {COLLECTIONS.map((collection, idx) => (
-            <div
-              key={collection.id}
-              className="card"
-              style={{
-                padding: 0,
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <div style={{ height: '200px', width: '100%', overflow: 'hidden' }}>
-                <img
-                  src={collection.imageUrl}
-                  alt={collection.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
-                />
+          {loadingCollections ? (
+            Array(3).fill(0).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  height: '350px',
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderRadius: 'var(--radius-xl)',
+                  animation: 'pulse 1.5s infinite ease-in-out',
+                }}
+              />
+            ))
+          ) : (
+            collections.map((collection) => (
+              <div
+                key={collection.id}
+                className="card"
+                style={{
+                  padding: 0,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ height: '200px', width: '100%', overflow: 'hidden', backgroundColor: '#F3F4F6' }}>
+                  <img
+                    src={collection.imageUrl}
+                    alt={collection.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/images/product-placeholder.png'; }}
+                  />
+                </div>
+                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem' }}>{collection.name}</h3>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+                      {collection.description}
+                    </p>
+                  </div>
+                  <Link href={`/catalogo?collection=${collection.id}`} className="btn-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.9rem', width: 'fit-content' }}>
+                    {t('home.collections.btn' as any)}
+                  </Link>
+                </div>
               </div>
-              <div style={{ padding: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem' }}>{collection.name}</h3>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
-                  {collection.description}
-                </p>
-                <Link href="/catalogo" className="btn-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.9rem', width: 'fit-content' }}>
-                  {t('home.collections.btn' as any)}
-                </Link>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 
