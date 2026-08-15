@@ -157,7 +157,7 @@ export default function HomePage() {
           {loadingBrands ? (
             <div style={{ color: 'var(--text-secondary)' }}>Cargando marcas...</div>
           ) : (
-            brands.map((brand) => (
+            brands.slice(0, 10).map((brand) => (
               <div
                 key={brand.id}
                 style={{
