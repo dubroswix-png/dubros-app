@@ -11,10 +11,13 @@ export function Logo({ variant = 'auto', className, size = 'md' }: LogoProps) {
   const isLarge = size === 'lg';
   const isSmall = size === 'sm';
 
+  const logoHeight = isLarge ? 48 : isSmall ? 28 : 36;
   const iconWidth = isLarge ? 54 : isSmall ? 32 : 42;
   const iconHeight = isLarge ? 24 : isSmall ? 14 : 18;
   const titleSize = isLarge ? '1.5rem' : isSmall ? '1.1rem' : '1.35rem';
   const subSize = isLarge ? '0.6rem' : isSmall ? '0.45rem' : '0.52rem';
+
+  const [useImage, setUseImage] = React.useState(true);
 
   return (
     <Link
@@ -28,6 +31,20 @@ export function Logo({ variant = 'auto', className, size = 'md' }: LogoProps) {
         lineHeight: 1,
       }}
     >
+      {useImage ? (
+        <img
+          src="/images/logo.png"
+          alt="Dubros Internacional"
+          style={{
+            height: `${logoHeight}px`,
+            width: 'auto',
+            objectFit: 'contain',
+            display: 'block',
+          }}
+          onError={() => setUseImage(false)}
+        />
+      ) : (
+        <>
       {/* Optical Glasses SVG Icon */}
       <svg
         width={iconWidth}
@@ -109,6 +126,8 @@ export function Logo({ variant = 'auto', className, size = 'md' }: LogoProps) {
       >
         INTERNACIONAL
       </span>
+      </>
+      )}
     </Link>
   );
 }
