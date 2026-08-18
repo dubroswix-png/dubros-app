@@ -27,16 +27,17 @@ export function Footer() {
         >
           {/* Brand Info */}
           <div>
-            <div
-              style={{
-                fontWeight: 800,
-                fontSize: '1.6rem',
-                fontFamily: 'var(--font-heading)',
-                color: '#FFFFFF',
-                marginBottom: '1rem',
-              }}
-            >
-              <span style={{ color: 'var(--blue)' }}>DU</span> BROS
+            <div style={{ marginBottom: '1.25rem' }}>
+              <img
+                src="/images/logo.svg"
+                alt="Dubros Internacional"
+                style={{
+                  height: '42px',
+                  width: 'auto',
+                  objectFit: 'contain',
+                  filter: 'brightness(0) invert(1)',
+                }}
+              />
             </div>
             <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-footer)' }}>
               {t('footer.about' as any)}
