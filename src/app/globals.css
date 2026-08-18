@@ -204,3 +204,38 @@ button, input, select, textarea {
 .card:hover {
   box-shadow: var(--shadow-md);
 }
+
+/* ==========================================================================
+   RESPONSIVE LAYOUT & MOBILE BURGER MENU
+   ========================================================================== */
+
+.mobile-toggle {
+  display: none !important;
+}
+
+@media (max-width: 960px) {
+  .desktop-nav {
+    display: none !important;
+  }
+  .desktop-actions {
+    display: none !important;
+  }
+  .mobile-toggle {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+  }
+  .hero-subtitle {
+    font-size: 1rem !important;
+  }
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
