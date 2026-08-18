@@ -41,21 +41,14 @@ export default function HomePage() {
     loadData();
   }, []);
 
-  // Featured brands for the marquee banner
-  const marqueeBrands = brands.length > 0
-    ? brands.slice(0, 15)
-    : [
-        { id: 'b1', name: 'Weekend' },
-        { id: 'b2', name: 'LCT' },
-        { id: 'b3', name: 'Mask' },
-        { id: 'b4', name: 'Giordanni' },
-        { id: 'b5', name: 'Koroit' },
-        { id: 'b6', name: 'Verona' },
-        { id: 'b7', name: 'Mantovanni' },
-        { id: 'b8', name: 'Romana' },
-        { id: 'b9', name: 'Smartkids' },
-        { id: 'b10', name: 'OptiStyle' },
-      ];
+  // Featured brands with real official logo images for the slider
+  const marqueeBrands = [
+    { id: 'b1', name: 'Weekend' },
+    { id: 'b2', name: 'LCT' },
+    { id: 'b3', name: 'Mask' },
+    { id: 'b4', name: 'Giordanni' },
+    { id: 'b5', name: 'Dubros' },
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '5rem', paddingBottom: '5rem' }}>
