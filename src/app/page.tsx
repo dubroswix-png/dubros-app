@@ -8,6 +8,7 @@ import { ArrowRight, ShieldCheck, Globe2, Truck, Award } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { BlogCard } from '@/components/blog/BlogCard';
+import { BrandItem } from '@/components/home/BrandItem';
 
 export default function HomePage() {
   const { t } = useLanguage();
@@ -40,8 +41,25 @@ export default function HomePage() {
     loadData();
   }, []);
 
+  // Featured brands for the marquee banner
+  const marqueeBrands = brands.length > 0
+    ? brands.slice(0, 15)
+    : [
+        { id: 'b1', name: 'Weekend' },
+        { id: 'b2', name: 'LCT' },
+        { id: 'b3', name: 'Mask' },
+        { id: 'b4', name: 'Giordanni' },
+        { id: 'b5', name: 'Koroit' },
+        { id: 'b6', name: 'Verona' },
+        { id: 'b7', name: 'Mantovanni' },
+        { id: 'b8', name: 'Romana' },
+        { id: 'b9', name: 'Smartkids' },
+        { id: 'b10', name: 'OptiStyle' },
+      ];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem', paddingBottom: '4rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '5rem', paddingBottom: '5rem' }}>
+      
       {/* 1. HERO SECTION */}
       <section
         style={{
@@ -49,37 +67,50 @@ export default function HomePage() {
           minHeight: '580px',
           display: 'flex',
           alignItems: 'center',
+          background: 'linear-gradient(rgba(11, 26, 47, 0.82), rgba(11, 26, 47, 0.88)), url("/images/hero-banner.jpg") center/cover no-repeat',
           color: '#FFFFFF',
-          padding: '5rem 0 6rem 0',
-          overflow: 'hidden',
-          backgroundImage:
-            'linear-gradient(180deg, rgba(11, 26, 47, 0.75) 0%, rgba(11, 26, 47, 0.92) 100%), url("/images/hero-banner.jpg")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          padding: '4rem 0',
         }}
       >
-        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+        <div className="container">
           <div style={{ maxWidth: '780px' }}>
-            <h1
+            <span
+              className="badge"
               style={{
-                color: '#FFFFFF',
-                fontSize: 'clamp(2.5rem, 5.5vw, 4.2rem)',
+                backgroundColor: 'rgba(26, 86, 219, 0.25)',
+                color: '#60A5FA',
+                border: '1px solid rgba(96, 165, 250, 0.3)',
+                marginBottom: '1.25rem',
+                fontSize: '0.85rem',
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                backdropFilter: 'blur(4px)',
+              }}
+            >
+              {t('hero.badge' as any)}
+            </span>
+            
+            <h1
+              className="hero-title"
+              style={{
+                fontSize: '3.4rem',
                 fontWeight: 800,
-                lineHeight: 1.1,
-                marginBottom: '1.5rem',
-                fontFamily: 'var(--font-heading)',
+                lineHeight: 1.15,
                 letterSpacing: '-0.02em',
-                textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                marginBottom: '1.5rem',
+                color: '#FFFFFF',
               }}
             >
               {t('hero.title' as any)}
             </h1>
-
+            
             <p
+              className="hero-subtitle"
               style={{
-                fontSize: '1.25rem',
+                fontSize: '1.2rem',
                 lineHeight: 1.6,
-                color: 'rgba(255, 255, 255, 0.9)',
+                color: '#E2E8F0',
                 marginBottom: '2.5rem',
                 maxWidth: '680px',
               }}
@@ -118,47 +149,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. BRANDS BAR */}
-      <section className="container">
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+      {/* 2. BRANDS MOVING BANNER (MARQUEE) */}
+      <section style={{ width: '100%', overflow: 'hidden' }}>
+        <div className="container" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
             {t('home.brands.title' as any)}
           </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+            Distribución autorizada de las marcas más reconocidas en Latinoamérica
+          </p>
         </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '2.5rem',
-            flexWrap: 'wrap',
-            padding: '1.5rem',
-            backgroundColor: 'var(--bg-secondary)',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--border-light)',
-          }}
-        >
-          {loadingBrands ? (
-            <div style={{ color: 'var(--text-secondary)' }}>Cargando marcas...</div>
-          ) : (
-            brands.slice(0, 10).map((brand) => (
-              <div
-                key={brand.id}
-                style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontWeight: 800,
-                  fontSize: '1.4rem',
-                  letterSpacing: '0.05em',
-                  color: 'var(--text-secondary)',
-                  opacity: 0.85,
-                  transition: 'opacity 0.2s, color 0.2s',
-                  cursor: 'pointer',
-                }}
-              >
-                {brand.name}
-              </div>
-            ))
-          )}
+
+        {/* Continuous Smooth Scrolling Marquee */}
+        <div className="marquee-container" style={{ backgroundColor: 'var(--bg-secondary)', borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)' }}>
+          <div className="marquee-track">
+            {/* First Set */}
+            {marqueeBrands.map((brand, idx) => (
+              <BrandItem key={`b1-${brand.id || idx}`} name={brand.name} />
+            ))}
+            {/* Duplicated Set for Seamless Infinite Loop */}
+            {marqueeBrands.map((brand, idx) => (
+              <BrandItem key={`b2-${brand.id || idx}`} name={brand.name} />
+            ))}
+          </div>
         </div>
       </section>
 
