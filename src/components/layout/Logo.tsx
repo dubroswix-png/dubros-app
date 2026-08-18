@@ -33,7 +33,7 @@ export function Logo({ variant = 'auto', className, size = 'md' }: LogoProps) {
     >
       {useImage ? (
         <img
-          src="/images/logo.png"
+          src="/images/logo.svg"
           alt="Dubros Internacional"
           style={{
             height: `${logoHeight}px`,
