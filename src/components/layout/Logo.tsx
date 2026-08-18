@@ -11,7 +11,7 @@ export function Logo({ variant = 'auto', className, size = 'md' }: LogoProps) {
   const isLarge = size === 'lg';
   const isSmall = size === 'sm';
 
-  const logoHeight = isLarge ? 48 : isSmall ? 28 : 36;
+  const logoHeight = isLarge ? 54 : isSmall ? 32 : 44;
   const iconWidth = isLarge ? 54 : isSmall ? 32 : 42;
   const iconHeight = isLarge ? 24 : isSmall ? 14 : 18;
   const titleSize = isLarge ? '1.5rem' : isSmall ? '1.1rem' : '1.35rem';
