@@ -1,0 +1,1076 @@
+[
+  {
+    "id": "b-adriana-roth",
+    "name": "Adriana Roth",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654532227565x929255787105959400/Adriana%20Roth%20Final.png"
+  },
+  {
+    "id": "b-belluno",
+    "name": "Belluno",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654532240098x456360325454682430/Belluno.png"
+  },
+  {
+    "id": "b-benedeto",
+    "name": "Benedeto",
+    "active": false,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654532249348x778287825297762700/benedeto.png"
+  },
+  {
+    "id": "b-best-view",
+    "name": "Best View",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654532263386x801668731940542700/Best%20View%20Final.png"
+  },
+  {
+    "id": "b-boloco",
+    "name": "Boloco",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654532277550x162099524813589700/Boloco.png"
+  },
+  {
+    "id": "b-botteri",
+    "name": "Botteri",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654541791250x401384649511544060/Botteri.png"
+  },
+  {
+    "id": "b-castelo",
+    "name": "Castelo",
+    "active": false,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654541802416x599282508932415600/CASTELO.png"
+  },
+  {
+    "id": "b-collezione",
+    "name": "Collezione",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654541812938x524551986871076000/COLLEZIONE%20.png"
+  },
+  {
+    "id": "b-dmost",
+    "name": "Dmost",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654541825181x849332272581898400/D%27MOST.png"
+  },
+  {
+    "id": "b-eagle",
+    "name": "Eagle",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654542145260x283357025283563330/Eagle.jpg"
+  },
+  {
+    "id": "b-gisally",
+    "name": "Gisally",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654542176513x154031793488952350/GISALLY%20PNG.png"
+  },
+  {
+    "id": "b-golf-player",
+    "name": "Golf Player",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654542192449x563297407304105500/Golf%20Player.png"
+  },
+  {
+    "id": "b-lct",
+    "name": "LCT",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654542214710x926933257878315100/LCT%20logo.png"
+  },
+  {
+    "id": "b-mask",
+    "name": "MASK",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654542236055x970083044395190300/MASK%20typo.png"
+  },
+  {
+    "id": "b-lucka",
+    "name": "Lucka",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654542245922x277243338969464640/Lucka%20Final.png"
+  },
+  {
+    "id": "b-mirage",
+    "name": "Mirage",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654542261348x335504821516305660/Mirage.jpg"
+  },
+  {
+    "id": "b-da-vista",
+    "name": "DA vista",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877317975x945085861596510300/50.png"
+  },
+  {
+    "id": "b-abentino",
+    "name": "Abentino",
+    "active": false,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877455770x255127525261053400/ABENTINO.png"
+  },
+  {
+    "id": "b-lontano",
+    "name": "Lontano",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877510535x562554333132272900/Lontano.png"
+  },
+  {
+    "id": "b-cabassi",
+    "name": "Cabassi",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877562793x975266159866742500/Cabassi.png"
+  },
+  {
+    "id": "b-matsuda",
+    "name": "Matsuda",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877624108x440523139612651650/Matsuda%20png.png"
+  },
+  {
+    "id": "b-modern-line",
+    "name": "Modern Line",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877640154x559485553581119170/MODERN%20LINE.png"
+  },
+  {
+    "id": "b-nochetti",
+    "name": "Nochetti",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877654223x786073797959263600/Nochetti.png"
+  },
+  {
+    "id": "b-aristoni",
+    "name": "Aristoni",
+    "active": false,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877698944x142666783352690450/ARISTONI%20LOGO.png"
+  },
+  {
+    "id": "b-bardot",
+    "name": "Bardot",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877715376x986379374088690800/Bardot.png"
+  },
+  {
+    "id": "b-bonavista",
+    "name": "Bonavista",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877728078x765312710847527700/BONAVISTA.png"
+  },
+  {
+    "id": "b-camlin",
+    "name": "Camlin",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877738778x678606225561948300/CAMLIN.png"
+  },
+  {
+    "id": "b-daniel-klein",
+    "name": "Daniel Klein",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877749498x672098862067030500/Daniel%20Klein.png"
+  },
+  {
+    "id": "b-divari",
+    "name": "Divari",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877797219x839788755069725800/Divari.png"
+  },
+  {
+    "id": "b-dubros",
+    "name": "Dubros",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877807988x335657966944271900/dubros%20eyewear.png"
+  },
+  {
+    "id": "b-dubros-sport",
+    "name": "Dubros Sport",
+    "active": false,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877821477x222102836922055900/DUBROS%20SPORT.jpg"
+  },
+  {
+    "id": "b-elite-view",
+    "name": "Elite View",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877838022x468603990234450100/Elite%20View.png"
+  },
+  {
+    "id": "b-faciale",
+    "name": "Faciale",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877849877x601174711985866800/Faciale%20Final.png"
+  },
+  {
+    "id": "b-fazio",
+    "name": "Fazio",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877860334x638758734985997600/fazio%20nueva.png"
+  },
+  {
+    "id": "b-francess",
+    "name": "Francess",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877875113x896118037970686300/Framcess.png"
+  },
+  {
+    "id": "b-fresh---flex",
+    "name": "Fresh & Flex",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877898362x161746671105175170/FRESH%20%26%20FLEX.png"
+  },
+  {
+    "id": "b-goretty",
+    "name": "Goretty",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877912196x242947320072097100/Goretty.png"
+  },
+  {
+    "id": "b-hi-line",
+    "name": "Hi Line",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877926361x450889847621880770/HI-LINE.png"
+  },
+  {
+    "id": "b-kiamil",
+    "name": "Kiamil",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877939269x383914621460308160/kiamil%20Final.png"
+  },
+  {
+    "id": "b-ladys-view",
+    "name": "Ladys View",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877953336x622865744996742500/Ladys%20view.png"
+  },
+  {
+    "id": "b-memory",
+    "name": "Memory",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877965814x120691052488713470/Memory.png"
+  },
+  {
+    "id": "b-nikole",
+    "name": "Nikole",
+    "active": false,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654877982508x634571326452062200/Nikole.jpg"
+  },
+  {
+    "id": "b-novelly",
+    "name": "Novelly",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878015740x387288510253147600/NOVELLI.png"
+  },
+  {
+    "id": "b-prestige",
+    "name": "Prestige",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878029556x981177107846362000/PRESTIGE.png"
+  },
+  {
+    "id": "b-rosseti",
+    "name": "Rosseti",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878043546x965128054769972400/Recurso%202.png"
+  },
+  {
+    "id": "b-riddot",
+    "name": "Riddot",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878056996x229050609732092130/Riddot.jpg"
+  },
+  {
+    "id": "b-rochester",
+    "name": "Rochester",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878069268x725243004086160400/Rochester.png"
+  },
+  {
+    "id": "b-romana",
+    "name": "Romana",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878084170x951248871136163700/ROMANA%20LOGO.png"
+  },
+  {
+    "id": "b-rover-d-monti",
+    "name": "Rover D monti",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878098668x938365467026632200/Rover%20D%27monti.png"
+  },
+  {
+    "id": "b-season",
+    "name": "Season",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878112136x755196794483797600/SEASON.png"
+  },
+  {
+    "id": "b-start-optical",
+    "name": "Start Optical",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878126327x535892812052648260/Star%20Optical.png"
+  },
+  {
+    "id": "b-stylos",
+    "name": "Stylos",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878139531x902289674712296200/STYLOS.png"
+  },
+  {
+    "id": "b-verona",
+    "name": "Verona",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878150760x804841269033094400/Verona.png"
+  },
+  {
+    "id": "b-weekend",
+    "name": "Weekend",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1654878161192x705582500259269700/weekend%20eyewear.png"
+  },
+  {
+    "id": "b-sm",
+    "name": "SM",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-guess",
+    "name": "Guess",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-vaggio",
+    "name": "Vaggio",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658515478528x939374704564198500/Vaggio.png"
+  },
+  {
+    "id": "b-vision-kids",
+    "name": "Vision Kids",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658515656320x513413582357571400/vision%20kids.png"
+  },
+  {
+    "id": "b-comfort",
+    "name": "Comfort",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658515708673x231812446575671900/Comfort%20Final.png"
+  },
+  {
+    "id": "b-dreamy",
+    "name": "Dreamy",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658515946422x334161489774417860/DREAMY.png"
+  },
+  {
+    "id": "b-richelli",
+    "name": "Richelli",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658516133562x910559978935050900/RICHELLI.png"
+  },
+  {
+    "id": "b-nakarata",
+    "name": "Nakarata",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658516204649x307066781502783700/NAKARATA%20logo.png"
+  },
+  {
+    "id": "b-iberia",
+    "name": "Iberia",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658523500341x200249901845310560/IBERIA.png"
+  },
+  {
+    "id": "b-fiorenci",
+    "name": "Fiorenci",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658523549275x826118441872495400/FIORENCI%20LOGO.png"
+  },
+  {
+    "id": "b-scalata",
+    "name": "Scalata",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658523573974x435909903250262660/LOGO%20SCALATA.png"
+  },
+  {
+    "id": "b-tutto-davista",
+    "name": "Tutto Davista",
+    "active": false,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658523615452x141484679578829600/TUTTO%20DAVISTA.png"
+  },
+  {
+    "id": "b-matizz",
+    "name": "Matizz",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658523706191x313511142456440770/Matizz-2.png"
+  },
+  {
+    "id": "b-diez",
+    "name": "Diez",
+    "active": true,
+    "logoUrl": "https://s3.amazonaws.com/appforest_uf/f1658523717579x293028359904976560/DIEZ.png"
+  },
+  {
+    "id": "b-ladies",
+    "name": "Ladies",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-monkatelli",
+    "name": "Monkatelli",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-diverse",
+    "name": "Diverse",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-actuale",
+    "name": "Actuale",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-halainn",
+    "name": "Halainn",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-ferrato",
+    "name": "Ferrato",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-giordanni",
+    "name": "Giordanni",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-borelly",
+    "name": "Borelly",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-heler",
+    "name": "Heler",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-fazett",
+    "name": "Fazett",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-portofino",
+    "name": "Portofino",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-monticelli",
+    "name": "Monticelli",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-faster",
+    "name": "Faster",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-di-moda",
+    "name": "Di Moda",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-silver-line",
+    "name": "Silver Line",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-buttony",
+    "name": "Buttony",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-mantovanni",
+    "name": "Mantovanni",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-karisma",
+    "name": "Karisma",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-dinamic",
+    "name": "Dinamic",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-new-way",
+    "name": "New Way",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-pascally",
+    "name": "Pascally",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-santini",
+    "name": "Santini",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-clark",
+    "name": "Clark",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-exclusive",
+    "name": "Exclusive",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-france-wave",
+    "name": "France wave",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-gallardo",
+    "name": "Gallardo",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-agatha-ruiz-de-la-prada",
+    "name": "Agatha Ruiz de la Prada",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-adolfo-dominguez",
+    "name": "Adolfo Dominguez",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-polar",
+    "name": "Polar",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-amarcord",
+    "name": "Amarcord",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-d-roux",
+    "name": "D'roux",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-firence",
+    "name": "Firence",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-karyny",
+    "name": "Karyny",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-rizzi",
+    "name": "Rizzi",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-annix",
+    "name": "Annix",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-fancy",
+    "name": "Fancy",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-feline",
+    "name": "Feline",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-greko",
+    "name": "Greko",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-mar-gel",
+    "name": "Mar-gel",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-visual-care",
+    "name": "Visual care",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-xiomy",
+    "name": "Xiomy",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-smart-kids",
+    "name": "Smart kids",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-myler",
+    "name": "MYLER",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-traverso",
+    "name": "TRAVERSO",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-dk-taylor",
+    "name": "DK-TAYLOR",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-bachelet",
+    "name": "Bachelet",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-baldini",
+    "name": "Baldini",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-banister",
+    "name": "Banister",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-blue-blank",
+    "name": "Blue Blank",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-dominick",
+    "name": "Dominick",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-bonnet",
+    "name": "Bonnet",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-famous-group",
+    "name": "Famous Group",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-donatto",
+    "name": "Donatto",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-candy-colors",
+    "name": "Candy Colors",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-fazzet",
+    "name": "Fazzet",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-ferrada",
+    "name": "Ferrada",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-fiori",
+    "name": "Fiori",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-fresh-face",
+    "name": "Fresh Face",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-flexxilon",
+    "name": "Flexxilon",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-kenny",
+    "name": "Kenny",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-jazz",
+    "name": "Jazz",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-frank",
+    "name": "Frank",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-fila",
+    "name": "Fila",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-gabanelly",
+    "name": "Gabanelly",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-meggan",
+    "name": "Meggan",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-kypers",
+    "name": "Kypers",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-koral",
+    "name": "Koral",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-klover",
+    "name": "Klover",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-lutti",
+    "name": "Lutti",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-london-brand",
+    "name": "London Brand",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-moncatelli",
+    "name": "Moncatelli",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-lotto",
+    "name": "Lotto",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-lacoste",
+    "name": "Lacoste",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-lancetti",
+    "name": "Lancetti",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-murray",
+    "name": "Murray",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-montblanc",
+    "name": "Montblanc",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-nova",
+    "name": "Nova",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-perlati",
+    "name": "Perlati",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-schoolday",
+    "name": "Schoolday",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-polistilo",
+    "name": "Polistilo",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-russy",
+    "name": "Russy",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-polyframes",
+    "name": "Polyframes",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-roller",
+    "name": "Roller",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-polioptics",
+    "name": "Polioptics",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-traverzo",
+    "name": "Traverzo",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-viriatto",
+    "name": "Viriatto",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-surfing",
+    "name": "Surfing",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-tressore",
+    "name": "Tressore",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-x-seven",
+    "name": "X-Seven",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-skechers",
+    "name": "Skechers",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-x-vision",
+    "name": "X-Vision",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-climbing",
+    "name": "Climbing",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-star-line",
+    "name": "Star Line",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-master-line",
+    "name": "Master Line",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-natural",
+    "name": "Natural",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-velvett",
+    "name": "Velvett",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-versos",
+    "name": "Versos",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-forever-21",
+    "name": "Forever 21",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-lili-frank",
+    "name": "Lili Frank",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-belmor",
+    "name": "Belmor",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-suprim",
+    "name": "Suprim",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-norway",
+    "name": "Norway",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-ray-ban",
+    "name": "Ray Ban",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-adidas",
+    "name": "Adidas",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-calvin-klein",
+    "name": "Calvin Klein",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-gap",
+    "name": "Gap",
+    "active": false,
+    "logoUrl": null
+  },
+  {
+    "id": "b-nike",
+    "name": "Nike",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-baldinni",
+    "name": "Baldinni",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-vachelet",
+    "name": "Vachelet",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-carolina-herrera",
+    "name": "Carolina Herrera",
+    "active": true,
+    "logoUrl": null
+  },
+  {
+    "id": "b-tommy",
+    "name": "Tommy",
+    "active": true,
+    "logoUrl": null
+  }
+]

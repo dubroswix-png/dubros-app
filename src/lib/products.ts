@@ -335,16 +335,16 @@ export async function getFeaturedProducts(limit: number = 8): Promise<Product[]>
 // Fetch all brands from Supabase
 // ---------------------------------------------------------------------------
 
-const FALLBACK_BRANDS: SupabaseBrand[] = [
-  { id: 'b-weekend', name: 'Weekend', active: true },
-  { id: 'b-lct', name: 'LCT', active: true },
-  { id: 'b-mask', name: 'MASK', active: true },
-  { id: 'b-giordanni', name: 'Giordanni', active: true },
-  { id: 'b-verona', name: 'Verona', active: true },
-  { id: 'b-mantovanni', name: 'Mantovanni', active: true },
-  { id: 'b-romana', name: 'Romana', active: true },
-  { id: 'b-smartkids', name: 'Smartkids', active: true },
-];
+import bubbleBrandsData from '@/data/bubble_brands.json';
+
+const FALLBACK_BRANDS: SupabaseBrand[] = (bubbleBrandsData as any[])
+  .filter((b) => b.active)
+  .map((b) => ({
+    id: b.id,
+    name: b.name,
+    active: b.active,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 const FALLBACK_CATEGORIES: SupabaseCategory[] = [
   { id: 'c-oftalmico', name: 'Oftálmico', slug: 'oftalmico' },
