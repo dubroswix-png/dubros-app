@@ -354,16 +354,9 @@ const FALLBACK_CATEGORIES: SupabaseCategory[] = (bubbleCategoriesData as any[]).
   slug: c.slug,
 }));
 
-const FALLBACK_MATERIALS: string[] = [
-  'ACETATO',
-  'ACERO INOXIDABLE',
-  'COMBINADO',
-  'METAL',
-  'SILICONA FLEX',
-  'TITANIO',
-  'TR90',
-  'TR90 FLEX',
-];
+import bubbleMaterialsData from '@/data/bubble_materials.json';
+
+const FALLBACK_MATERIALS: string[] = bubbleMaterialsData as string[];
 
 export async function getBrands(): Promise<SupabaseBrand[]> {
   try {
