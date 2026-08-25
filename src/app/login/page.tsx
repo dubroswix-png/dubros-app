@@ -77,16 +77,12 @@ export default function LoginPage() {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div
-            style={{
-              fontWeight: 800,
-              fontSize: '1.8rem',
-              fontFamily: 'var(--font-heading)',
-              color: 'var(--navy)',
-              marginBottom: '0.5rem',
-            }}
-          >
-            <span style={{ color: 'var(--blue)' }}>DU</span> BROS
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <img 
+              src="/images/logo.svg" 
+              alt="Dubros Logo" 
+              style={{ height: '48px', width: 'auto', objectFit: 'contain' }} 
+            />
           </div>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
             {isRegister ? 'Crea tu cuenta de cliente comercial' : 'Ingresa a tu cuenta de cliente o distribuidor'}
