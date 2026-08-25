@@ -42,28 +42,6 @@ export function ProductCard({ product }: ProductCardProps) {
             onError={(e) => { (e.target as HTMLImageElement).src = '/images/product-placeholder.png'; }}
           />
         </Link>
-        <button
-          onClick={() => toggleFavorite(product.id)}
-          style={{
-            position: 'absolute',
-            top: '10px',
-            right: '10px',
-            backgroundColor: isFav ? '#FEE2E2' : 'rgba(255, 255, 255, 0.9)',
-            border: 'none',
-            borderRadius: '50%',
-            width: '34px',
-            height: '34px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: isFav ? '#EF4444' : 'var(--text-tertiary)',
-            transition: 'all 0.2s ease',
-          }}
-          aria-label="Guardar en Favoritos"
-        >
-          <Heart size={18} fill={isFav ? '#EF4444' : 'none'} />
-        </button>
 
         {product.eyeSize > 0 ? (
           <span
@@ -152,28 +130,78 @@ export function ProductCard({ product }: ProductCardProps) {
                   ${product.price.toFixed(2)}
                 </div>
               </div>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  addToCart(product);
-                }}
-                className="btn-primary"
-                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-              >
-                <ShoppingBag size={16} /> {t('common.addCart' as any)}
-              </button>
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleFavorite(product.id);
+                  }}
+                  style={{
+                    backgroundColor: isFav ? '#FEE2E2' : 'var(--bg-secondary)',
+                    border: '1px solid var(--border-medium)',
+                    borderRadius: 'var(--radius-md)',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: isFav ? '#EF4444' : 'var(--text-secondary)',
+                    transition: 'all 0.2s ease',
+                  }}
+                  aria-label="Guardar en Favoritos"
+                >
+                  <Heart size={18} fill={isFav ? '#EF4444' : 'none'} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addToCart(product);
+                  }}
+                  className="btn-primary"
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                >
+                  <ShoppingBag size={16} /> {t('common.addCart' as any)}
+                </button>
+              </div>
             </>
           ) : (
             <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>
                 {t('common.price.locked' as any)}
               </span>
-              <Link href={`/catalogo/${product.id}`} style={{ textDecoration: 'none' }}>
-                <span className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                  <Eye size={16} /> {t('common.view' as any)}
-                </span>
-              </Link>
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleFavorite(product.id);
+                  }}
+                  style={{
+                    backgroundColor: isFav ? '#FEE2E2' : 'var(--bg-secondary)',
+                    border: '1px solid var(--border-medium)',
+                    borderRadius: 'var(--radius-md)',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: isFav ? '#EF4444' : 'var(--text-secondary)',
+                    transition: 'all 0.2s ease',
+                  }}
+                  aria-label="Guardar en Favoritos"
+                >
+                  <Heart size={18} fill={isFav ? '#EF4444' : 'none'} />
+                </button>
+                <Link href={`/catalogo/${product.id}`} style={{ textDecoration: 'none' }}>
+                  <span className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                    <Eye size={16} /> {t('common.view' as any)}
+                  </span>
+                </Link>
+              </div>
             </div>
           )}
         </div>
