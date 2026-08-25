@@ -500,6 +500,13 @@ export function Footer() {
           >
             VISA
           </div>
+
+          {/* Logo Extra */}
+          <img 
+            src="https://f39fd0ce1482a1df9e42319c122cca40.cdn.bubble.io/f1764543315531x873078055523515500/40c71704198a1873a45c0cdf1b58aeff83d3a19f.png" 
+            alt="Logo Extra"
+            style={{ height: '32px', width: 'auto', objectFit: 'contain' }}
+          />
         </div>
 
       </div>
