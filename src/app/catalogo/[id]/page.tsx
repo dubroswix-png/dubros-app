@@ -7,6 +7,7 @@ import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Globe2, Award, ChevronRight
 import { getProductById, getFeaturedProducts } from '@/lib/products';
 import type { Product } from '@/data/mock';
 import { ProductCard } from '@/components/catalog/ProductCard';
+import { ProductImageZoom } from '@/components/catalog/ProductImageZoom';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
@@ -72,45 +73,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       <div className="container" style={{ paddingTop: '3rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}>
           
-          {/* Left: Product Images */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ 
-              backgroundColor: '#F9FAFB', 
-              borderRadius: 'var(--radius-lg)', 
-              padding: '3rem', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              border: '1px solid var(--border-light)',
-              minHeight: '400px'
-            }}>
-              <img 
-                src={product.largeImageUrl} 
-                alt={product.reference} 
-                style={{ width: '100%', maxWidth: '400px', height: 'auto', objectFit: 'contain' }}
-                onError={(e) => { (e.target as HTMLImageElement).src = '/images/product-placeholder.png'; }}
-              />
-            </div>
-            
-            {/* Thumbnails (mocked by duplicating the same image) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-              {[product.largeImageUrl, product.thumbnailUrl, ...(product.extraImages || [])].slice(0, 4).map((img, idx) => (
-                <div key={idx} style={{ 
-                  backgroundColor: '#F9FAFB', 
-                  borderRadius: 'var(--radius-md)', 
-                  padding: '1rem', 
-                  cursor: 'pointer',
-                  border: idx === 0 ? '2px solid var(--blue)' : '1px solid var(--border-light)'
-                }}>
-                  <img 
-                    src={img} 
-                    alt={`Thumbnail ${idx}`} 
-                    style={{ width: '100%', height: 'auto' }} 
-                    onError={(e) => { (e.target as HTMLImageElement).src = '/images/product-placeholder.png'; }}
-                  />
-                </div>
-              ))}
-            </div>
+          {/* Left: Product Images with Interactive Magnifier Zoom */}
+          <div>
+            <ProductImageZoom
+              mainImage={product.largeImageUrl || product.thumbnailUrl}
+              altText={product.reference}
+              thumbnails={[product.largeImageUrl, product.thumbnailUrl, ...(product.extraImages || [])]}
+            />
           </div>
 
           {/* Right: Product Details */}
