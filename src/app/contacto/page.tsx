@@ -102,17 +102,7 @@ export default function ContactPage() {
                   <div>
                     <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>Dirección Principal</strong>
                     <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.75)' }}>
-                      Zona Libre de Colón, Manzana 14, Lote 3, Panamá.
-                    </span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                  <Mail size={22} color="#60A5FA" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>Correo Electrónico</strong>
-                    <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.75)' }}>
-                      ventas@dubros.com / atencion@dubros.com
+                      Colón- Zona Libre, Ave. Dominador Bazan Calle 18 Edfi Atlantic Plaza Local 3B, Panamá.
                     </span>
                   </div>
                 </div>
@@ -120,17 +110,42 @@ export default function ContactPage() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                   <Phone size={22} color="#60A5FA" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
+                    <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>Teléfono Fijo</strong>
+                    <a href="tel:+5074414731" style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.9)', textDecoration: 'none' }}>
+                      +507 4414731
+                    </a>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <Mail size={22} color="#60A5FA" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>Correo Electrónico</strong>
+                    <a href="mailto:ventas@dubros.com" style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.9)', textDecoration: 'none' }}>
+                      ventas@dubros.com
+                    </a>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <Phone size={22} color="#10B981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
                     <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>WhatsApp Comercial</strong>
-                    <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.75)' }}>
-                      +507 6000-0000 (Atención Lunes a Viernes)
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.2rem' }}>
+                      <a href="https://wa.me/50762926554" target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#6EE7B7', textDecoration: 'none', fontWeight: 600 }}>
+                        (+507) 6292-6554
+                      </a>
+                      <a href="https://wa.me/50762912194" target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#6EE7B7', textDecoration: 'none', fontWeight: 600 }}>
+                        (+507) 6291-2194
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div style={{ paddingTop: '2rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)', marginTop: '2rem' }}>
-              <span style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.6)' }}>Horario de atención: 8:00 AM - 5:00 PM (EST)</span>
+              <span style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.6)' }}>Horario de atención: 8:00 AM - 5:00 PM (EST) · Zona Libre de Colón</span>
             </div>
           </div>
         </div>
