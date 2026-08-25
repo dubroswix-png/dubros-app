@@ -114,7 +114,7 @@ export async function createOrder({
     }
 
     // 3. Generate WhatsApp summary URL
-    const dubrosWhatsApp = '50760000000'; // Número oficial de ventas
+    const dubrosWhatsApp = '50762926554'; // Número oficial de ventas (+507 6292-6554)
     let message = `*NUEVO PEDIDO DUBROS B2B*\n`;
     message += `📋 *Orden:* #${orderNumber}\n`;
     message += `🏢 *Empresa:* ${profile?.company_name || 'N/A'}\n`;

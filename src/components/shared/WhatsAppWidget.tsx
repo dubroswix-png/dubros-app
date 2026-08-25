@@ -4,7 +4,7 @@ import React from 'react';
 import { MessageCircle } from 'lucide-react';
 
 export function WhatsAppWidget() {
-  const phoneNumber = '50760000000';
+  const phoneNumber = '50762926554';
   const defaultText = encodeURIComponent('Hola Dubros, me interesa solicitar información sobre el catálogo de monturas.');
 
   return (
