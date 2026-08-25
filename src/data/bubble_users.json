@@ -1,0 +1,2792 @@
+[
+  {
+    "id": "usr-1",
+    "email": "dfduqu01@gmail.com",
+    "businessType": "Cliente",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": "https://s3.amazonaws.com/appforest_uf/f1664903987659x914651064373083900/Diego%20Duque%20CIP%20E-8-97407.jpg",
+    "role": "admin",
+    "status": "activo"
+  },
+  {
+    "id": "usr-2",
+    "email": "mercadeo@dubros.com",
+    "businessType": "Cliente",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": "https://s3.amazonaws.com/appforest_uf/f1664904017900x419558760366567200/Hilda%20Greco%20CIP%208-812-1469.jpg",
+    "role": "admin",
+    "status": "activo"
+  },
+  {
+    "id": "usr-3",
+    "email": "marketing@dubros.com",
+    "businessType": "Cliente",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "admin",
+    "status": "activo"
+  },
+  {
+    "id": "usr-4",
+    "email": "ventasfrancisco@dubros.com",
+    "businessType": "Cliente",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": "https://s3.amazonaws.com/appforest_uf/f1662493889029x519269697833745660/Francisco%20Lopez%20CIP%20E-8-96998.jpg",
+    "role": "admin",
+    "status": "activo"
+  },
+  {
+    "id": "usr-5",
+    "email": "l.orrego@opticasdeluxe.com",
+    "businessType": "Opticas",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-6",
+    "email": "ventas@dubros.com",
+    "businessType": "Cliente",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "admin",
+    "status": "activo"
+  },
+  {
+    "id": "usr-7",
+    "email": "cbalbi@opticagiras.com",
+    "businessType": "Opticas",
+    "clientCode": "2621",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-8",
+    "email": "optinova@outlook.com",
+    "businessType": "Opticas",
+    "clientCode": "1958",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-9",
+    "email": "inversionesquantum@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-10",
+    "email": "calitto63@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-11",
+    "email": "administracion@optirex.net",
+    "businessType": "Opticas",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-12",
+    "email": "clinica.opticaromero@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2028",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-13",
+    "email": "jduque@dubros.com",
+    "businessType": "Cliente",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "admin",
+    "status": "activo"
+  },
+  {
+    "id": "usr-14",
+    "email": "infoclearopticsv@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-15",
+    "email": "mceron@ocfyt.com",
+    "businessType": "Opticas",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-16",
+    "email": "irelisjaime@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2615",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-17",
+    "email": "juliocesar@opticaoviedo.net",
+    "businessType": "Opticas",
+    "clientCode": "1969",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-18",
+    "email": "shirleyb0321@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "101",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-19",
+    "email": "augustollanos12345@outlook.es",
+    "businessType": "Opticas",
+    "clientCode": "2426",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-20",
+    "email": "krisloppa@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2623",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-21",
+    "email": "visionbugaba@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1747",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-22",
+    "email": "mavila@ocfyt.com",
+    "businessType": "Opticas",
+    "clientCode": "12345",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-23",
+    "email": "optosmc@gmail.com",
+    "businessType": "Laboratorio",
+    "clientCode": "123456",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-24",
+    "email": "jacobacosta977@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2462",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-25",
+    "email": "visionmakersteam@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "300",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-26",
+    "email": "cizquierdo@pricesmart.com",
+    "businessType": "Opticas",
+    "clientCode": "300",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-27",
+    "email": "zumbado@aprendeycrece.org",
+    "businessType": "Opticas",
+    "clientCode": "300",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-28",
+    "email": "action3000@gmx.es",
+    "businessType": "Opticas",
+    "clientCode": "2383",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-29",
+    "email": "smiranda@pricesmart.com",
+    "businessType": "Opticas",
+    "clientCode": "2023",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-30",
+    "email": "jennesy-ibarra@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2126",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-31",
+    "email": "zulema.rdrgz@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "2614",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-32",
+    "email": "ernesto.manuel.apumayta@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "2511",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-33",
+    "email": "fco.liriano@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2205",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-34",
+    "email": "vanessa826@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "9898",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-35",
+    "email": "chermansiilva@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "87838",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-36",
+    "email": "cesar.c.r79@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2564",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-37",
+    "email": "visualagape@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2152",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-38",
+    "email": "renemoreno25@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2423",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-39",
+    "email": "opticadeluxe922@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2545",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-40",
+    "email": "dubros2024@gmail.com",
+    "businessType": "Cliente",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-41",
+    "email": "yorgelis.t7@hotmail.com",
+    "businessType": "Cliente",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-42",
+    "email": "devys1512@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-43",
+    "email": "neaangel018@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "0",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-44",
+    "email": "biankign@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1937",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-45",
+    "email": "direccion@fcmakolping.org.bo",
+    "businessType": "Opticas",
+    "clientCode": "12412",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-46",
+    "email": "duque.jdavid@gmail.com",
+    "businessType": "Cliente",
+    "clientCode": null,
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-47",
+    "email": "enithyabeth@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2727",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-48",
+    "email": "jeimersabogal179@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2741",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-49",
+    "email": "florez.anderson@gmail.com",
+    "businessType": "Cliente",
+    "clientCode": "2",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-50",
+    "email": "mejorvision2024@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2304",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-51",
+    "email": "ulises.arreaga@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "1924",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-52",
+    "email": "aliriogarcia419@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2418",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-53",
+    "email": "sorgoguz@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2680",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-54",
+    "email": "todogafas.gt@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2316",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-55",
+    "email": "odelgadillo@grupomunkel.com",
+    "businessType": "Distribuidor",
+    "clientCode": "489",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-56",
+    "email": "opt.henry.canar@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2478",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-57",
+    "email": "centrodeopticas@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1604",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-58",
+    "email": "fernandotc1960@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "0",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-59",
+    "email": "avelinoayos@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "0",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-60",
+    "email": "contabilidad@visioncentergroup.com",
+    "businessType": "Opticas",
+    "clientCode": "800",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-61",
+    "email": "jfavotto@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1795",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-62",
+    "email": "joseesquivel2003@yahoo.com",
+    "businessType": "Distribuidor",
+    "clientCode": "1060",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-63",
+    "email": "mariletlopez@hotmail.com",
+    "businessType": "Cliente",
+    "clientCode": "2039",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-64",
+    "email": "dclm.asistenciavisual@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2450",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-65",
+    "email": "opticaal@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2017",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-66",
+    "email": "opticplanes@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2145",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-67",
+    "email": "claujers@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "2599",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-68",
+    "email": "salvavenezuela@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1457",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-69",
+    "email": "jairopoz1690@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2713",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-70",
+    "email": "opticabaez@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1452",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-71",
+    "email": "iesbyadefonseca@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "2445",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-72",
+    "email": "opolicentroparquelefevre@gmail.com",
+    "businessType": "Cliente",
+    "clientCode": "901",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-73",
+    "email": "moncada.mariana@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "1367",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-74",
+    "email": "ventas@grupoes-optico.com",
+    "businessType": "Opticas",
+    "clientCode": "2734",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-75",
+    "email": "optica_optivisual@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1610",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-76",
+    "email": "aliriogacia1966@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2418",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-77",
+    "email": "hperez.quimcosta@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-78",
+    "email": "aracely-garcia5@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1964",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-79",
+    "email": "clickopticardenas@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "3",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-80",
+    "email": "marcasyanteojossas@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "3",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-81",
+    "email": "exielop@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2341",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-82",
+    "email": "johnnyegonzalez86@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "1474",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-83",
+    "email": "ioni@homeofbrands.net",
+    "businessType": "Opticas",
+    "clientCode": "0",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-84",
+    "email": "griselcordero@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1746",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-85",
+    "email": "sebastianpaesani@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "4",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-86",
+    "email": "varielmejia@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2672",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-87",
+    "email": "sari.tejada@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2639",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-88",
+    "email": "neovision_2008@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2591",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-89",
+    "email": "visiongloblal@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2093",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-90",
+    "email": "ortega.lester@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2229",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-91",
+    "email": "widevision19@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2609",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-92",
+    "email": "zulivan72@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2714",
+    "country": "VENEZUELA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-93",
+    "email": "cvmasopticacr@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2674",
+    "country": "COSTA RICA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-94",
+    "email": "manuluna82@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2482",
+    "country": "VENEZUELA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-95",
+    "email": "franklin.alvarado@nowvision.com.do",
+    "businessType": "Opticas",
+    "clientCode": "2196",
+    "country": "REP. DOMINICANA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-96",
+    "email": "optinao@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "4",
+    "country": "ECUADOR",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-97",
+    "email": "sotozmy@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2357",
+    "country": "VENEZUELA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-98",
+    "email": "exit.elsalvador@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "436",
+    "country": "EL SALVADOR",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-99",
+    "email": "oscareuclides@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "765",
+    "country": "NICARAGUA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-100",
+    "email": "lauravallev@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2301",
+    "country": "SALVADOR",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-101",
+    "email": "opticaoptiverca@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2448",
+    "country": "VENEZUELA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-102",
+    "email": "dikaoluciana@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "5",
+    "country": "ECUADOR",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-103",
+    "email": "opticaquepos10@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2187",
+    "country": "COSTA RICA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-104",
+    "email": "margotmonasterio@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1667",
+    "country": "VENEZUELA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-105",
+    "email": "guidotoapant@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2361",
+    "country": "ECUADOR",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-106",
+    "email": "miguelkl73@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "25",
+    "country": "VENEZUELA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-107",
+    "email": "contagjtrade@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "798",
+    "country": "GUATEMALA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-108",
+    "email": "rgamacu@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2697",
+    "country": "PERU",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-109",
+    "email": "glenisalvaradom@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2419",
+    "country": "HONDURAS",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-110",
+    "email": "josuepineda1973@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2572",
+    "country": "HONDURAS",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-111",
+    "email": "juanramos@optiglass.com.pa",
+    "businessType": "Opticas",
+    "clientCode": "2050",
+    "country": "PANAMA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-112",
+    "email": "opticasjd@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2551",
+    "country": "PANAMA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-113",
+    "email": "distvenecia@yahoo.com",
+    "businessType": "Distribuidor",
+    "clientCode": "748",
+    "country": "VENEZUELA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-114",
+    "email": "eguerrero.tladd@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2695",
+    "country": "EL SALVADOR",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-115",
+    "email": "rodolfojimenezsaenz@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2742",
+    "country": "COSTA RICA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-116",
+    "email": "astrithc27@outlook.com",
+    "businessType": "Opticas",
+    "clientCode": "2268",
+    "country": "PANAMA",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-117",
+    "email": "opticavisionsantander@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2696",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-118",
+    "email": "jimca_82@hotmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "710",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-119",
+    "email": "fredy_p870@hotmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "2221",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-120",
+    "email": "gerencia@grupocolors.com",
+    "businessType": "Distribuidor",
+    "clientCode": "1499",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-121",
+    "email": "micheg27@hotmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "2041",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-122",
+    "email": "opticaclinicavisionhd@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "6",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-123",
+    "email": "opticasvistoso@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2715",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-124",
+    "email": "cliopt@clinicacliopt.com",
+    "businessType": "Opticas",
+    "clientCode": "2608",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-125",
+    "email": "dyrro1@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2563",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-126",
+    "email": "opticaibarra@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2126",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-127",
+    "email": "suoptica1990@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2707",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-128",
+    "email": "mariajardi@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2274",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-129",
+    "email": "sandracontreras81@hotmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "1884",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-130",
+    "email": "alibellpg23@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2255",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-131",
+    "email": "lymoncadarodriguez@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2772",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-132",
+    "email": "danieldelgadosjm@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "7",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-133",
+    "email": "centro.ocular0501@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2281",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-134",
+    "email": "jpulido1978@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "8",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-135",
+    "email": "gerentegeneral.almanzar@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "8",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-136",
+    "email": "villaroptica@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "9",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-137",
+    "email": "laboratorio.optico.new.vision@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2327",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-138",
+    "email": "carldavidbarrientos.31@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2759",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-139",
+    "email": "mauricios_santos31@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "2421",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-140",
+    "email": "solano07hum@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2751",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-141",
+    "email": "consultaopticacenteno@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1760",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-142",
+    "email": "stylos_opticos@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2168",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-143",
+    "email": "diovys_001@yahoo.es",
+    "businessType": "Opticas",
+    "clientCode": "2762",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-144",
+    "email": "saludvisual@cwpanama.net",
+    "businessType": "Opticas",
+    "clientCode": "11",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-145",
+    "email": "marbelyandino@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1123",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-146",
+    "email": "sebastianmoradiaz.64@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "2334",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-147",
+    "email": "lourdes_visionintegral1970@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1920",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-148",
+    "email": "maciasabreu@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "162",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-149",
+    "email": "info@servilentesgt.com",
+    "businessType": "Distribuidor",
+    "clientCode": "123131",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-150",
+    "email": "opticaschouwe@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "273",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-151",
+    "email": "opticartevision@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "13",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-152",
+    "email": "cosmolens3@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "792",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-153",
+    "email": "gerencia@clinicaocularcr.com",
+    "businessType": "Opticas",
+    "clientCode": "888",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-154",
+    "email": "paginaweb@opticasdeluxe.com",
+    "businessType": "Opticas",
+    "clientCode": "1323",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-155",
+    "email": "grupoopticovision2020@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1280",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-156",
+    "email": "diazoptica9@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "15",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-157",
+    "email": "opticaberlud@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1274",
+    "country": "Venezuela",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-158",
+    "email": "opticostaadm@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2767",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-159",
+    "email": "luzoptical@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1298",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-160",
+    "email": "rerm23_1987@yahoo.es",
+    "businessType": "Opticas",
+    "clientCode": "2460",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-161",
+    "email": "arochacary1@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2400",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-162",
+    "email": "gioreoptical@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "2560",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-163",
+    "email": "williamscuadroc@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1509",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-164",
+    "email": "animayencortez@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1401",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-165",
+    "email": "opticasbethel@yahoo.com",
+    "businessType": "Distribuidor",
+    "clientCode": "1480",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-166",
+    "email": "veira2106@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1928",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-167",
+    "email": "mauriciocampisiw@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "17",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-168",
+    "email": "lanita983@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1633",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-169",
+    "email": "ccharpentier1978@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1550",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-170",
+    "email": "lentesyprocesos@hptmail.com",
+    "businessType": "Opticas",
+    "clientCode": "519",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-171",
+    "email": "opticavisionexpress@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1676",
+    "country": "Venezuela",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-172",
+    "email": "diazoptica@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1689",
+    "country": "Venezuela",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-173",
+    "email": "angela1osorio@yahoo.es",
+    "businessType": "Opticas",
+    "clientCode": "1663",
+    "country": "Venezuela",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-174",
+    "email": "altavisionltda@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2058",
+    "country": "Chile",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-175",
+    "email": "surianijuan@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2025",
+    "country": "Argentina",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-176",
+    "email": "da.fe.me@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "359",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-177",
+    "email": "optilagom1@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "37",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-178",
+    "email": "nelson_valle@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2051",
+    "country": "El salvador",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-179",
+    "email": "dolores2009@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1945",
+    "country": "El salvador",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-180",
+    "email": "borisrivera82@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1860",
+    "country": "El salvador",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-181",
+    "email": "laelegancia-dj@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1605",
+    "country": "El salvador",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-182",
+    "email": "jorgemelendez@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1889",
+    "country": "El salvador",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-183",
+    "email": "jcserddel@yahoo.es",
+    "businessType": "Opticas",
+    "clientCode": "860",
+    "country": "El salvador",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-184",
+    "email": "bcbagdadi@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1960",
+    "country": "Argentina",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-185",
+    "email": "puntoptico.valpo@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1967",
+    "country": "Chile",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-186",
+    "email": "gfernadez@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1344",
+    "country": "Chile",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-187",
+    "email": "gerencia@comercialrcd.com",
+    "businessType": "Opticas",
+    "clientCode": "787",
+    "country": "Chile",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-188",
+    "email": "mirkorojasj@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1318",
+    "country": "Chile",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-189",
+    "email": "hansalvarez61@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2069",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-190",
+    "email": "optisaludcr@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "869",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-191",
+    "email": "opticlinic.cr@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2193",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-192",
+    "email": "opticot@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1469",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-193",
+    "email": "hugomoon88@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1718",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-194",
+    "email": "ipanto@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1608",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-195",
+    "email": "dariana1998@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1715",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-196",
+    "email": "altavistaoptica@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2057",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-197",
+    "email": "optcentroamerica@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1219",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-198",
+    "email": "especialidadesopticas@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1575",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-199",
+    "email": "tanya_monge@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2059",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-200",
+    "email": "rmauco@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2075",
+    "country": "Venezuela",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-201",
+    "email": "lamondra2004@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1477",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-202",
+    "email": "haroldorozco27@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1822",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-203",
+    "email": "festeban@estebansopticas.com",
+    "businessType": "Opticas",
+    "clientCode": "974",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-204",
+    "email": "jusa300cc@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "988",
+    "country": "Costa Rica",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-205",
+    "email": "irossanaxg@yahoo.es",
+    "businessType": "Opticas",
+    "clientCode": "1723",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-206",
+    "email": "luisfra1961@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1619",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-207",
+    "email": "carlossgonzalezz@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1546",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-208",
+    "email": "odinguatemala@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "698",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-209",
+    "email": "gramirez@optical-elements.com",
+    "businessType": "Opticas",
+    "clientCode": "1576",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-210",
+    "email": "opticadoro@guate.net.gt",
+    "businessType": "Opticas",
+    "clientCode": "572",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-211",
+    "email": "jorgeopticaamerica@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1261",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-212",
+    "email": "arcoiris20130@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "645",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-213",
+    "email": "hnajeram@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1435",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-214",
+    "email": "intermerc.deguatemala@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1408",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-215",
+    "email": "fermalaga@itelgua.com",
+    "businessType": "Opticas",
+    "clientCode": "1394",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-216",
+    "email": "jcdlca@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1271",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-217",
+    "email": "bulockstrafico@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1180",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-218",
+    "email": "importadoralaferia@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1205",
+    "country": "Guatemala",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-219",
+    "email": "opticentro_admon@yahoo.com.mx",
+    "businessType": "Opticas",
+    "clientCode": "468",
+    "country": "Hondura",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-220",
+    "email": "mountglass@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2020",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-221",
+    "email": "gerencia@visualmedica.com",
+    "businessType": "Opticas",
+    "clientCode": "2041",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-222",
+    "email": "juanc2070@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2022",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-223",
+    "email": "willprad@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1306",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-224",
+    "email": "disglovision-26@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1984",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-225",
+    "email": "gi.colombia@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1977",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-226",
+    "email": "comercial.centralmedicalgroup@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1828",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-227",
+    "email": "jhonluz8201@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1972",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-228",
+    "email": "alciraja@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "945",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-229",
+    "email": "mauros250@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "528",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-230",
+    "email": "mauroag69@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1955",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-231",
+    "email": "yocaroh@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1330",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-232",
+    "email": "rapilens@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1875",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-233",
+    "email": "grupooptizone@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1582",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-234",
+    "email": "distriopticasromero@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1940",
+    "country": "Colombia",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-235",
+    "email": "darnelimport@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "53",
+    "country": "Rep Domi",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-236",
+    "email": "juanluisheredia2@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1247",
+    "country": "Rep Domi",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-237",
+    "email": "sarahjoga@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1528",
+    "country": "Rep Domi",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-238",
+    "email": "newyorkpower.09@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1265",
+    "country": "Rep Domi",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-239",
+    "email": "nelson.mendez@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1458",
+    "country": "Rep Domi",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-240",
+    "email": "dugo89@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1091",
+    "country": "Rep Domi",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-241",
+    "email": "nl.mena@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1581",
+    "country": "hondura",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-242",
+    "email": "garciaurbina@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "1704",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-243",
+    "email": "johaaram72@yahoo.es",
+    "businessType": "Opticas",
+    "clientCode": "2584",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-244",
+    "email": "andressgiralt@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "1917",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-245",
+    "email": "multiopticascr@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2110",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-246",
+    "email": "multiprofcc@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2438",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-247",
+    "email": "recepcion@opticalook.com",
+    "businessType": "Opticas",
+    "clientCode": "1822",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-248",
+    "email": "yuditbelr@gmail.com",
+    "businessType": "Distribuidor",
+    "clientCode": "20",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-249",
+    "email": "marioparrado01@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "21",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-250",
+    "email": "vistaoptica@yahoo.com",
+    "businessType": "Opticas",
+    "clientCode": "1731",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-251",
+    "email": "labopticavista@yahoo.es",
+    "businessType": "Opticas",
+    "clientCode": "2190",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-252",
+    "email": "katherinethiele01@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2503",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-253",
+    "email": "mayeli.hernandez@interlenscorporativo.com",
+    "businessType": "Opticas",
+    "clientCode": "2375",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-254",
+    "email": "serviciosopticosmelch@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2718",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-255",
+    "email": "annurban.v@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2019",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-256",
+    "email": "visionlent07@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "27",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-257",
+    "email": "sfuentes@opticapuntodevista.com",
+    "businessType": "Opticas",
+    "clientCode": "2719",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-258",
+    "email": "danielaju0616@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "28",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-259",
+    "email": "gerencia@leroyoptical.com",
+    "businessType": "Opticas",
+    "clientCode": "2800",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-260",
+    "email": "droptica@outlook.com",
+    "businessType": "Opticas",
+    "clientCode": "30",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-261",
+    "email": "willialfaro78@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2362",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-262",
+    "email": "opticavisionbugaba@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1747",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-263",
+    "email": "drakiara@opticasuniversal.com",
+    "businessType": "Opticas",
+    "clientCode": "2610",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-264",
+    "email": "gbarrera-23@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2783",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-265",
+    "email": "edgararcea@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1392",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-266",
+    "email": "samir.traverso@opticasantalucia.com",
+    "businessType": "Opticas",
+    "clientCode": "2197",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-267",
+    "email": "proposita@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2783",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-268",
+    "email": "lopezkarla13@yahoo.es",
+    "businessType": "Opticas",
+    "clientCode": "34",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-269",
+    "email": "dayanacortesguido@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "43",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-270",
+    "email": "opticaabangares@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2797",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-271",
+    "email": "rinelle29@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2795",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-272",
+    "email": "fernairigaray@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "50",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-273",
+    "email": "mpinilla919@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2219",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-274",
+    "email": "somarriba_mara09@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "1443",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-275",
+    "email": "anasophiaha7@hotmail.com",
+    "businessType": "Opticas",
+    "clientCode": "12334",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-276",
+    "email": "ramonmimi2@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "826",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-277",
+    "email": "opticavisiontotalnica@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "7543",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-278",
+    "email": "juliomolina.2710@gmail.com",
+    "businessType": "Opticas",
+    "clientCode": "2271",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  },
+  {
+    "id": "usr-279",
+    "email": "m.shoshan@kvr-partners.com",
+    "businessType": "Distribuidor",
+    "clientCode": "22",
+    "country": "Panamá",
+    "photoUrl": null,
+    "role": "client",
+    "status": "activo"
+  }
+]
