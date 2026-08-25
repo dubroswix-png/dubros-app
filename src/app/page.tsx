@@ -60,9 +60,9 @@ export default function HomePage() {
           minHeight: '580px',
           display: 'flex',
           alignItems: 'center',
-          background: 'linear-gradient(rgba(11, 26, 47, 0.82), rgba(11, 26, 47, 0.88)), url("/images/hero-banner.jpg") center/cover no-repeat',
+          background: 'linear-gradient(rgba(11, 26, 47, 0.78), rgba(11, 26, 47, 0.85)), url("/images/banners/banner-hero.png") center/cover no-repeat',
           color: '#FFFFFF',
-          padding: '4rem 0',
+          padding: '4.5rem 0',
         }}
       >
         <div className="container">
