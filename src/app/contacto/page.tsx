@@ -102,7 +102,7 @@ export default function ContactPage() {
                   <div>
                     <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>Dirección Principal</strong>
                     <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.75)' }}>
-                      Colón- Zona Libre, Ave. Dominador Bazan Calle 18 Edfi Atlantic Plaza Local 3B, Panamá.
+                      Zona Libre de Interplaza Piso 4- Local 514, Colón
                     </span>
                   </div>
                 </div>
