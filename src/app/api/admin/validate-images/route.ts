@@ -6,7 +6,7 @@ export const maxDuration = 60;
 
 const S3_IMAGE_REPO_BASE =
   process.env.ERP_IMAGE_REPO_URL ||
-  'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository';
+  'https://dubros-image-repository.s3.amazonaws.com';
 
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;

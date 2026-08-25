@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         asunto: `[Web] ${company} - ${message.substring(0, 100)}`,
       });
 
-      erpLeadId = erpResponse.response?.data?.Id || null;
+      erpLeadId = erpResponse.data?.id || null;
 
       // Update Supabase record with ERP lead ID
       if (erpLeadId && submission?.id) {

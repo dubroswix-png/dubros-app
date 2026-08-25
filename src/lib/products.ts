@@ -68,6 +68,11 @@ export interface GetProductsResult {
 // ---------------------------------------------------------------------------
 
 function mapSupabaseToProduct(row: SupabaseProduct): Product {
+  const fixUrl = (url: string | undefined | null) => {
+    if (!url) return '/images/product-placeholder.png';
+    return url.replace('https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository', 'https://dubros-image-repository.s3.amazonaws.com');
+  };
+
   return {
     id: row.id,
     reference: row.reference || row.code || '',
@@ -82,8 +87,8 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
     category: row.categories?.name || '',
     quantity: row.quantity || 0,
     flex: false,
-    thumbnailUrl: row.thumbnail_url || '/images/product-placeholder.png',
-    largeImageUrl: row.large_image_url || '/images/product-placeholder.png',
+    thumbnailUrl: fixUrl(row.thumbnail_url),
+    largeImageUrl: fixUrl(row.large_image_url),
   };
 }
 
@@ -187,8 +192,8 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     category: 'Oftálmico',
     quantity: 120,
     flex: true,
-    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/1312D.jpg',
-    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/1312D.jpg',
+    thumbnailUrl: 'https://dubros-image-repository.s3.amazonaws.com/1312D.jpg',
+    largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/1312D.jpg',
   },
   {
     id: 'feat-2',
@@ -204,8 +209,8 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     category: 'Oftálmico',
     quantity: 85,
     flex: true,
-    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/M3562C8.jpg',
-    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/M3562C8.jpg',
+    thumbnailUrl: 'https://dubros-image-repository.s3.amazonaws.com/M3562C8.jpg',
+    largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/M3562C8.jpg',
   },
   {
     id: 'feat-3',
@@ -221,8 +226,8 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     category: 'Oftálmico',
     quantity: 60,
     flex: false,
-    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61008C5.jpg',
-    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61008C5.jpg',
+    thumbnailUrl: 'https://dubros-image-repository.s3.amazonaws.com/TH61008C5.jpg',
+    largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/TH61008C5.jpg',
   },
   {
     id: 'feat-4',
@@ -238,8 +243,8 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     category: 'Oftálmico',
     quantity: 110,
     flex: true,
-    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61012C4.jpg',
-    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61012C4.jpg',
+    thumbnailUrl: 'https://dubros-image-repository.s3.amazonaws.com/TH61012C4.jpg',
+    largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/TH61012C4.jpg',
   },
   {
     id: 'feat-5',
@@ -255,8 +260,8 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     category: 'Oftálmico',
     quantity: 95,
     flex: true,
-    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/8558C6.jpg',
-    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/8558C6.jpg',
+    thumbnailUrl: 'https://dubros-image-repository.s3.amazonaws.com/8558C6.jpg',
+    largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/8558C6.jpg',
   },
   {
     id: 'feat-6',
@@ -272,8 +277,8 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     category: 'Oftálmico',
     quantity: 75,
     flex: false,
-    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/MANTOVANNI211006.jpg',
-    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/MANTOVANNI211006.jpg',
+    thumbnailUrl: 'https://dubros-image-repository.s3.amazonaws.com/MANTOVANNI211006.jpg',
+    largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/MANTOVANNI211006.jpg',
   },
   {
     id: 'feat-7',
@@ -289,8 +294,8 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     category: 'Oftálmico',
     quantity: 140,
     flex: true,
-    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/ROMANA220602.jpg',
-    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/ROMANA220602.jpg',
+    thumbnailUrl: 'https://dubros-image-repository.s3.amazonaws.com/ROMANA220602.jpg',
+    largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/ROMANA220602.jpg',
   },
   {
     id: 'feat-8',
@@ -306,8 +311,8 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     category: 'Oftálmico',
     quantity: 200,
     flex: true,
-    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/SMARTKIDS190302.jpg',
-    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/SMARTKIDS190302.jpg',
+    thumbnailUrl: 'https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS190302.jpg',
+    largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS190302.jpg',
   }
 ];
 
@@ -471,21 +476,21 @@ const FALLBACK_COLLECTIONS: SupabaseCollection[] = [
     id: 'col-weekend',
     name: 'Weekend Eyewear Collection',
     description: 'Diseños contemporáneos y estilo urbano casual para uso diario con acabados de alta gama.',
-    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61012C4.jpg',
+    imageUrl: 'https://dubros-image-repository.s3.amazonaws.com/TH61012C4.jpg',
     productCount: 185,
   },
   {
     id: 'col-verona',
     name: 'Verona Acetato Italiano',
     description: 'Diseños contemporáneos en acetato pulido a mano con acabados de alta gama.',
-    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/1312D.jpg',
+    imageUrl: 'https://dubros-image-repository.s3.amazonaws.com/1312D.jpg',
     productCount: 142,
   },
   {
     id: 'col-kids',
     name: 'Giordanni Flex Kids',
     description: 'Flexibilidad 360° y durabilidad extrema en silicona médica para los más pequeños.',
-    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/M3562C8.jpg',
+    imageUrl: 'https://dubros-image-repository.s3.amazonaws.com/M3562C8.jpg',
     productCount: 65,
   },
 ];

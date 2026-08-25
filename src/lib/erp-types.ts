@@ -169,27 +169,25 @@ export interface ErpCreateLeadPayload {
 }
 
 export interface ErpCreateLeadResponse {
-  response: {
-    http_code: string;
-    message: string;
-    data: {
-      nombre: string;
-      celular: string;
-      email: string;
-      asunto: string;
-      empresa: string;
-      telefono: string;
-      monto: string;
-      usuarioId: number;
-      vendedorId: number;
-      crmleadetapaId: number;
-      fechaCreacion: string;
-      fechaEdicion: string;
-      proximaAccion: string;
-      updated_at: string;
-      created_at: string;
-      Id: number;
-    };
+  http_code: string;
+  message: string;
+  data: {
+    nombre: string;
+    celular: string;
+    email: string;
+    asunto: string;
+    empresa: string;
+    telefono: string;
+    monto: string;
+    usuarioId: number;
+    vendedorId: number;
+    crmleadetapaId: number;
+    fechaCreacion: string;
+    fechaEdicion: string;
+    proximaAccion: string;
+    updated_at: string;
+    created_at: string;
+    id: number;
   };
 }
 

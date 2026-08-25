@@ -305,7 +305,7 @@ export async function erpCreateOrder(
 export async function erpCreateLead(
   payload: ErpCreateLeadPayload
 ): Promise<ErpCreateLeadResponse> {
-  return erpFetch<ErpCreateLeadResponse>('/apicrm/leads', {
+  return erpFetch<ErpCreateLeadResponse>('/apileads/crear', {
     method: 'POST',
     body: payload,
   });

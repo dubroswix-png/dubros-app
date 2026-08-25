@@ -342,7 +342,7 @@ export default function HomePage() {
             gap: '2rem',
           }}
         >
-          {MOCK_BLOG_POSTS.map((post) => (
+          {MOCK_BLOG_POSTS.slice(0, 3).map((post) => (
             <BlogCard key={post.id} post={post} />
           ))}
         </div>
