@@ -141,6 +141,66 @@ export default function ContactPage() {
                     </div>
                   </div>
                 </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <a
+                    href="https://www.tiktok.com/@dubrosinternational"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      color: '#FFF',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                    }}
+                  >
+                    TikTok
+                  </a>
+                  <a
+                    href="https://www.instagram.com/dubrosinternational/?hl=es"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      color: '#FFF',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                    }}
+                  >
+                    Instagram
+                  </a>
+                  <a
+                    href="https://www.facebook.com/dubros/?locale=es_LA"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      color: '#FFF',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                    }}
+                  >
+                    Facebook
+                  </a>
+                </div>
               </div>
             </div>
 
