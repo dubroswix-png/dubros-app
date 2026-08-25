@@ -16,10 +16,11 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, userProfile } = useAuth();
   const { t } = useLanguage();
 
   const isFav = isFavorite(product.id);
+  const isAdmin = userProfile?.role === 'admin';
 
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -59,7 +60,7 @@ export function ProductCard({ product }: ProductCardProps) {
           >
             Talla {product.eyeSize}
           </span>
-        ) : product.quantity > 0 ? (
+        ) : isAdmin && product.quantity > 0 ? (
           <span
             style={{
               position: 'absolute',
