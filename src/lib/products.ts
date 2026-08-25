@@ -156,8 +156,16 @@ export async function getProducts({
 
     const { data, error, count } = await query;
 
-    if (error) {
-      console.error('[getProducts] Supabase error:', error);
+    if (error || !data || data.length === 0) {
+      if (!search && (!brandName || brandName === 'all') && (!categoryName || categoryName === 'all')) {
+        return {
+          products: FALLBACK_FEATURED_PRODUCTS,
+          totalCount: FALLBACK_FEATURED_PRODUCTS.length,
+          page: 1,
+          pageSize,
+          totalPages: 1,
+        };
+      }
       return { products: [], totalCount: 0, page, pageSize, totalPages: 0 };
     }
 
@@ -191,7 +199,7 @@ export async function getProducts({
 
 const FALLBACK_FEATURED_PRODUCTS: Product[] = [
   {
-    id: 'feat-1',
+    id: 'MANTOVANNI211006',
     reference: 'MANTOVANNI211006',
     code: 'MANTOVANNI211006',
     description: 'Línea de diseño italiana en acetato pulido a mano con acabados de alta gama.',
@@ -208,7 +216,7 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/MANTOVANNI211006.jpg',
   },
   {
-    id: 'feat-2',
+    id: 'ROMANA220602',
     reference: 'ROMANA220602',
     code: 'ROMANA220602',
     description: 'Estilo clásico atemporal con detalles metálicos en varillas y ajuste anatómico.',
@@ -225,7 +233,7 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/ROMANA220602.jpg',
   },
   {
-    id: 'feat-3',
+    id: 'SMARTKIDS190302',
     reference: 'SMARTKIDS190302',
     code: 'SMARTKIDS190302',
     description: 'Montura infantil ergonómica e irrompible con cinta de ajuste y bisagra 360° flex.',
@@ -242,7 +250,7 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS190302.jpg',
   },
   {
-    id: 'feat-4',
+    id: 'VERONA221013BLACKGRE',
     reference: 'VERONA221013BLACKGRE',
     code: 'VERONA221013BLACKGRE',
     description: 'Elegante diseño italiano en acetato bicapa de alta resistencia y brillo duradero.',
@@ -259,7 +267,7 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/VERONA221013BLACKGRE.jpg',
   },
   {
-    id: 'feat-5',
+    id: 'WEEKEND191108BLUE',
     reference: 'WEEKEND191108BLUE',
     code: 'WEEKEND191108BLUE',
     description: 'Diseño moderno y casual urbano con estructura ligera para máxima comodidad diaria.',
@@ -276,7 +284,7 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/WEEKEND191108BLUE.jpg',
   },
   {
-    id: 'feat-6',
+    id: 'IBERIA230906MGUN',
     reference: 'IBERIA230906MGUN',
     code: 'IBERIA230906MGUN',
     description: 'Montura metálica contemporánea con plaquetas de silicona y acabado gun metal.',
@@ -293,7 +301,7 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/IBERIA230906MGUN.jpg',
   },
   {
-    id: 'feat-7',
+    id: 'LCT161002C16-1',
     reference: 'LCT161002C16-1',
     code: 'LCT161002C16-1',
     description: 'Montura deportiva de alta durabilidad en TR90 con puente anatómico reforzado.',
@@ -310,7 +318,7 @@ const FALLBACK_FEATURED_PRODUCTS: Product[] = [
     largeImageUrl: 'https://dubros-image-repository.s3.amazonaws.com/LCT161002C16-1.jpg',
   },
   {
-    id: 'feat-8',
+    id: 'SMARTKIDS190309',
     reference: 'SMARTKIDS190309',
     code: 'SMARTKIDS190309',
     description: 'Colección infantil flexible de máxima seguridad y colores vivos para niños.',
@@ -444,27 +452,45 @@ export async function getMaterials(): Promise<string[]> {
 
 export async function getProductById(id: string): Promise<Product | null> {
   try {
-    let { data, error } = await supabase
-      .from('products')
-      .select('*, brands(id, name), categories(id, name)')
-      .eq('id', id)
-      .single();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    let data: any = null;
 
-    if (error || !data) {
-      // Fallback: try matching reference
-      const refQuery = await supabase
+    if (isUuid) {
+      const { data: byId } = await supabase
         .from('products')
         .select('*, brands(id, name), categories(id, name)')
-        .eq('reference', id)
-        .single();
+        .eq('id', id)
+        .maybeSingle();
+      data = byId;
+    }
 
-      if (refQuery.error || !refQuery.data) return null;
-      data = refQuery.data;
+    if (!data) {
+      // Try matching by reference or code in Supabase
+      const { data: byRef } = await supabase
+        .from('products')
+        .select('*, brands(id, name), categories(id, name)')
+        .or(`reference.eq.${id},code.eq.${id}`)
+        .limit(1)
+        .maybeSingle();
+      data = byRef;
+    }
+
+    if (!data) {
+      // Look in verified fallback products
+      const fallback = FALLBACK_FEATURED_PRODUCTS.find(
+        (p) => p.id === id || p.reference.toLowerCase() === id.toLowerCase() || p.code.toLowerCase() === id.toLowerCase()
+      );
+      if (fallback) return fallback;
+      return null;
     }
 
     return mapSupabaseToProduct(data);
   } catch (e) {
     console.error('[getProductById] Error:', e);
+    const fallback = FALLBACK_FEATURED_PRODUCTS.find(
+      (p) => p.id === id || p.reference.toLowerCase() === id.toLowerCase() || p.code.toLowerCase() === id.toLowerCase()
+    );
+    if (fallback) return fallback;
     return null;
   }
 }
