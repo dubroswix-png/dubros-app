@@ -1,21 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MOCK_BLOG_POSTS } from '@/data/mock';
+import React, { useState, useEffect } from 'react';
+import { getBlogPosts } from '@/lib/blog';
+import type { BlogPost } from '@/data/mock';
 import { BlogCard } from '@/components/blog/BlogCard';
 import bubbleTags from '@/data/bubble_tags.json';
 import { Tag } from 'lucide-react';
 
 export default function BlogPage() {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string>('all');
 
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getBlogPosts();
+        setPosts(data);
+      } catch (err) {
+        console.error('Error loading blog posts:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
   const filteredPosts = selectedTag === 'all'
-    ? MOCK_BLOG_POSTS
-    : MOCK_BLOG_POSTS.filter(post =>
-        post.title.toLowerCase().includes(selectedTag) ||
-        post.shortDescription.toLowerCase().includes(selectedTag) ||
-        post.content.toLowerCase().includes(selectedTag) ||
-        (post.tags && post.tags.some(t => t.toLowerCase().includes(selectedTag)))
+    ? posts
+    : posts.filter(post =>
+        post.title.toLowerCase().includes(selectedTag.toLowerCase()) ||
+        post.shortDescription.toLowerCase().includes(selectedTag.toLowerCase()) ||
+        post.content.toLowerCase().includes(selectedTag.toLowerCase()) ||
+        (post.tags && post.tags.some(t => t.toLowerCase().includes(selectedTag.toLowerCase())))
       );
 
   return (
@@ -56,7 +73,7 @@ export default function BlogPage() {
             transition: 'all 0.2s',
           }}
         >
-          Todos ({MOCK_BLOG_POSTS.length})
+          Todos ({posts.length})
         </button>
         {(bubbleTags as string[]).slice(0, 15).map((tag) => (
           <button

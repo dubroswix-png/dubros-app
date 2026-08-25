@@ -14,4 +14,4 @@ VALUES
   (gen_random_uuid(), 'Lectura', 'lectura'),
   (gen_random_uuid(), 'Clips', 'clips'),
   (gen_random_uuid(), 'Guias', 'guias')
-ON CONFLICT (name) DO UPDATE SET slug = EXCLUDED.slug;
+ON CONFLICT (slug) DO NOTHING;

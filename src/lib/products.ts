@@ -68,27 +68,39 @@ export interface GetProductsResult {
 // ---------------------------------------------------------------------------
 
 function mapSupabaseToProduct(row: SupabaseProduct): Product {
-  const fixUrl = (url: string | undefined | null) => {
-    if (!url) return '/images/product-placeholder.png';
-    return url.replace('https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository', 'https://dubros-image-repository.s3.amazonaws.com');
+  const fixUrl = (url: string | undefined | null, refFallback: string) => {
+    if (url && url.includes('http') && !url.includes('placeholder')) {
+      return url.replace(
+        'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository',
+        'https://dubros-image-repository.s3.amazonaws.com'
+      );
+    }
+    const cleanRef = (refFallback || '').trim();
+    if (cleanRef) {
+      return `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(cleanRef)}.jpg`;
+    }
+    return '/images/product-placeholder.png';
   };
+
+  const ref = row.reference || row.code || '';
+  const code = row.code || row.reference || '';
 
   return {
     id: row.id,
-    reference: row.reference || row.code || '',
-    code: row.code || row.reference || '',
-    description: row.description || '',
+    reference: ref,
+    code: code,
+    description: row.description || `Montura oftálmica de alta calidad, referencia ${ref}.`,
     price: row.price || 0,
     eyeSize: 0, // Not stored in Supabase currently
-    brand: row.brands?.name || '',
+    brand: row.brands?.name || 'Dubros',
     material: row.material || 'N/A',
     gender: (row.gender as any) || 'Unisex',
     saleType: row.sale_type || 'PIEZA',
-    category: row.categories?.name || '',
+    category: row.categories?.name || 'Aros Ópticos',
     quantity: row.quantity || 0,
     flex: false,
-    thumbnailUrl: fixUrl(row.thumbnail_url),
-    largeImageUrl: fixUrl(row.large_image_url),
+    thumbnailUrl: fixUrl(row.thumbnail_url, ref),
+    largeImageUrl: fixUrl(row.large_image_url || row.thumbnail_url, ref),
   };
 }
 
@@ -321,7 +333,6 @@ export async function getFeaturedProducts(limit: number = 8): Promise<Product[]>
     const { data, error } = await supabase
       .from('products')
       .select('*, brands(id, name), categories(id, name)')
-      .gt('price', 0)
       .order('created_at', { ascending: false })
       .limit(limit);
 

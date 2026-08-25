@@ -1,26 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Phone, Mail, Building2, User, MessageSquare, CheckCircle, Clock, Send, Download } from 'lucide-react';
-import bubbleContacts from '@/data/bubble_contacts.json';
-
-interface ContactItem {
-  id: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  company: string;
-  email: string;
-  phone: string;
-  message: string;
-  accountCreated: boolean;
-  status: string;
-}
+import { getContactSubmissions, type ContactSubmission } from '@/lib/contacts';
 
 export default function AdminContactsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'aprobado' | 'pendiente'>('all');
-  const [contacts, setContacts] = useState<ContactItem[]>(bubbleContacts as ContactItem[]);
+  const [contacts, setContacts] = useState<ContactSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getContactSubmissions();
+        setContacts(data);
+      } catch (err) {
+        console.error('Error loading contacts:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   const filteredContacts = contacts.filter((c) => {
     const matchesSearch =

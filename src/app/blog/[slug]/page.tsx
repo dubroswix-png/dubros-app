@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { MOCK_BLOG_POSTS } from '@/data/mock';
+import { notFound } from 'next/navigation';
+import { getBlogPostBySlug } from '@/lib/blog';
 import { Calendar, User, ArrowLeft } from 'lucide-react';
 
 export default async function BlogPostDetailPage({
@@ -9,7 +10,11 @@ export default async function BlogPostDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
-  const post = MOCK_BLOG_POSTS.find((p) => p.slug === resolvedParams.slug) || MOCK_BLOG_POSTS[0];
+  const post = await getBlogPostBySlug(resolvedParams.slug);
+
+  if (!post) {
+    notFound();
+  }
 
   return (
     <article className="container" style={{ maxWidth: '800px', padding: '3rem 1.5rem 5rem 1.5rem' }}>

@@ -65,21 +65,39 @@ export function ProductCard({ product }: ProductCardProps) {
           <Heart size={18} fill={isFav ? '#EF4444' : 'none'} />
         </button>
 
-        <span
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '10px',
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            color: '#FFFFFF',
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            padding: '0.25rem 0.5rem',
-            borderRadius: 'var(--radius-sm)',
-          }}
-        >
-          Talla {product.eyeSize}
-        </span>
+        {product.eyeSize > 0 ? (
+          <span
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '10px',
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              color: '#FFFFFF',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              padding: '0.25rem 0.5rem',
+              borderRadius: 'var(--radius-sm)',
+            }}
+          >
+            Talla {product.eyeSize}
+          </span>
+        ) : product.quantity > 0 ? (
+          <span
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '10px',
+              backgroundColor: 'rgba(15, 72, 150, 0.85)',
+              color: '#FFFFFF',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              padding: '0.25rem 0.5rem',
+              borderRadius: 'var(--radius-sm)',
+            }}
+          >
+            Stock: {product.quantity}
+          </span>
+        ) : null}
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

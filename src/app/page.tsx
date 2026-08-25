@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MOCK_BLOG_POSTS } from '@/data/mock';
 import { getFeaturedProducts, getBrands, getCollections, type SupabaseBrand, type SupabaseCollection } from '@/lib/products';
+import { getBlogPosts } from '@/lib/blog';
+import type { BlogPost } from '@/data/mock';
 import { ArrowRight, ShieldCheck, Globe2, Truck, Award } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { ProductCard } from '@/components/catalog/ProductCard';
@@ -15,6 +16,7 @@ export default function HomePage() {
   const [products, setProducts] = useState<any[]>([]);
   const [brands, setBrands] = useState<{ id: string; name: string; active?: boolean }[]>([]);
   const [collections, setCollections] = useState<SupabaseCollection[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingBrands, setLoadingBrands] = useState(true);
   const [loadingCollections, setLoadingCollections] = useState(true);
@@ -22,14 +24,16 @@ export default function HomePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [fetchedProducts, fetchedBrands, fetchedCollections] = await Promise.all([
+        const [fetchedProducts, fetchedBrands, fetchedCollections, fetchedBlog] = await Promise.all([
           getFeaturedProducts(8),
           getBrands(),
           getCollections(),
+          getBlogPosts(),
         ]);
         setProducts(fetchedProducts);
         setBrands(fetchedBrands);
         setCollections(fetchedCollections);
+        setBlogPosts(fetchedBlog);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -342,7 +346,7 @@ export default function HomePage() {
             gap: '2rem',
           }}
         >
-          {MOCK_BLOG_POSTS.slice(0, 3).map((post) => (
+          {blogPosts.slice(0, 3).map((post) => (
             <BlogCard key={post.id} post={post} />
           ))}
         </div>
