@@ -52,30 +52,9 @@ export interface BlogPost {
 
 
 
-export const MOCK_BLOG_POSTS: BlogPost[] = [
-  {
-    id: 'b1',
-    title: 'Tendencias en Marcas Ópticas para Latinoamérica en 2026',
-    shortDescription: 'Descubre los materiales y estilos que dominarán los escaparates de las ópticas este año.',
-    content: '<p>El mercado óptico en Latinoamérica evoluciona hacia materiales ultra livianos como el TR90 y el titanio flex...</p>',
-    featuredImageUrl: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&auto=format&fit=crop&q=80',
-    tags: ['Tendencias', 'Ópticas', 'Novedades'],
-    slug: 'tendencias-marcas-opticas-2026',
-    publishedAt: '2026-07-20',
-    author: 'Dubros Team',
-  },
-  {
-    id: 'b2',
-    title: 'Cómo Elegir el Material Adecuado para tu Catálogo de Óptica',
-    shortDescription: 'Comparativa exhaustiva entre Acetato, Titanio, Monel y TR90 para tus clientes.',
-    content: '<p>Cada cliente tiene necesidades únicas según su ritmo de vida y prescripción médica...</p>',
-    featuredImageUrl: 'https://images.unsplash.com/photo-1591076482161-42ce6da69f67?w=800&auto=format&fit=crop&q=80',
-    tags: ['Materiales', 'Guía', 'Productos'],
-    slug: 'como-elegir-material-adecuado-optica',
-    publishedAt: '2026-07-15',
-    author: 'Dubros Team',
-  },
-];
+import bubbleBlog from './bubble_blog.json';
+
+export const MOCK_BLOG_POSTS: BlogPost[] = bubbleBlog as BlogPost[];
 
 export const LATAM_COUNTRIES = [
   { name: 'Panamá', code: 'PA', dialCode: '+507', flag: '🇵🇦' },
