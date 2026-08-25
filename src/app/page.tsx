@@ -67,23 +67,6 @@ export default function HomePage() {
       >
         <div className="container">
           <div style={{ maxWidth: '780px' }}>
-            <span
-              className="badge"
-              style={{
-                backgroundColor: 'rgba(26, 86, 219, 0.25)',
-                color: '#60A5FA',
-                border: '1px solid rgba(96, 165, 250, 0.3)',
-                marginBottom: '1.25rem',
-                fontSize: '0.85rem',
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                backdropFilter: 'blur(4px)',
-              }}
-            >
-              {t('hero.badge' as any)}
-            </span>
-            
             <h1
               className="hero-title"
               style={{
