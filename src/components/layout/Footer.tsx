@@ -120,7 +120,7 @@ export function Footer() {
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             {/* TikTok */}
             <a
-              href="https://www.tiktok.com"
+              href="https://www.tiktok.com/@dubrosinternational"
               target="_blank"
               rel="noreferrer"
               aria-label="TikTok Dubros"
@@ -146,7 +146,7 @@ export function Footer() {
 
             {/* Facebook */}
             <a
-              href="https://www.facebook.com"
+              href="https://www.facebook.com/dubros/?locale=es_LA"
               target="_blank"
               rel="noreferrer"
               aria-label="Facebook Dubros"
@@ -172,7 +172,7 @@ export function Footer() {
 
             {/* Instagram */}
             <a
-              href="https://www.instagram.com"
+              href="https://www.instagram.com/dubrosinternational/?hl=es"
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram Dubros"
