@@ -1,0 +1,67 @@
+[
+  {
+    "id": "cat-aros-opticos",
+    "name": "Aros opticos",
+    "slug": "aros-opticos"
+  },
+  {
+    "id": "cat-sol",
+    "name": "Sol",
+    "slug": "sol"
+  },
+  {
+    "id": "cat-seguridad-industrial",
+    "name": "Seguridad industrial",
+    "slug": "seguridad-industrial"
+  },
+  {
+    "id": "cat-estuche",
+    "name": "Estuche",
+    "slug": "estuche"
+  },
+  {
+    "id": "cat-tornillo",
+    "name": "Tornillo",
+    "slug": "tornillo"
+  },
+  {
+    "id": "cat-narigueras",
+    "name": "Narigueras",
+    "slug": "narigueras"
+  },
+  {
+    "id": "cat-cordones",
+    "name": "Cordones",
+    "slug": "cordones"
+  },
+  {
+    "id": "cat-limpieza",
+    "name": "Limpieza",
+    "slug": "limpieza"
+  },
+  {
+    "id": "cat-espejos",
+    "name": "Espejos",
+    "slug": "espejos"
+  },
+  {
+    "id": "cat-exhibidores",
+    "name": "Exhibidores",
+    "slug": "exhibidores"
+  },
+  {
+    "id": "cat-lectura",
+    "name": "Lectura",
+    "slug": "lectura"
+  },
+  {
+    "id": "cat-clips",
+    "name": "Clips",
+    "slug": "clips"
+  },
+  {
+    "id": "cat-guias",
+    "name": "Guias",
+    "slug": "guias"
+  }
+]

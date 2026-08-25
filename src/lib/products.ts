@@ -346,13 +346,13 @@ const FALLBACK_BRANDS: SupabaseBrand[] = (bubbleBrandsData as any[])
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
-const FALLBACK_CATEGORIES: SupabaseCategory[] = [
-  { id: 'c-oftalmico', name: 'Oftálmico', slug: 'oftalmico' },
-  { id: 'c-solar', name: 'Solar', slug: 'solar' },
-  { id: 'c-clipon', name: 'Clip-On', slug: 'clip-on' },
-  { id: 'c-lectura', name: 'Lectura', slug: 'lectura' },
-  { id: 'c-infantil', name: 'Infantil', slug: 'infantil' },
-];
+import bubbleCategoriesData from '@/data/bubble_categories.json';
+
+const FALLBACK_CATEGORIES: SupabaseCategory[] = (bubbleCategoriesData as any[]).map((c) => ({
+  id: c.id,
+  name: c.name,
+  slug: c.slug,
+}));
 
 const FALLBACK_MATERIALS: string[] = [
   'ACETATO',
