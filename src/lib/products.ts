@@ -335,6 +335,36 @@ export async function getFeaturedProducts(limit: number = 8): Promise<Product[]>
 // Fetch all brands from Supabase
 // ---------------------------------------------------------------------------
 
+const FALLBACK_BRANDS: SupabaseBrand[] = [
+  { id: 'b-weekend', name: 'Weekend', active: true },
+  { id: 'b-lct', name: 'LCT', active: true },
+  { id: 'b-mask', name: 'MASK', active: true },
+  { id: 'b-giordanni', name: 'Giordanni', active: true },
+  { id: 'b-verona', name: 'Verona', active: true },
+  { id: 'b-mantovanni', name: 'Mantovanni', active: true },
+  { id: 'b-romana', name: 'Romana', active: true },
+  { id: 'b-smartkids', name: 'Smartkids', active: true },
+];
+
+const FALLBACK_CATEGORIES: SupabaseCategory[] = [
+  { id: 'c-oftalmico', name: 'Oftálmico', slug: 'oftalmico' },
+  { id: 'c-solar', name: 'Solar', slug: 'solar' },
+  { id: 'c-clipon', name: 'Clip-On', slug: 'clip-on' },
+  { id: 'c-lectura', name: 'Lectura', slug: 'lectura' },
+  { id: 'c-infantil', name: 'Infantil', slug: 'infantil' },
+];
+
+const FALLBACK_MATERIALS: string[] = [
+  'ACETATO',
+  'ACERO INOXIDABLE',
+  'COMBINADO',
+  'METAL',
+  'SILICONA FLEX',
+  'TITANIO',
+  'TR90',
+  'TR90 FLEX',
+];
+
 export async function getBrands(): Promise<SupabaseBrand[]> {
   try {
     const { data, error } = await supabase
@@ -342,15 +372,14 @@ export async function getBrands(): Promise<SupabaseBrand[]> {
       .select('id, name, active')
       .order('name', { ascending: true });
 
-    if (error) {
-      console.error('[getBrands] Error:', error);
-      return [];
+    if (error || !data || data.length === 0) {
+      return FALLBACK_BRANDS;
     }
 
-    return data || [];
+    return data;
   } catch (e) {
     console.error('[getBrands] Unexpected error:', e);
-    return [];
+    return FALLBACK_BRANDS;
   }
 }
 
@@ -365,15 +394,14 @@ export async function getCategories(): Promise<SupabaseCategory[]> {
       .select('id, name, slug')
       .order('name', { ascending: true });
 
-    if (error) {
-      console.error('[getCategories] Error:', error);
-      return [];
+    if (error || !data || data.length === 0) {
+      return FALLBACK_CATEGORIES;
     }
 
-    return data || [];
+    return data;
   } catch (e) {
     console.error('[getCategories] Unexpected error:', e);
-    return [];
+    return FALLBACK_CATEGORIES;
   }
 }
 
@@ -389,16 +417,15 @@ export async function getMaterials(): Promise<string[]> {
       .not('material', 'is', null)
       .not('material', 'eq', 'N/A');
 
-    if (error) {
-      console.error('[getMaterials] Error:', error);
-      return [];
+    if (error || !data || data.length === 0) {
+      return FALLBACK_MATERIALS;
     }
 
     const unique = [...new Set((data || []).map((d) => d.material).filter(Boolean))].sort();
-    return unique;
+    return unique.length > 0 ? unique : FALLBACK_MATERIALS;
   } catch (e) {
     console.error('[getMaterials] Unexpected error:', e);
-    return [];
+    return FALLBACK_MATERIALS;
   }
 }
 
@@ -448,11 +475,11 @@ export interface SupabaseCollection {
 
 const FALLBACK_COLLECTIONS: SupabaseCollection[] = [
   {
-    id: 'col-titanium',
-    name: 'Koroit Titanium Series',
-    description: 'Monturas ultraligeras de titanio puro y memoria de forma para máximo confort ejecutivo.',
-    imageUrl: '/images/collection-titanium.jpg',
-    productCount: 84,
+    id: 'col-weekend',
+    name: 'Weekend Eyewear Collection',
+    description: 'Diseños contemporáneos y estilo urbano casual para uso diario con acabados de alta gama.',
+    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61012C4.jpg',
+    productCount: 185,
   },
   {
     id: 'col-verona',
