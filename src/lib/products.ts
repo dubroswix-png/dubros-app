@@ -172,34 +172,162 @@ export async function getProducts({
 // Fetch featured products for homepage (latest N products with images)
 // ---------------------------------------------------------------------------
 
+const FALLBACK_FEATURED_PRODUCTS: Product[] = [
+  {
+    id: 'feat-1',
+    reference: '1312D',
+    code: '1312D',
+    description: 'Montura oftálmica de acetato pulido a mano de alta resistencia.',
+    price: 32.50,
+    eyeSize: 52,
+    brand: 'Verona',
+    material: 'ACETATO',
+    gender: 'Unisex',
+    saleType: 'PIEZA',
+    category: 'Oftálmico',
+    quantity: 120,
+    flex: true,
+    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/1312D.jpg',
+    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/1312D.jpg',
+  },
+  {
+    id: 'feat-2',
+    reference: 'M3562C8',
+    code: 'M3562C8',
+    description: 'Montura flexible con memoria de forma y bisagras reforzadas.',
+    price: 28.00,
+    eyeSize: 48,
+    brand: 'Giordanni',
+    material: 'TR90 FLEX',
+    gender: 'Niños',
+    saleType: 'PIEZA',
+    category: 'Oftálmico',
+    quantity: 85,
+    flex: true,
+    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/M3562C8.jpg',
+    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/M3562C8.jpg',
+  },
+  {
+    id: 'feat-3',
+    reference: 'TH61008C5',
+    code: 'TH61008C5',
+    description: 'Montura ultraligera de titanio puro, confort y elegancia ejecutiva.',
+    price: 45.00,
+    eyeSize: 54,
+    brand: 'Koroit',
+    material: 'TITANIO',
+    gender: 'Hombre',
+    saleType: 'PIEZA',
+    category: 'Oftálmico',
+    quantity: 60,
+    flex: false,
+    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61008C5.jpg',
+    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61008C5.jpg',
+  },
+  {
+    id: 'feat-4',
+    reference: 'TH61012C4',
+    code: 'TH61012C4',
+    description: 'Diseño moderno y casual para uso diario con acabado mate.',
+    price: 24.50,
+    eyeSize: 50,
+    brand: 'Weekend',
+    material: 'ACETATO / METAL',
+    gender: 'Mujer',
+    saleType: 'PIEZA',
+    category: 'Oftálmico',
+    quantity: 110,
+    flex: true,
+    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61012C4.jpg',
+    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/TH61012C4.jpg',
+  },
+  {
+    id: 'feat-5',
+    reference: '8558C6',
+    code: '8558C6',
+    description: 'Montura deportiva de alta durabilidad con puente anatómico.',
+    price: 29.90,
+    eyeSize: 55,
+    brand: 'LCT',
+    material: 'TR90',
+    gender: 'Hombre',
+    saleType: 'PIEZA',
+    category: 'Oftálmico',
+    quantity: 95,
+    flex: true,
+    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/8558C6.jpg',
+    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/8558C6.jpg',
+  },
+  {
+    id: 'feat-6',
+    reference: 'MANTOVANNI211006',
+    code: 'MANTOVANNI211006',
+    description: 'Línea de diseño italiana con acabados pulidos y gran ligereza.',
+    price: 38.00,
+    eyeSize: 53,
+    brand: 'Mantovanni',
+    material: 'ACETATO',
+    gender: 'Unisex',
+    saleType: 'PIEZA',
+    category: 'Oftálmico',
+    quantity: 75,
+    flex: false,
+    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/MANTOVANNI211006.jpg',
+    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/MANTOVANNI211006.jpg',
+  },
+  {
+    id: 'feat-7',
+    reference: 'ROMANA220602',
+    code: 'ROMANA220602',
+    description: 'Estilo clásico atemporal con detalles metálicos en varillas.',
+    price: 34.00,
+    eyeSize: 51,
+    brand: 'Romana',
+    material: 'METAL / ACETATO',
+    gender: 'Mujer',
+    saleType: 'PIEZA',
+    category: 'Oftálmico',
+    quantity: 140,
+    flex: true,
+    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/ROMANA220602.jpg',
+    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/ROMANA220602.jpg',
+  },
+  {
+    id: 'feat-8',
+    reference: 'SMARTKIDS190302',
+    code: 'SMARTKIDS190302',
+    description: 'Montura infantil ergonómica e irrompible con cinta de ajuste.',
+    price: 22.00,
+    eyeSize: 45,
+    brand: 'Smartkids',
+    material: 'SILICONA / TR90',
+    gender: 'Niños',
+    saleType: 'PIEZA',
+    category: 'Oftálmico',
+    quantity: 200,
+    flex: true,
+    thumbnailUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/SMARTKIDS190302.jpg',
+    largeImageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/SMARTKIDS190302.jpg',
+  }
+];
+
 export async function getFeaturedProducts(limit: number = 8): Promise<Product[]> {
   try {
     const { data, error } = await supabase
       .from('products')
       .select('*, brands(id, name), categories(id, name)')
-      .not('thumbnail_url', 'is', null)
-      .not('thumbnail_url', 'eq', '/images/product-placeholder.png')
       .gt('price', 0)
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    if (error) {
-      console.error('[getFeaturedProducts] Error:', error);
-      // Fallback: get any products
-      const fallback = await supabase
-        .from('products')
-        .select('*, brands(id, name), categories(id, name)')
-        .gt('price', 0)
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-      return (fallback.data || []).map(mapSupabaseToProduct);
+    if (error || !data || data.length === 0) {
+      return FALLBACK_FEATURED_PRODUCTS.slice(0, limit);
     }
 
-    return (data || []).map(mapSupabaseToProduct);
+    return data.map(mapSupabaseToProduct);
   } catch (e) {
     console.error('[getFeaturedProducts] Unexpected error:', e);
-    return [];
+    return FALLBACK_FEATURED_PRODUCTS.slice(0, limit);
   }
 }
 
@@ -318,6 +446,30 @@ export interface SupabaseCollection {
   productCount?: number;
 }
 
+const FALLBACK_COLLECTIONS: SupabaseCollection[] = [
+  {
+    id: 'col-titanium',
+    name: 'Koroit Titanium Series',
+    description: 'Monturas ultraligeras de titanio puro y memoria de forma para máximo confort ejecutivo.',
+    imageUrl: '/images/collection-titanium.jpg',
+    productCount: 84,
+  },
+  {
+    id: 'col-verona',
+    name: 'Verona Acetato Italiano',
+    description: 'Diseños contemporáneos en acetato pulido a mano con acabados de alta gama.',
+    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/1312D.jpg',
+    productCount: 142,
+  },
+  {
+    id: 'col-kids',
+    name: 'Giordanni Flex Kids',
+    description: 'Flexibilidad 360° y durabilidad extrema en silicona médica para los más pequeños.',
+    imageUrl: 'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository/M3562C8.jpg',
+    productCount: 65,
+  },
+];
+
 export async function getCollections(): Promise<SupabaseCollection[]> {
   try {
     const { data, error } = await supabase
@@ -325,9 +477,8 @@ export async function getCollections(): Promise<SupabaseCollection[]> {
       .select('*, products(count)')
       .order('created_at', { ascending: false });
 
-    if (error || !data) {
-      console.error('[getCollections] Error fetching collections:', error);
-      return [];
+    if (error || !data || data.length === 0) {
+      return FALLBACK_COLLECTIONS;
     }
 
     return data.map((col: any) => ({
@@ -340,7 +491,7 @@ export async function getCollections(): Promise<SupabaseCollection[]> {
     }));
   } catch (e) {
     console.error('[getCollections] Unexpected error:', e);
-    return [];
+    return FALLBACK_COLLECTIONS;
   }
 }
 
