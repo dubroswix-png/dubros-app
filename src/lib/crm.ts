@@ -29,10 +29,13 @@ export interface CRMAuthResponse {
  * y los detalles de sesión (vendedor, sucursal, etc).
  */
 export async function authenticateCRM(): Promise<CRMAuthResponse> {
-  // Leemos desde las variables de entorno, con fallbacks a los datos que proporcionaste
   const baseUrl = process.env.CRM_AUTH_URL || 'https://dubros.switch-soft.com/autenticacion';
-  const user = process.env.CRM_USER || 'master';
-  const pass = process.env.CRM_PASS || 'master';
+  const user = process.env.CRM_USER || '';
+  const pass = process.env.CRM_PASS || '';
+
+  if (!user || !pass) {
+    throw new Error('Variables de entorno CRM_USER y CRM_PASS no configuradas');
+  }
 
   // Construimos la URL con los query parameters
   const url = new URL(baseUrl);
