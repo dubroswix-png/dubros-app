@@ -20,10 +20,18 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Asegurar que la columna client_code y tax_id existan
+-- Asegurar que todas las columnas existan en la tabla previa
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS id_document_url TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS client_code TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS tax_id TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS business_type TEXT DEFAULT 'Óptica';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS country_code TEXT DEFAULT 'PA';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS whatsapp TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT true;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'client';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS company_name TEXT;
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public read profiles" ON public.profiles;

@@ -2,7 +2,6 @@
 -- PASO 1: MARCAS Y CATEGORIAS OFICIALES DEL ERP SWITCH-SOFT
 -- =========================================================================
 
--- Crear tablas si no existen
 CREATE TABLE IF NOT EXISTS public.brands (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT UNIQUE NOT NULL,

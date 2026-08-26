@@ -21,6 +21,18 @@ CREATE TABLE IF NOT EXISTS public.products (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Asegurar que todas las columnas existan en la tabla previa
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS cost NUMERIC(10, 2) DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS sale_type TEXT DEFAULT 'PIEZA';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS material TEXT DEFAULT 'ACETATO / METAL';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT 'Unisex';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS large_image_url TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS price NUMERIC(10, 2) DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS code TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS description TEXT;
+
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public read products" ON public.products;
 CREATE POLICY "Public read products" ON public.products FOR SELECT USING (true);
