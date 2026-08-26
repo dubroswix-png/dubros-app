@@ -144,7 +144,7 @@ export default function LoginPage() {
 
     try {
       const { error: resetErr } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: `${window.location.origin}/mi-cuenta/perfil`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (resetErr) {
