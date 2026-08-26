@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 
@@ -11,13 +13,25 @@ export function Logo({ variant = 'auto', className, size = 'md' }: LogoProps) {
   const isLarge = size === 'lg';
   const isSmall = size === 'sm';
 
-  const logoHeight = isLarge ? 54 : isSmall ? 32 : 44;
-  const iconWidth = isLarge ? 54 : isSmall ? 32 : 42;
-  const iconHeight = isLarge ? 24 : isSmall ? 14 : 18;
-  const titleSize = isLarge ? '1.5rem' : isSmall ? '1.1rem' : '1.35rem';
-  const subSize = isLarge ? '0.6rem' : isSmall ? '0.45rem' : '0.52rem';
+  const iconWidth = isLarge ? 56 : isSmall ? 36 : 46;
+  const iconHeight = isLarge ? 22 : isSmall ? 15 : 18;
+  const titleSize = isLarge ? '1.5rem' : isSmall ? '1.05rem' : '1.3rem';
+  const subSize = isLarge ? '0.55rem' : isSmall ? '0.42rem' : '0.48rem';
 
-  const [useImage, setUseImage] = React.useState(true);
+  // Determine colors based on variant
+  const primaryColor =
+    variant === 'dark'
+      ? '#FFFFFF'
+      : variant === 'light'
+      ? '#071D3A'
+      : 'var(--text-primary)';
+
+  const accentColor =
+    variant === 'dark'
+      ? '#60A5FA'
+      : variant === 'light'
+      ? '#0F4896'
+      : 'var(--blue)';
 
   return (
     <Link
@@ -29,105 +43,97 @@ export function Logo({ variant = 'auto', className, size = 'md' }: LogoProps) {
         alignItems: 'center',
         textDecoration: 'none',
         lineHeight: 1,
+        userSelect: 'none',
+        background: 'transparent',
       }}
     >
-      {useImage ? (
-        <img
-          src="/images/logo.svg"
-          alt="Dubros Internacional"
-          style={{
-            height: `${logoHeight}px`,
-            width: 'auto',
-            objectFit: 'contain',
-            display: 'block',
-          }}
-          onError={() => setUseImage(false)}
-        />
-      ) : (
-        <>
-      {/* Optical Glasses SVG Icon */}
+      {/* Precision Geometric Glasses Icon */}
       <svg
         width={iconWidth}
         height={iconHeight}
-        viewBox="0 0 54 22"
+        viewBox="0 0 56 22"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        style={{ marginBottom: '3px' }}
+        style={{ marginBottom: '4px', display: 'block' }}
       >
         {/* Left Rim */}
         <rect
-          x="1.5"
+          x="2"
           y="2.5"
           width="21"
           height="17"
-          rx="5.5"
-          stroke="var(--navy)"
-          strokeWidth="2.5"
+          rx="5"
+          stroke={primaryColor}
+          strokeWidth="2.2"
         />
         {/* Right Rim */}
         <rect
-          x="31.5"
+          x="33"
           y="2.5"
           width="21"
           height="17"
-          rx="5.5"
-          stroke="var(--navy)"
-          strokeWidth="2.5"
+          rx="5"
+          stroke={primaryColor}
+          strokeWidth="2.2"
         />
-        {/* Bridge */}
+        {/* Center Bridge */}
         <path
-          d="M22.5 7.5C25.5 5 28.5 5 31.5 7.5"
-          stroke="var(--navy)"
-          strokeWidth="2.5"
+          d="M23 7.5C26 5 30 5 33 7.5"
+          stroke={primaryColor}
+          strokeWidth="2.2"
           strokeLinecap="round"
         />
         {/* Left Temple Accent */}
         <path
-          d="M2 5L0 4"
-          stroke="var(--navy)"
-          strokeWidth="2"
+          d="M2 6L0 5"
+          stroke={primaryColor}
+          strokeWidth="1.8"
           strokeLinecap="round"
         />
         {/* Right Temple Accent */}
         <path
-          d="M52 5L54 4"
-          stroke="var(--navy)"
-          strokeWidth="2"
+          d="M54 6L56 5"
+          stroke={primaryColor}
+          strokeWidth="1.8"
           strokeLinecap="round"
         />
       </svg>
 
-      {/* Brand Name */}
+      {/* DUBROS Brand Text */}
       <span
         style={{
           fontFamily: 'var(--font-heading)',
           fontWeight: 900,
           fontSize: titleSize,
-          letterSpacing: '0.12em',
-          color: 'var(--navy)',
+          letterSpacing: '0.14em',
+          color: primaryColor,
           textTransform: 'uppercase',
           marginTop: '1px',
+          display: 'block',
+          textAlign: 'center',
+          transition: 'color 0.2s ease',
         }}
       >
         DUBROS
       </span>
 
-      {/* Subtitle */}
+      {/* INTERNACIONAL Subtitle */}
       <span
         style={{
           fontFamily: 'var(--font-heading)',
           fontWeight: 700,
           fontSize: subSize,
-          letterSpacing: '0.35em',
-          color: 'var(--blue)',
+          letterSpacing: '0.36em',
+          color: accentColor,
           textTransform: 'uppercase',
           marginTop: '2px',
+          display: 'block',
+          textAlign: 'center',
+          transition: 'color 0.2s ease',
         }}
       >
         INTERNACIONAL
       </span>
-      </>
-      )}
     </Link>
   );
 }

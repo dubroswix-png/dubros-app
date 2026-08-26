@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { Logo } from '@/components/layout/Logo';
 
 const LATAM_COUNTRIES = [
   { code: 'PA', name: 'Panamá (+507)' },
@@ -186,13 +187,9 @@ export default function LoginPage() {
         {/* LEFT COLUMN: Form Container */}
         <div style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-            <Link href="/" style={{ display: 'inline-block', marginBottom: '1rem' }}>
-              <img
-                src="/images/logo.svg"
-                alt="Dubros Logo"
-                style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
-              />
-            </Link>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <Logo size="lg" />
+            </div>
             <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.3rem' }}>
               {isRegister ? 'Registro Comercial B2B' : 'Portal de Clientes'}
             </h1>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Phone, MapPin, Mail, MessageCircle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { Logo } from '@/components/layout/Logo';
 
 export function Footer() {
   const { t } = useLanguage();
@@ -43,32 +44,8 @@ export function Footer() {
             paddingBottom: '2.5rem',
           }}
         >
-          {/* Logo */}
-          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
-            <div
-              style={{
-                backgroundColor: '#FFFFFF',
-                padding: '0.45rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)',
-                transition: 'transform 0.2s ease',
-              }}
-            >
-              <img
-                src="/images/logo.svg"
-                alt="Dubros International"
-                style={{
-                  height: '38px',
-                  width: 'auto',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-              />
-            </div>
-          </Link>
+          {/* Logo with Pure Transparent Background */}
+          <Logo size="lg" variant="dark" />
 
           {/* Center Navigation Links */}
           <nav
