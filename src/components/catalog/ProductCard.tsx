@@ -44,39 +44,27 @@ export function ProductCard({ product }: ProductCardProps) {
           />
         </Link>
 
-        {product.eyeSize > 0 ? (
+        {isAdmin && product.quantity > 0 && (
           <span
             style={{
               position: 'absolute',
-              bottom: '10px',
-              left: '10px',
-              backgroundColor: 'rgba(0, 0, 0, 0.75)',
-              color: '#FFFFFF',
-              fontSize: '0.7rem',
+              bottom: '8px',
+              right: '8px',
+              backgroundColor: 'rgba(7, 29, 58, 0.85)',
+              backdropFilter: 'blur(3px)',
+              color: '#93C5FD',
+              fontSize: '0.62rem',
               fontWeight: 700,
-              padding: '0.25rem 0.5rem',
-              borderRadius: 'var(--radius-sm)',
-            }}
-          >
-            Talla {product.eyeSize}
-          </span>
-        ) : isAdmin && product.quantity > 0 ? (
-          <span
-            style={{
-              position: 'absolute',
-              bottom: '10px',
-              left: '10px',
-              backgroundColor: 'rgba(15, 72, 150, 0.85)',
-              color: '#FFFFFF',
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              padding: '0.25rem 0.5rem',
-              borderRadius: 'var(--radius-sm)',
+              padding: '0.18rem 0.45rem',
+              borderRadius: '4px',
+              letterSpacing: '0.02em',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.25)',
+              zIndex: 2,
             }}
           >
             Stock: {product.quantity}
           </span>
-        ) : null}
+        )}
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

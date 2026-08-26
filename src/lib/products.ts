@@ -70,6 +70,20 @@ const metaMap = productMetaMap as Record<string, { b: string; c: string; q: numb
 // Convert Supabase row → Product interface (compatible with existing components)
 // ---------------------------------------------------------------------------
 
+function getBaseWholesalePrice(brand: string, category: string): number {
+  const b = (brand || '').toUpperCase();
+  const c = (category || '').toUpperCase();
+
+  if (c.includes('ACCESORIO') || c.includes('ESTUCHE') || c.includes('CORDON') || c.includes('NARIGUERA')) return 4.50;
+  if (c.includes('LECTURA')) return 6.50;
+  if (b.includes('SMARTKIDS') || b.includes('FLEXXILON')) return 12.50;
+  if (b.includes('MANTOVANNI') || b.includes('ROMANA') || b.includes('VELVETT') || b.includes('KIAMIL') || b.includes('GIORDANNI')) return 18.50;
+  if (b.includes('WEEKEND') || b.includes('IBERIA') || b.includes('VERONA') || b.includes('LCT') || b.includes('DMOST')) return 15.00;
+  if (b.includes('GUESS') || b.includes('LACOSTE') || b.includes('MATSUDA')) return 22.00;
+  if (c.includes('SOL')) return 16.50;
+  return 14.00;
+}
+
 function mapSupabaseToProduct(row: SupabaseProduct): Product {
   const fixUrl = (url: string | undefined | null, refFallback: string) => {
     if (url && url.includes('http') && !url.includes('placeholder')) {
@@ -93,13 +107,15 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
   const brand = row.brands?.name || meta?.b || 'Dubros';
   const category = row.categories?.name || meta?.c || 'Aros Ópticos';
   const quantity = row.quantity || meta?.q || 0;
+  const rawPrice = row.price ? Number(row.price) : 0;
+  const finalPrice = rawPrice > 0 ? rawPrice : getBaseWholesalePrice(brand, category);
 
   return {
     id: row.id,
     reference: ref,
     code: code,
     description: row.description || `Montura oftálmica de alta calidad, referencia ${ref}.`,
-    price: row.price || 0,
+    price: finalPrice,
     eyeSize: 0, // Not stored in Supabase currently
     brand: brand,
     material: row.material && row.material !== 'N/A' ? row.material : 'ACETATO / METAL',
