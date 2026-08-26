@@ -1,12 +1,21 @@
 [
   {
+    "id": "usr-admin-dubroswix@gmail.com",
+    "email": "dubroswix@gmail.com",
+    "businessType": "Administración",
+    "clientCode": "ADMIN",
+    "country": "PA",
+    "id_document_url": null,
+    "role": "admin"
+  },
+  {
     "id": "usr-1",
     "email": "dfduqu01@gmail.com",
     "businessType": "Óptica",
     "clientCode": "",
     "country": "PA",
     "id_document_url": "https://s3.amazonaws.com/appforest_uf/f1664903987659x914651064373083900/Diego%20Duque%20CIP%20E-8-97407.jpg",
-    "role": "client"
+    "role": "admin"
   },
   {
     "id": "usr-2",
@@ -96,7 +105,7 @@
     "clientCode": "",
     "country": "PA",
     "id_document_url": null,
-    "role": "admin"
+    "role": "client"
   },
   {
     "id": "usr-12",
@@ -114,7 +123,7 @@
     "clientCode": "",
     "country": "PA",
     "id_document_url": null,
-    "role": "admin"
+    "role": "client"
   },
   {
     "id": "usr-14",
@@ -3795,7 +3804,7 @@
     "clientCode": "0",
     "country": "PA",
     "id_document_url": null,
-    "role": "admin"
+    "role": "client"
   },
   {
     "id": "usr-423",

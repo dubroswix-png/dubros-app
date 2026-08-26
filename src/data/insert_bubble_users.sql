@@ -1,5 +1,5 @@
 -- =========================================================================
--- MIGRACION DE 463 USUARIOS Y CLIENTES REGISTRADOS A SUPABASE PROFILES
+-- MIGRACION DE USUARIOS Y ASIGNACION ESTRICTA DE ADMINS (DUBROSWIX & DFDUQU01)
 -- =========================================================================
 
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -23,9 +23,16 @@ CREATE POLICY "Public read profiles" ON public.profiles FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Users update own profile" ON public.profiles;
 CREATE POLICY "Users update own profile" ON public.profiles FOR ALL USING (true);
 
+-- Set all existing users to client
+UPDATE public.profiles SET role = 'client';
+
+-- Set ONLY the 2 authorized administrators
+UPDATE public.profiles SET role = 'admin' WHERE LOWER(email) IN ('dubroswix@gmail.com', 'dfduqu01@gmail.com');
+
 INSERT INTO public.profiles (email, full_name, company_name, business_type, country_code, role, id_document_url)
 VALUES
-  ('dfduqu01@gmail.com', 'dfduqu01', 'Óptica', 'Óptica', 'PA', 'client', 'https://s3.amazonaws.com/appforest_uf/f1664903987659x914651064373083900/Diego%20Duque%20CIP%20E-8-97407.jpg'),
+  ('dubroswix@gmail.com', 'dubroswix', 'Cliente ERP #ADMIN', 'Administración', 'PA', 'admin', NULL),
+  ('dfduqu01@gmail.com', 'dfduqu01', 'Óptica', 'Óptica', 'PA', 'admin', 'https://s3.amazonaws.com/appforest_uf/f1664903987659x914651064373083900/Diego%20Duque%20CIP%20E-8-97407.jpg'),
   ('mercadeo@dubros.com', 'mercadeo', 'Óptica', 'Óptica', 'PA', 'client', 'https://s3.amazonaws.com/appforest_uf/f1664904017900x419558760366567200/Hilda%20Greco%20CIP%208-812-1469.jpg'),
   ('marketing@dubros.com', 'marketing', 'Óptica', 'Óptica', 'PA', 'client', NULL),
   ('ventasfrancisco@dubros.com', 'ventasfrancisco', 'Óptica', 'Óptica', 'PA', 'client', 'https://s3.amazonaws.com/appforest_uf/f1662493889029x519269697833745660/Francisco%20Lopez%20CIP%20E-8-96998.jpg'),
@@ -35,9 +42,9 @@ VALUES
   ('optinova@outlook.com', 'optinova', 'Cliente ERP #1958', 'Óptica', 'PA', 'client', NULL),
   ('inversionesquantum@hotmail.com', 'inversionesquantum', 'Óptica', 'Óptica', 'PA', 'client', NULL),
   ('calitto63@gmail.com', 'calitto63', 'Óptica', 'Óptica', 'PA', 'client', NULL),
-  ('administracion@optirex.net', 'administracion', 'Óptica', 'Óptica', 'PA', 'admin', NULL),
+  ('administracion@optirex.net', 'administracion', 'Óptica', 'Óptica', 'PA', 'client', NULL),
   ('clinica.opticaromero@gmail.com', 'clinica.opticaromero', 'Cliente ERP #2028', 'Óptica', 'PA', 'client', NULL),
-  ('jduque@dubros.com', 'jduque', 'Óptica', 'Óptica', 'PA', 'admin', NULL),
+  ('jduque@dubros.com', 'jduque', 'Óptica', 'Óptica', 'PA', 'client', NULL),
   ('infoclearopticsv@gmail.com', 'infoclearopticsv', 'Óptica', 'Óptica', 'PA', 'client', NULL),
   ('mceron@ocfyt.com', 'mceron', 'Óptica', 'Óptica', 'PA', 'client', NULL),
   ('irelisjaime@gmail.com', 'irelisjaime', 'Cliente ERP #2615', 'Óptica', 'PA', 'client', NULL),
@@ -446,7 +453,7 @@ VALUES
   ('saymon.figueiredo@tjrr.jus.br', 'saymon.figueiredo', 'Cliente ERP #2688', 'Óptica', 'PA', 'client', NULL),
   ('gerencia@leroyoptical.com', 'gerencia', 'Cliente ERP #2800', 'Óptica', 'PA', 'client', NULL),
   ('optimaxpty@gmail.com', 'optimaxpty', 'Cliente ERP #0', 'Óptica', 'PA', 'client', NULL),
-  ('administracion@optimavisionpa.com', 'administracion', 'Cliente ERP #0', 'Óptica', 'PA', 'admin', NULL),
+  ('administracion@optimavisionpa.com', 'administracion', 'Cliente ERP #0', 'Óptica', 'PA', 'client', NULL),
   ('droptica@outlook.com', 'droptica', 'Cliente ERP #30', 'Óptica', 'PA', 'client', NULL),
   ('opticas_jvq@hotmail.com', 'opticas_jvq', 'Cliente ERP #1541', 'Óptica', 'PA', 'client', NULL),
   ('opticalworldtt@gmail.com', 'opticalworldtt', 'Cliente ERP #0', 'Óptica', 'PA', 'client', NULL),
@@ -489,6 +496,7 @@ VALUES
   ('juliomolina.2710@gmail.com', 'juliomolina.2710', 'Cliente ERP #2271', 'Óptica', 'PA', 'client', NULL),
   ('m.shoshan@kvr-partners.com', 'm.shoshan', 'Cliente ERP #22', 'Distribuidor', 'PA', 'client', NULL)
 ON CONFLICT (email) DO UPDATE SET
+  role = EXCLUDED.role,
   business_type = EXCLUDED.business_type,
   company_name = EXCLUDED.company_name,
   id_document_url = COALESCE(EXCLUDED.id_document_url, public.profiles.id_document_url);

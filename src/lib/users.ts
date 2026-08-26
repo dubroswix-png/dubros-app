@@ -16,15 +16,16 @@ export interface UserProfileRecord {
 }
 
 import bubbleUsers from '@/data/bubble_users.json';
+import { isUserAdmin } from '@/context/AuthContext';
 
 export const MOCK_ADMIN_USERS: UserProfileRecord[] = (bubbleUsers as any[]).map((u) => ({
   id: u.id,
   email: u.email,
   name: u.email.split('@')[0],
-  company_name: u.clientCode ? `Cliente ERP #${u.clientCode}` : 'Óptica / Distribuidor',
+  company_name: u.clientCode ? `Cliente ERP #${u.clientCode}` : (u.businessType || 'Óptica / Distribuidor'),
   country: u.country,
   business_type: u.businessType || 'Óptica',
-  role: u.role as UserRole,
+  role: isUserAdmin(u.email) ? 'admin' : 'client',
   created_at: '2026-01-15T10:00:00Z',
 }));
 
@@ -42,7 +43,12 @@ export async function fetchAllProfiles(): Promise<UserProfileRecord[]> {
     const dbEmails = new Set(dbProfiles.map((p) => p.email.toLowerCase()));
     const missingMocks = MOCK_ADMIN_USERS.filter((m) => !dbEmails.has(m.email.toLowerCase()));
 
-    return [...dbProfiles, ...missingMocks] as UserProfileRecord[];
+    const all = [...dbProfiles, ...missingMocks].map((p) => ({
+      ...p,
+      role: isUserAdmin(p.email) ? 'admin' : 'client',
+    }));
+
+    return all as UserProfileRecord[];
   } catch (e) {
     console.error('Error fetching profiles:', e);
     return MOCK_ADMIN_USERS;

@@ -21,7 +21,7 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, isUserAdmin } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Logo } from '@/components/layout/Logo';
 
@@ -83,7 +83,7 @@ export default function LoginPage() {
       if (!result.success) {
         setError(result.error || 'Correo o contraseña incorrectos. Verifica tus credenciales.');
       } else {
-        if (email.toLowerCase().includes('admin') || email.toLowerCase() === 'dubroswix@gmail.com') {
+        if (isUserAdmin(email)) {
           router.push('/dashboard');
         } else {
           router.push('/catalogo');

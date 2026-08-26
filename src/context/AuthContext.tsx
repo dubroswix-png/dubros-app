@@ -33,6 +33,12 @@ interface AuthContextType {
   logout: () => void;
 }
 
+export const ADMIN_EMAILS = ['dubroswix@gmail.com', 'dfduqu01@gmail.com'];
+export const isUserAdmin = (email?: string | null): boolean => {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
+};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -47,14 +53,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq('id', user.id)
       .single();
 
+    const userEmail = data?.email || user.email || '';
+    const isAdmin = isUserAdmin(userEmail);
+    const resolvedRole: UserRole = isAdmin ? 'admin' : 'client';
+
     if (data && !error) {
-      const isAdminEmail = data.email === 'dubroswix@gmail.com';
       const profile: UserProfile = {
-        email: data.email,
-        role: isAdminEmail ? 'admin' : (data.role as UserRole),
-        name: data.name || undefined,
-        phone: data.phone || undefined,
-        country: data.country || undefined,
+        email: userEmail,
+        role: resolvedRole,
+        name: data.full_name || data.name || undefined,
+        phone: data.whatsapp || data.phone || undefined,
+        country: data.country_code || data.country || undefined,
         companyName: data.company_name || undefined,
         businessType: data.business_type || undefined,
         taxId: data.tax_id || undefined,
@@ -63,11 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUserProfile(profile);
       setIsLoggedIn(true);
     } else {
-      // Profile not found yet (maybe trigger hasn't fired), create a minimal one
-      const isAdminEmail = user.email === 'dubroswix@gmail.com';
       const profile: UserProfile = {
-        email: user.email || '',
-        role: isAdminEmail ? 'admin' : 'pending',
+        email: userEmail,
+        role: resolvedRole,
       };
       setUserProfile(profile);
       setIsLoggedIn(true);
@@ -147,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           business_type: metadata?.businessType || 'Óptica',
           country_code: metadata?.country || 'PA',
           whatsapp: metadata?.whatsapp,
-          role: email.toLowerCase() === 'dubroswix@gmail.com' ? 'admin' : 'client',
+          role: isUserAdmin(email) ? 'admin' : 'client',
           onboarding_completed: true,
         });
       } catch (e) {
