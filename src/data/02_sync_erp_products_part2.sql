@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Asegurar que todas las columnas existan en la tabla previa
+ALTER TABLE public.products ALTER COLUMN id SET DEFAULT gen_random_uuid();
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS cost NUMERIC(10, 2) DEFAULT 0;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS sale_type TEXT DEFAULT 'PIEZA';
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS material TEXT DEFAULT 'ACETATO / METAL';

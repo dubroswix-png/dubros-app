@@ -4,8 +4,8 @@
 
 CREATE TABLE IF NOT EXISTS public.brands (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT UNIQUE NOT NULL,
-  slug TEXT,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE,
   logo_url TEXT,
   active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now()
@@ -13,10 +13,13 @@ CREATE TABLE IF NOT EXISTS public.brands (
 
 CREATE TABLE IF NOT EXISTS public.categories (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT UNIQUE NOT NULL,
-  slug TEXT,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+ALTER TABLE public.brands ALTER COLUMN id SET DEFAULT gen_random_uuid();
+ALTER TABLE public.categories ALTER COLUMN id SET DEFAULT gen_random_uuid();
 
 ALTER TABLE public.brands ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public read brands" ON public.brands;
@@ -26,7 +29,7 @@ ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public read categories" ON public.categories;
 CREATE POLICY "Public read categories" ON public.categories FOR SELECT USING (true);
 
--- Insertar Marcas Oficiales
+-- Insertar o actualizar Marcas
 INSERT INTO public.brands (name, slug, active)
 VALUES
   ('S-M', 's-m', true),
@@ -52,7 +55,6 @@ VALUES
   ('MATSUDA', 'matsuda', true),
   ('JAZZ', 'jazz', true),
   ('STAR  LINE', 'star-line', true),
-  ('STAR LINE', 'star-line', true),
   ('PORTOFINO', 'portofino', true),
   ('RIDDOT', 'riddot', true),
   ('POLISTILO', 'polistilo', true),
@@ -127,11 +129,9 @@ VALUES
   ('SURFING', 'surfing', true),
   ('MIRAGE', 'mirage', true),
   ('DANIEL  KLEIN', 'daniel-klein', true),
-  ('FRESH  &  FLEX', 'fresh-flex', true),
   ('MONT  BLANC', 'mont-blanc', true),
   ('SKECHERS', 'skechers', true),
   ('SCHOOL  DAY', 'school-day', true),
-  ('HI  LINE', 'hi-line', true),
   ('FERRATO', 'ferrato', true),
   ('BELLUNO', 'belluno', true),
   ('FAZIO', 'fazio', true),
@@ -151,14 +151,11 @@ VALUES
   ('MEMORY', 'memory', true),
   ('LILI FRANK', 'lili-frank', true),
   ('AGATHA RUIZ DE LA PRADA', 'agatha-ruiz-de-la-prada', true),
-  ('ADOLFO DOMINGUEZ', 'adolfo-dominguez', true),
   ('MODERN LINE', 'modern-line', true),
   ('GABANELLY', 'gabanelly', true),
   ('BORELLY', 'borelly', true),
   ('FIORI', 'fiori', true),
-  ('ELITE VIEW', 'elite-view', true),
   ('FAMOUS GROUP', 'famous-group', true),
-  ('BEST VIEW', 'best-view', true),
   ('GOLF PLAYER', 'golf-player', true),
   ('CLIMBING', 'climbing', true),
   ('VAGGIO', 'vaggio', true),
@@ -170,7 +167,6 @@ VALUES
   ('VACHELET', 'vachelet', true),
   ('VERSOS', 'versos', true),
   ('CANDIOTTI', 'candiotti', true),
-  ('DANIEL KLEIN', 'daniel-klein', true),
   ('BOTTERI', 'botteri', true),
   ('GALLARDO', 'gallardo', true),
   ('TOMMY HILFIGER', 'tommy-hilfiger', true),
@@ -180,9 +176,9 @@ VALUES
   ('KENNY', 'kenny', true),
   ('DIEZ', 'diez', true),
   ('GIORDANNI', 'giordanni', true)
-ON CONFLICT (name) DO UPDATE SET active = true;
+ON CONFLICT (slug) DO UPDATE SET active = true, name = EXCLUDED.name;
 
--- Insertar Categorías Oficiales
+-- Insertar o actualizar Categorías
 INSERT INTO public.categories (name, slug)
 VALUES
   ('LENTE  DE  SOL', 'lente-de-sol'),
@@ -193,7 +189,6 @@ VALUES
   ('ESCOBA', 'escoba'),
   ('CORDONES', 'cordones'),
   ('PALO', 'palo'),
-  ('AROS OPTICOS', 'aros-opticos'),
   ('TRAPERA', 'trapera'),
   ('NARIGUERA', 'nariguera'),
   ('ACCESORIOS', 'accesorios'),
@@ -203,6 +198,5 @@ VALUES
   ('CARTERA', 'cartera'),
   ('TORNILLOS', 'tornillos'),
   ('2', '2'),
-  ('GENERAL', 'general'),
-  ('LENTE DE SOL', 'lente-de-sol')
-ON CONFLICT (name) DO NOTHING;
+  ('GENERAL', 'general')
+ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name;
