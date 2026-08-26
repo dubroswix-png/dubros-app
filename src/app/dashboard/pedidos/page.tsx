@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Search, ArrowLeft, Download, Printer, CheckCircle, Package, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getAllOrders, OrderRecord } from '@/lib/orders';
@@ -103,16 +104,44 @@ export default function AdminOrdersPage() {
     setValidatingClient(true);
     try {
       const email = (order.customer_email || '').toLowerCase().trim();
-      const matched = (erpClients as any[]).find(
-        (c) => (c.email || '').toLowerCase().trim() === email || (c.correo || '').toLowerCase().trim() === email
-      );
-      const code = matched?.codigo || matched?.code || 'CLI-ERP';
+      
+      let foundCode: string | null = null;
+      if (order.user_id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('erp_client_code, erp_client_id')
+          .eq('id', order.user_id)
+          .single();
+        if (profile?.erp_client_code) {
+          foundCode = profile.erp_client_code;
+        }
+      }
 
-      setClientValidated((prev) => ({
-        ...prev,
-        [order.id]: { validated: true, clientCode: code },
-      }));
-      alert(`✓ ¡Cliente validado en ERP Switch! Código de cuenta: ${code} (${order.customer_name || order.customer_email})`);
+      if (!foundCode) {
+        const matched = (erpClients as any[]).find(
+          (c) => (c.email || '').toLowerCase().trim() === email || (c.correo || '').toLowerCase().trim() === email
+        );
+        if (matched) {
+          foundCode = matched.codigo || matched.code;
+          if (order.user_id) {
+            await supabase.from('profiles').update({ erp_client_code: foundCode, erp_client_id: matched.id }).eq('id', order.user_id);
+          }
+        }
+      }
+
+      if (foundCode) {
+        setClientValidated((prev) => ({
+          ...prev,
+          [order.id]: { validated: true, isNewClient: false, clientCode: foundCode },
+        }));
+        alert(`✓ ¡Cliente existente validado en ERP Switch!\nCódigo de cuenta: ${foundCode}\nCliente: ${order.company_name || order.customer_name || order.customer_email}\n\nPuedes proceder al Paso 3 para crear el pedido en Switch.`);
+      } else {
+        setClientValidated((prev) => ({
+          ...prev,
+          [order.id]: { validated: false, isNewClient: true },
+        }));
+        alert(`⚠️ CLIENTE NUEVO DETECTADO\n\nEl correo '${order.customer_email}' no se encuentra registrado en Switch-Soft ERP.\n\nFlujo a seguir:\n1. Crea el cliente manualmente en tu sistema Switch-Soft ERP.\n2. Asígnale su código en la pestaña '/dashboard/usuarios'.\n3. El pedido se mantiene en 'Pendiente' hasta que el cliente sea creado.`);
+      }
     } finally {
       setValidatingClient(false);
     }
@@ -298,6 +327,25 @@ export default function AdminOrdersPage() {
                   >
                     ✓ Cliente validado {clientData?.clientCode ? `(${clientData.clientCode})` : ''}
                   </button>
+                ) : clientData?.isNewClient ? (
+                  <Link
+                    href="/dashboard/usuarios"
+                    className="btn-secondary"
+                    style={{
+                      padding: '0.45rem 1rem',
+                      fontSize: '0.8rem',
+                      backgroundColor: '#FEF3C7',
+                      color: '#92400E',
+                      border: '1px solid #FCD34D',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                    }}
+                  >
+                    ⚠️ Cliente Nuevo (Crear en ERP / Asignar Código)
+                  </Link>
                 ) : (
                   <button 
                     onClick={() => handleValidateClient(selectedOrder)}
@@ -340,6 +388,7 @@ export default function AdminOrdersPage() {
                     onClick={() => handleSyncOrderWithERP(selectedOrder.id)}
                     disabled={!isProductsValid || !isClientValid || syncingOrderId === selectedOrder.id}
                     className="btn-primary" 
+                    title={!isClientValid ? 'Valida primero el cliente o regístralo en ERP si es nuevo' : ''}
                     style={{ 
                       padding: '0.45rem 1rem', 
                       fontSize: '0.8rem', 
