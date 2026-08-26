@@ -20,6 +20,9 @@ function getSupabaseAdmin() {
   return createClient(url, serviceKey);
 }
 
+const ADMIN_EMAILS = ['dubroswix@gmail.com', 'dfduqu01@gmail.com'];
+const isUserAdmin = (email?: string | null) => Boolean(email && ADMIN_EMAILS.includes(email.toLowerCase().trim()));
+
 // Simple admin check — validates the requesting user is an admin
 async function isAdmin(request: NextRequest): Promise<boolean> {
   const authHeader = request.headers.get('Authorization');
@@ -27,21 +30,31 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
 
   const token = authHeader.replace('Bearer ', '');
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    '';
+
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) return false;
 
-  // Check user role in profiles table
-  const adminSupabase = getSupabaseAdmin();
-  const { data: profile } = await adminSupabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  if (isUserAdmin(user.email)) return true;
 
-  return profile?.role === 'admin';
+  try {
+    const adminSupabase = getSupabaseAdmin();
+    const { data: profile } = await adminSupabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    return profile?.role === 'admin';
+  } catch {
+    return isUserAdmin(user.email);
+  }
 }
 
 export async function POST(request: NextRequest) {

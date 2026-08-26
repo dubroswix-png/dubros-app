@@ -22,19 +22,31 @@ import {
   Layers,
 } from 'lucide-react';
 
+import { Loader2 } from 'lucide-react';
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { userProfile, isLoggedIn } = useAuth();
+  const { userProfile, isLoggedIn, isLoading } = useAuth();
 
   React.useEffect(() => {
-    // If we're fully loaded and not an admin, boot them out
+    if (isLoading) return; // Wait until authentication state is fully verified
+
     if (!isLoggedIn) {
       router.push('/login');
     } else if (userProfile?.role !== 'admin') {
       router.push('/catalogo');
     }
-  }, [isLoggedIn, userProfile, router]);
+  }, [isLoggedIn, isLoading, userProfile, router]);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', gap: '0.75rem' }}>
+        <Loader2 size={32} color="var(--blue)" className="animate-spin" />
+        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Verificando acceso administrativo...</span>
+      </div>
+    );
+  }
 
   if (!isLoggedIn || userProfile?.role !== 'admin') {
     return null; // Don't render dashboard while redirecting

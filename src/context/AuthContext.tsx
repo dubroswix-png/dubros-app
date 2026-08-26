@@ -20,6 +20,7 @@ export interface UserProfile {
 
 interface AuthContextType {
   isLoggedIn: boolean;
+  isLoading: boolean;
   userProfile: UserProfile | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (
@@ -43,41 +44,46 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   // Fetch profile from Supabase
   const fetchProfile = async (user: User) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-    const userEmail = data?.email || user.email || '';
-    const isAdmin = isUserAdmin(userEmail);
-    const resolvedRole: UserRole = isAdmin ? 'admin' : 'client';
+      const userEmail = data?.email || user.email || '';
+      const isAdmin = isUserAdmin(userEmail);
+      const resolvedRole: UserRole = isAdmin ? 'admin' : 'client';
 
-    if (data && !error) {
-      const profile: UserProfile = {
-        email: userEmail,
-        role: resolvedRole,
-        name: data.full_name || data.name || undefined,
-        phone: data.whatsapp || data.phone || undefined,
-        country: data.country_code || data.country || undefined,
-        companyName: data.company_name || undefined,
-        businessType: data.business_type || undefined,
-        taxId: data.tax_id || undefined,
-        address: data.address || undefined,
-      };
-      setUserProfile(profile);
-      setIsLoggedIn(true);
-    } else {
-      const profile: UserProfile = {
-        email: userEmail,
-        role: resolvedRole,
-      };
-      setUserProfile(profile);
-      setIsLoggedIn(true);
+      if (data && !error) {
+        const profile: UserProfile = {
+          email: userEmail,
+          role: resolvedRole,
+          name: data.full_name || data.name || undefined,
+          phone: data.whatsapp || data.phone || undefined,
+          country: data.country_code || data.country || undefined,
+          companyName: data.company_name || undefined,
+          businessType: data.business_type || undefined,
+          taxId: data.tax_id || undefined,
+          address: data.address || undefined,
+        };
+        setUserProfile(profile);
+        setIsLoggedIn(true);
+      } else {
+        const profile: UserProfile = {
+          email: userEmail,
+          role: resolvedRole,
+        };
+        setUserProfile(profile);
+        setIsLoggedIn(true);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -86,6 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchProfile(session.user);
+      } else {
+        setIsLoading(false);
       }
     });
 
@@ -97,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setIsLoggedIn(false);
           setUserProfile(null);
+          setIsLoading(false);
         }
       }
     );
