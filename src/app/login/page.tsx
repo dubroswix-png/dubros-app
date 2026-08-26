@@ -165,6 +165,42 @@ export default function LoginPage() {
     }
   };
 
+  if (isLoading || isLoggedIn) {
+    return (
+      <div
+        style={{
+          minHeight: '85vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1.25rem',
+          backgroundColor: 'var(--bg-secondary)',
+          padding: '2rem',
+        }}
+      >
+        <Logo size="lg" />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.65rem',
+            backgroundColor: '#FFFFFF',
+            padding: '0.6rem 1.25rem',
+            borderRadius: '9999px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+            border: '1px solid var(--border-light)',
+          }}
+        >
+          <Loader2 size={20} color="var(--blue)" className="animate-spin" />
+          <span style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.9rem' }}>
+            {isLoggedIn ? 'Cargando tu sesión...' : 'Verificando credenciales...'}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
