@@ -34,6 +34,15 @@ function CatalogContent() {
   const [totalPages, setTotalPages] = useState(1);
   const PAGE_SIZE = 24;
 
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedMaterial, setSelectedMaterial] = useState('all');
+  const [selectedGender, setSelectedGender] = useState('all');
+  const [selectedSize, setSelectedSize] = useState('all');
+  const [selectedCountry, setSelectedCountry] = useState('PA');
   const [selectedPrice, setSelectedPrice] = useState('all');
 
   const isAdmin = userProfile?.role === 'admin';
@@ -57,12 +66,33 @@ function CatalogContent() {
     loadFilterOptions();
   }, []);
 
-  // Load products when page changes or collectionId changes
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 350);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedPrice]);
+
+  // Load products when page changes or filters change
   const loadProducts = useCallback(async (page: number) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await getProducts({ page, pageSize: PAGE_SIZE, collectionId });
+      const result = await getProducts({
+        page,
+        pageSize: PAGE_SIZE,
+        collectionId,
+        search: debouncedSearch,
+        brandName: selectedBrand,
+        categoryName: selectedCategory,
+        material: selectedMaterial,
+      });
       setAllProducts(result.products);
       setTotalCount(result.totalCount);
       setTotalPages(result.totalPages);
@@ -73,42 +103,27 @@ function CatalogContent() {
     } finally {
       setLoading(false);
     }
-  }, [collectionId]);
+  }, [collectionId, debouncedSearch, selectedBrand, selectedCategory, selectedMaterial]);
 
   useEffect(() => {
     loadProducts(currentPage);
   }, [currentPage, loadProducts]);
 
-  // Client-side filters on loaded products
-  const {
-    searchTerm,
-    setSearchTerm,
-    selectedBrand,
-    setSelectedBrand,
-    selectedCategory,
-    setSelectedCategory,
-    selectedMaterial,
-    setSelectedMaterial,
-    selectedGender,
-    setSelectedGender,
-    selectedSize,
-    setSelectedSize,
-    selectedCountry,
-    setSelectedCountry,
-    filteredProducts,
-    resetFilters,
-  } = useCatalogFilter({
-    products: allProducts,
-    favorites,
-    isFavOnly,
-    selectedPrice,
-  });
+  const resetFilters = useCallback(() => {
+    setSearchTerm('');
+    setDebouncedSearch('');
+    setSelectedBrand('all');
+    setSelectedCategory('all');
+    setSelectedMaterial('all');
+    setSelectedGender('all');
+    setSelectedSize('all');
+    setSelectedPrice('all');
+    setCurrentPage(1);
+  }, []);
 
-  React.useEffect(() => {
-    if (!isAdmin && userCountryObj?.code) {
-      setSelectedCountry(userCountryObj.code);
-    }
-  }, [isAdmin, userCountryObj?.code, setSelectedCountry]);
+  const displayedProducts = isFavOnly
+    ? allProducts.filter((p) => favorites.includes(p.id))
+    : allProducts;
 
   // Pagination handlers
   const handlePageChange = (page: number) => {
@@ -269,7 +284,7 @@ function CatalogContent() {
             </div>
           ) : (
             <>
-              <ProductGrid products={filteredProducts} resetFilters={resetFilters} />
+              <ProductGrid products={displayedProducts} resetFilters={resetFilters} />
 
               {/* Pagination */}
               {totalPages > 1 && (

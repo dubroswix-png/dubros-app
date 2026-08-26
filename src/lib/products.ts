@@ -63,7 +63,10 @@ export interface GetProductsResult {
   totalPages: number;
 }
 
-// ---------------------------------------------------------------------------
+import productMetaMap from '@/data/product_meta_map.json';
+
+const metaMap = productMetaMap as Record<string, { b: string; c: string; q: number }>;
+
 // Convert Supabase row → Product interface (compatible with existing components)
 // ---------------------------------------------------------------------------
 
@@ -84,6 +87,12 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
 
   const ref = row.reference || row.code || '';
   const code = row.code || row.reference || '';
+  const refUpper = (ref || code || '').toUpperCase().trim();
+  const meta = metaMap[refUpper];
+
+  const brand = row.brands?.name || meta?.b || 'Dubros';
+  const category = row.categories?.name || meta?.c || 'Aros Ópticos';
+  const quantity = row.quantity || meta?.q || 0;
 
   return {
     id: row.id,
@@ -92,13 +101,13 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
     description: row.description || `Montura oftálmica de alta calidad, referencia ${ref}.`,
     price: row.price || 0,
     eyeSize: 0, // Not stored in Supabase currently
-    brand: row.brands?.name || 'Dubros',
-    material: row.material || 'N/A',
+    brand: brand,
+    material: row.material && row.material !== 'N/A' ? row.material : 'ACETATO / METAL',
     gender: (row.gender as any) || 'Unisex',
     saleType: row.sale_type || 'PIEZA',
-    category: row.categories?.name || 'Aros Ópticos',
-    quantity: row.quantity || 0,
-    flex: false,
+    category: category,
+    quantity: quantity,
+    flex: true,
     thumbnailUrl: fixUrl(row.thumbnail_url, ref),
     largeImageUrl: fixUrl(row.large_image_url || row.thumbnail_url, ref),
   };
@@ -120,28 +129,92 @@ export async function getProducts({
   maxPrice,
 }: GetProductsParams = {}): Promise<GetProductsResult> {
   try {
-    // Build base query
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const isBrandFilter = brandName && brandName !== 'all';
+    const isCategoryFilter = categoryName && categoryName !== 'all';
+
+    let matchedRefs: string[] | null = null;
+
+    if (isBrandFilter || isCategoryFilter) {
+      const bUpper = isBrandFilter ? brandName.toUpperCase() : null;
+      const cUpper = isCategoryFilter ? categoryName.toUpperCase() : null;
+
+      matchedRefs = Object.keys(metaMap).filter((ref) => {
+        const item = metaMap[ref];
+        if (bUpper && item.b.toUpperCase() !== bUpper) return false;
+        if (cUpper && item.c.toUpperCase() !== cUpper) return false;
+        return true;
+      });
+
+      if (search && search.trim()) {
+        const sUpper = search.trim().toUpperCase();
+        matchedRefs = matchedRefs.filter((ref) => ref.includes(sUpper));
+      }
+    }
+
     let query = supabase
       .from('products')
       .select('*, brands(id, name), categories(id, name)', { count: 'exact' });
 
-    // Apply collection filter
     if (collectionId) {
       query = query.eq('collection_id', collectionId);
     }
 
-    // Apply search filter
+    if (matchedRefs !== null) {
+      const totalCount = matchedRefs.length;
+      const totalPages = Math.ceil(totalCount / pageSize) || 1;
+
+      if (totalCount === 0) {
+        return { products: [], totalCount: 0, page, pageSize, totalPages: 0 };
+      }
+
+      const pageRefs = matchedRefs.slice(from, to + 1);
+      query = query.in('reference', pageRefs);
+
+      const { data, error } = await query;
+      if (error || !data || data.length === 0) {
+        const syntheticProducts: Product[] = pageRefs.map((ref) => {
+          const meta = metaMap[ref];
+          const imgUrl = `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(ref)}.jpg`;
+          return {
+            id: ref,
+            reference: ref,
+            code: ref,
+            description: `Montura oftálmica de alta calidad, referencia ${ref}.`,
+            price: 0,
+            eyeSize: 0,
+            brand: meta?.b || (brandName || 'Dubros'),
+            material: 'ACETATO / METAL',
+            gender: 'Unisex',
+            saleType: 'PIEZA',
+            category: meta?.c || (categoryName || 'Aros Ópticos'),
+            quantity: meta?.q || 0,
+            flex: true,
+            thumbnailUrl: imgUrl,
+            largeImageUrl: imgUrl,
+          };
+        });
+        return { products: syntheticProducts, totalCount, page, pageSize, totalPages };
+      }
+
+      const products = data.map(mapSupabaseToProduct);
+      return { products, totalCount, page, pageSize, totalPages };
+    }
+
+    // Standard search filter
     if (search && search.trim()) {
       const term = `%${search.trim()}%`;
       query = query.or(`reference.ilike.${term},code.ilike.${term},description.ilike.${term}`);
     }
 
-    // Apply material filter
+    // Material filter
     if (material && material !== 'all') {
       query = query.ilike('material', `%${material}%`);
     }
 
-    // Apply price range filters
+    // Price range filters
     if (minPrice !== undefined) {
       query = query.gte('price', minPrice);
     }
@@ -149,9 +222,7 @@ export async function getProducts({
       query = query.lte('price', maxPrice);
     }
 
-    // Apply pagination
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
+    // Pagination
     query = query.range(from, to).order('created_at', { ascending: false });
 
     const { data, error, count } = await query;
@@ -169,20 +240,7 @@ export async function getProducts({
       return { products: [], totalCount: 0, page, pageSize, totalPages: 0 };
     }
 
-    let products = (data || []).map(mapSupabaseToProduct);
-
-    // Client-side filters for joined fields (brand and category names)
-    if (brandName && brandName !== 'all') {
-      products = products.filter(
-        (p) => p.brand.toUpperCase() === brandName.toUpperCase()
-      );
-    }
-    if (categoryName && categoryName !== 'all') {
-      products = products.filter(
-        (p) => p.category.toUpperCase() === categoryName.toUpperCase()
-      );
-    }
-
+    const products = data.map(mapSupabaseToProduct);
     const totalCount = count || 0;
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
@@ -361,14 +419,35 @@ export async function getFeaturedProducts(limit: number = 8): Promise<Product[]>
 
 import bubbleBrandsData from '@/data/bubble_brands.json';
 
-const FALLBACK_BRANDS: SupabaseBrand[] = (bubbleBrandsData as any[])
-  .filter((b) => b.active)
-  .map((b) => ({
-    id: b.id,
-    name: b.name,
-    active: b.active,
-  }))
-  .sort((a, b) => a.name.localeCompare(b.name));
+const dynamicBrandsMap = new Map<string, SupabaseBrand>();
+
+(bubbleBrandsData as any[]).forEach((b) => {
+  if (b.name && b.active !== false) {
+    const clean = b.name.trim();
+    dynamicBrandsMap.set(clean.toUpperCase(), {
+      id: b.id || clean.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      name: clean,
+      active: true,
+    });
+  }
+});
+
+Object.values(metaMap).forEach((m) => {
+  if (m.b && m.b !== 'Dubros') {
+    const clean = m.b.trim();
+    if (!dynamicBrandsMap.has(clean.toUpperCase())) {
+      dynamicBrandsMap.set(clean.toUpperCase(), {
+        id: clean.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        name: clean,
+        active: true,
+      });
+    }
+  }
+});
+
+const FALLBACK_BRANDS: SupabaseBrand[] = Array.from(dynamicBrandsMap.values()).sort((a, b) =>
+  a.name.localeCompare(b.name)
+);
 
 import bubbleCategoriesData from '@/data/bubble_categories.json';
 
