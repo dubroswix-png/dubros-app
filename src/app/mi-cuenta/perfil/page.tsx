@@ -18,7 +18,9 @@ import {
   ShieldCheck,
   Mail,
   Globe,
-  Briefcase
+  Briefcase,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 
 export function getTaxIdLabel(countryName?: string): string {
@@ -196,6 +198,31 @@ export default function ProfilePage() {
             Actualiza tu identificación fiscal (RUC, NIT, RFC, CUIT...), dirección de despacho y credenciales de acceso.
           </p>
         </div>
+
+        {(!userProfile?.companyName || !userProfile?.taxId) && (
+          <div
+            style={{
+              backgroundColor: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              borderRadius: 'var(--radius-md)',
+              padding: '1.25rem',
+              marginBottom: '2rem',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '1rem',
+            }}
+          >
+            <Sparkles size={24} color="#2563EB" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1E40AF', margin: '0 0 0.25rem 0' }}>
+                ¡Bienvenido a Dubros International B2B!
+              </h3>
+              <p style={{ fontSize: '0.875rem', color: '#1E3A8A', margin: 0, lineHeight: '1.5' }}>
+                Completa los datos de tu óptica o empresa (Nombre Comercial, RUC / Identificación Fiscal y WhatsApp) para activar tus condiciones mayoristas y agilizar la preparación de tus pedidos.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
           {/* CARD 1: DATOS COMERCIALES Y EMPRESA */}

@@ -114,23 +114,19 @@ export default function LoginPage() {
 
     try {
       const result = await register(email, password, {
-        name: fullName,
-        companyName,
-        businessType,
-        country,
-        whatsapp,
+        name: email.split('@')[0],
       });
 
       if (!result.success) {
-        setError(result.error || 'Error al registrar la cuenta comercial.');
+        setError(result.error || 'Error al registrar la cuenta.');
       } else {
-        setSuccessMessage('¡Cuenta creada con éxito! Redirigiendo a tu catálogo mayorista...');
+        setSuccessMessage('¡Cuenta creada con éxito! Redirigiendo a tu perfil para completar tus datos comerciales...');
         setTimeout(() => {
-          router.push('/catalogo');
-        }, 1500);
+          router.push('/mi-cuenta/perfil');
+        }, 1200);
       }
     } catch (err: any) {
-      setError('Error al registrar la cuenta comercial.');
+      setError('Error al registrar la cuenta.');
     } finally {
       setLoading(false);
     }
@@ -475,119 +471,43 @@ export default function LoginPage() {
               </button>
             </form>
           ) : (
-            /* --- REGISTER FORM --- */
+            /* --- REGISTER FORM (STREAMLINED: EMAIL + PASSWORD) --- */
             <form onSubmit={handleRegisterSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>
-                    Nombre del Contacto
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <User size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-                    <input
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Ej. Roberto Gómez"
-                      style={{ width: '100%', padding: '0.55rem 0.75rem 0.55rem 2rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', fontSize: '0.85rem' }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>
-                    Nombre de la Óptica / Empresa
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <Building2 size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-                    <input
-                      type="text"
-                      required
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="Ej. Óptica Visión Real"
-                      style={{ width: '100%', padding: '0.55rem 0.75rem 0.55rem 2rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', fontSize: '0.85rem' }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>
-                    Tipo de Negocio
-                  </label>
-                  <select
-                    value={businessType}
-                    onChange={(e) => setBusinessType(e.target.value)}
-                    style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', fontSize: '0.85rem', backgroundColor: '#FFF' }}
-                  >
-                    <option value="Óptica">Óptica Independiente</option>
-                    <option value="Cadena de Ópticas">Cadena de Ópticas</option>
-                    <option value="Distribuidor">Distribuidor Mayorista</option>
-                    <option value="Clínica Oftalmológica">Clínica Oftalmológica</option>
-                    <option value="Laboratorio">Laboratorio Óptico</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>
-                    País de Operación
-                  </label>
-                  <select
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', fontSize: '0.85rem', backgroundColor: '#FFF' }}
-                  >
-                    {LATAM_COUNTRIES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>
-                    WhatsApp Comercial
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <Phone size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-                    <input
-                      type="tel"
-                      required
-                      value={whatsapp}
-                      onChange={(e) => setWhatsapp(e.target.value)}
-                      placeholder="+507 6000-0000"
-                      style={{ width: '100%', padding: '0.55rem 0.75rem 0.55rem 2rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', fontSize: '0.85rem' }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>
-                    Correo Electrónico
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <Mail size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="correo@optica.com"
-                      style={{ width: '100%', padding: '0.55rem 0.75rem 0.55rem 2rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', fontSize: '0.85rem' }}
-                    />
-                  </div>
-                </div>
-              </div>
-
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.3rem' }}>
+                  Correo Electrónico
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Mail
+                    size={18}
+                    style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }}
+                  />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu-optica@ejemplo.com"
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 1rem 0.65rem 2.5rem',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border-medium)',
+                      fontSize: '0.9rem',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.3rem' }}>
                   Contraseña de Acceso
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <Lock size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+                  <Lock
+                    size={18}
+                    style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }}
+                  />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
@@ -595,14 +515,31 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
-                    style={{ width: '100%', padding: '0.55rem 2.2rem 0.55rem 2rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', fontSize: '0.85rem' }}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 2.5rem 0.65rem 2.5rem',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border-medium)',
+                      fontSize: '0.9rem',
+                    }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)' }}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--text-tertiary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
@@ -623,8 +560,12 @@ export default function LoginPage() {
                 }}
               >
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-                {loading ? 'Creando cuenta comercial...' : 'Crear Cuenta y Ver Precios'}
+                {loading ? 'Creando cuenta...' : 'Crear Cuenta y Completar Perfil'}
               </button>
+
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', textAlign: 'center', marginTop: '0.75rem', lineHeight: '1.4' }}>
+                Podrás registrar el nombre de tu óptica, RUC y WhatsApp en tu panel de perfil tras registrarte.
+              </p>
             </form>
           )}
         </div>
