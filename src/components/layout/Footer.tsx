@@ -44,17 +44,30 @@ export function Footer() {
           }}
         >
           {/* Logo */}
-          <Link href="/" style={{ display: 'inline-block' }}>
-            <img
-              src="/images/logo.svg"
-              alt="Dubros International"
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
+            <div
               style={{
-                height: '46px',
-                width: 'auto',
-                objectFit: 'contain',
-                filter: 'brightness(0) invert(1)',
+                backgroundColor: '#FFFFFF',
+                padding: '0.45rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)',
+                transition: 'transform 0.2s ease',
               }}
-            />
+            >
+              <img
+                src="/images/logo.svg"
+                alt="Dubros International"
+                style={{
+                  height: '38px',
+                  width: 'auto',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
+            </div>
           </Link>
 
           {/* Center Navigation Links */}

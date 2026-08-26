@@ -22,7 +22,11 @@ interface AuthContextType {
   isLoggedIn: boolean;
   userProfile: UserProfile | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (
+    email: string,
+    password: string,
+    metadata?: { name?: string; companyName?: string; businessType?: string; country?: string; whatsapp?: string }
+  ) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   completeOnboarding: (data: Partial<UserProfile>) => void;
   updateProfile: (data: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
@@ -109,10 +113,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: true };
   };
 
-  const register = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const register = async (
+    email: string,
+    password: string,
+    metadata?: { name?: string; companyName?: string; businessType?: string; country?: string; whatsapp?: string }
+  ): Promise<{ success: boolean; error?: string }> => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          full_name: metadata?.name,
+          company_name: metadata?.companyName,
+          business_type: metadata?.businessType,
+          country_code: metadata?.country,
+          whatsapp: metadata?.whatsapp,
+        },
+      },
     });
 
     if (error) {
@@ -120,6 +137,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (data.user) {
+      // Upsert profile in public.profiles table
+      try {
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          email: data.user.email,
+          full_name: metadata?.name,
+          company_name: metadata?.companyName,
+          business_type: metadata?.businessType || 'Óptica',
+          country_code: metadata?.country || 'PA',
+          whatsapp: metadata?.whatsapp,
+          role: email.toLowerCase() === 'dubroswix@gmail.com' ? 'admin' : 'client',
+          onboarding_completed: true,
+        });
+      } catch (e) {
+        console.error('Error creating profile on register:', e);
+      }
+
       await fetchProfile(data.user);
     }
     return { success: true };
