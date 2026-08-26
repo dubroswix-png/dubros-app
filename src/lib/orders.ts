@@ -77,14 +77,16 @@ export async function createOrder({
         order_number: orderNumber,
         user_id: user.id,
         customer_email: user.email || '',
-        customer_name: profile?.name || user.email?.split('@')[0],
+        customer_name: profile?.full_name || profile?.name || user.email?.split('@')[0],
         company_name: profile?.company_name || '',
-        phone: whatsappPhone || profile?.phone || '',
+        phone: whatsappPhone || profile?.whatsapp || profile?.phone || '',
         shipping_address: shippingAddress,
         notes: notes,
         status: 'Pendiente',
         total_items: totalItems,
+        total_pieces: totalItems,
         subtotal: subtotal,
+        total_amount: subtotal,
       })
       .select()
       .single();

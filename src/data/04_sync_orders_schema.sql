@@ -24,6 +24,12 @@ CREATE TABLE IF NOT EXISTS public.orders (
 );
 
 -- Asegurar todas las columnas en la tabla orders
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS total_pieces INTEGER DEFAULT 1;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS total_items INTEGER DEFAULT 1;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS total_amount NUMERIC(10, 2) DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS subtotal NUMERIC(10, 2) DEFAULT 0;
+ALTER TABLE public.orders ALTER COLUMN total_pieces SET DEFAULT 1;
+ALTER TABLE public.orders ALTER COLUMN total_pieces DROP NOT NULL;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS company_name TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_name TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_email TEXT;
@@ -31,8 +37,6 @@ ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS phone TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_address TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS notes TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Pendiente';
-ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS total_items INTEGER DEFAULT 1;
-ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS subtotal NUMERIC(10, 2) DEFAULT 0;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS switch_order_number TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS switch_synced BOOLEAN DEFAULT false;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_url TEXT;
