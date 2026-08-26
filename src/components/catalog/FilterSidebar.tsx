@@ -96,25 +96,42 @@ export function FilterSidebar({
         gap: '1.25rem',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Filter size={18} /> Filtros
-        </h2>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingBottom: '0.75rem',
+          borderBottom: '1px solid var(--border-light)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Filter size={18} color="var(--navy)" />
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy)', margin: 0 }}>
+            Filtros
+          </h2>
+        </div>
         <button
+          type="button"
           onClick={resetFilters}
+          title="Restablecer todos los filtros"
           style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--blue)',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.25rem',
+            gap: '0.35rem',
+            padding: '0.3rem 0.6rem',
+            backgroundColor: 'var(--bg-secondary)',
+            border: '1px solid var(--border-medium)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--blue)',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            whiteSpace: 'nowrap',
           }}
         >
-          <RotateCcw size={14} /> {t('catalog.resetFilters' as any)}
+          <RotateCcw size={12} /> Limpiar
         </button>
       </div>
 
