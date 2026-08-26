@@ -21,7 +21,7 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react';
-import { useAuth, isUserAdmin } from '@/context/AuthContext';
+import { useAuth, isUserAdmin, translateAuthError } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Logo } from '@/components/layout/Logo';
 
@@ -91,7 +91,7 @@ export default function LoginPage() {
     try {
       const result = await login(email, password);
       if (!result.success) {
-        setError(result.error || 'Correo o contraseña incorrectos. Verifica tus credenciales.');
+        setError(translateAuthError(result.error) || 'Correo o contraseña incorrectos. Verifica tus credenciales.');
       } else {
         if (isUserAdmin(email)) {
           router.push('/dashboard');
@@ -118,7 +118,7 @@ export default function LoginPage() {
       });
 
       if (!result.success) {
-        setError(result.error || 'Error al registrar la cuenta.');
+        setError(translateAuthError(result.error) || 'Error al registrar la cuenta.');
       } else {
         setSuccessMessage('¡Cuenta creada con éxito! Redirigiendo a tu perfil para completar tus datos comerciales...');
         setTimeout(() => {
@@ -126,7 +126,7 @@ export default function LoginPage() {
         }, 1200);
       }
     } catch (err: any) {
-      setError('Error al registrar la cuenta.');
+      setError(translateAuthError(err?.message) || 'Error al registrar la cuenta.');
     } finally {
       setLoading(false);
     }
@@ -137,7 +137,7 @@ export default function LoginPage() {
     setError(null);
     const result = await loginWithGoogle();
     if (!result.success && result.error) {
-      setError(result.error);
+      setError(translateAuthError(result.error));
       setLoading(false);
     }
   };
@@ -154,7 +154,7 @@ export default function LoginPage() {
       });
 
       if (resetErr) {
-        setForgotError(resetErr.message);
+        setForgotError(translateAuthError(resetErr.message));
       } else {
         setForgotSuccess(true);
       }

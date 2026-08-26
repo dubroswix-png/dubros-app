@@ -40,6 +40,34 @@ export const isUserAdmin = (email?: string | null): boolean => {
   return ADMIN_EMAILS.includes(email.toLowerCase().trim());
 };
 
+export function translateAuthError(errorMsg?: string | null): string {
+  if (!errorMsg) return 'Ocurrió un error inesperado. Intenta de nuevo.';
+  const msg = errorMsg.toLowerCase();
+  
+  if (msg.includes('user already registered') || msg.includes('already exists') || msg.includes('email already in use')) {
+    return 'Este correo electrónico ya está registrado. Por favor inicia sesión o recupera tu contraseña.';
+  }
+  if (msg.includes('invalid login credentials') || msg.includes('invalid_grant') || msg.includes('invalid credentials')) {
+    return 'Correo electrónico o contraseña incorrectos. Verifica tus datos.';
+  }
+  if (msg.includes('password should be at least') || msg.includes('password is too short')) {
+    return 'La contraseña debe tener al menos 6 caracteres.';
+  }
+  if (msg.includes('email not confirmed') || msg.includes('not verified')) {
+    return 'Debes confirmar tu correo electrónico antes de ingresar.';
+  }
+  if (msg.includes('rate limit') || msg.includes('too many requests')) {
+    return 'Demasiados intentos seguidos. Por favor espera unos minutos antes de intentar de nuevo.';
+  }
+  if (msg.includes('network') || msg.includes('fetch')) {
+    return 'Error de conexión. Verifica tu conexión a internet e intenta de nuevo.';
+  }
+  if (msg.includes('invalid email') || msg.includes('unable to validate email')) {
+    return 'El formato de correo electrónico ingresado no es válido.';
+  }
+  return errorMsg;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -138,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: translateAuthError(error.message) };
     }
 
     if (data.user) {
@@ -167,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: translateAuthError(error.message) };
     }
 
     if (data.user) {
