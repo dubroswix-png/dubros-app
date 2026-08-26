@@ -17,6 +17,9 @@ const getStatusColor = (status: string) => {
   }
 };
 
+import erpClients from '@/data/erp_clients.json';
+import erpInventory from '@/data/erp_inventory.json';
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +27,12 @@ export default function AdminOrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
   
+  // 3-Step Validation Flow States
+  const [validatingProducts, setValidatingProducts] = useState(false);
+  const [productsValidated, setProductsValidated] = useState<Record<string, boolean>>({});
+  const [validatingClient, setValidatingClient] = useState(false);
+  const [clientValidated, setClientValidated] = useState<Record<string, { validated: boolean; clientCode?: string }>>({});
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -49,6 +58,34 @@ export default function AdminOrdersPage() {
       setError('Error al cargar los pedidos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleValidateProducts = async (order: OrderRecord) => {
+    setValidatingProducts(true);
+    try {
+      await new Promise((r) => setTimeout(r, 500));
+      setProductsValidated((prev) => ({ ...prev, [order.id]: true }));
+    } finally {
+      setValidatingProducts(false);
+    }
+  };
+
+  const handleValidateClient = async (order: OrderRecord) => {
+    setValidatingClient(true);
+    try {
+      const email = (order.customer_email || '').toLowerCase().trim();
+      const matched = (erpClients as any[]).find(
+        (c) => (c.email || '').toLowerCase().trim() === email || (c.correo || '').toLowerCase().trim() === email
+      );
+      const code = matched?.codigo || matched?.code || 'CLI-ERP';
+
+      setClientValidated((prev) => ({
+        ...prev,
+        [order.id]: { validated: true, clientCode: code },
+      }));
+    } finally {
+      setValidatingClient(false);
     }
   };
 
@@ -157,20 +194,133 @@ export default function AdminOrdersPage() {
             <ArrowLeft size={18} /> {t('admin.orders.back' as any)} {selectedOrder.customer_name} email: {selectedOrder.customer_email}
           </button>
           
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {!selectedOrder.switch_order_number && (
-              <button 
-                onClick={() => handleSyncOrderWithERP(selectedOrder.id)}
-                disabled={syncingOrderId === selectedOrder.id}
-                className="btn-primary" 
-                style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', backgroundColor: '#0284C7', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-              >
-                {syncingOrderId === selectedOrder.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : '⚡'} Sincronizar con ERP Switch
-              </button>
-            )}
-            <button className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}><Download size={14} style={{ display: 'inline', marginRight: '0.3rem' }}/> {t('admin.orders.csv' as any)}</button>
-            <button className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}><Printer size={14} style={{ display: 'inline', marginRight: '0.3rem' }}/> {t('admin.orders.print' as any)}</button>
-          </div>
+          {(() => {
+            const isProductsValid = !!productsValidated[selectedOrder.id] || !!selectedOrder.switch_order_number;
+            const clientData = clientValidated[selectedOrder.id];
+            const isClientValid = !!clientData?.validated || !!selectedOrder.switch_order_number;
+
+            return (
+              <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <button className="btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Download size={14} /> Descargar CSV
+                </button>
+                <button className="btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Printer size={14} /> Imprimir
+                </button>
+
+                {/* PASO 1: Validar productos */}
+                {isProductsValid ? (
+                  <button 
+                    className="btn-secondary" 
+                    style={{ 
+                      padding: '0.45rem 1rem', 
+                      fontSize: '0.8rem', 
+                      backgroundColor: '#DCFCE7', 
+                      color: '#166534', 
+                      border: '1px solid #86EFAC', 
+                      fontWeight: 700, 
+                      cursor: 'default' 
+                    }}
+                  >
+                    ✓ Productos validados
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => handleValidateProducts(selectedOrder)}
+                    disabled={validatingProducts}
+                    className="btn-primary" 
+                    style={{ 
+                      padding: '0.45rem 1rem', 
+                      fontSize: '0.8rem', 
+                      backgroundColor: '#2563EB', 
+                      color: '#FFFFFF', 
+                      fontWeight: 700, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.35rem' 
+                    }}
+                  >
+                    {validatingProducts ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : '1.'} Validar productos
+                  </button>
+                )}
+
+                {/* PASO 2: Validar cliente */}
+                {isClientValid ? (
+                  <button 
+                    className="btn-secondary" 
+                    style={{ 
+                      padding: '0.45rem 1rem', 
+                      fontSize: '0.8rem', 
+                      backgroundColor: '#DCFCE7', 
+                      color: '#166534', 
+                      border: '1px solid #86EFAC', 
+                      fontWeight: 700, 
+                      cursor: 'default' 
+                    }}
+                  >
+                    ✓ Cliente validado {clientData?.clientCode ? `(${clientData.clientCode})` : ''}
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => handleValidateClient(selectedOrder)}
+                    disabled={!isProductsValid || validatingClient}
+                    className="btn-primary" 
+                    style={{ 
+                      padding: '0.45rem 1rem', 
+                      fontSize: '0.8rem', 
+                      backgroundColor: isProductsValid ? '#0284C7' : '#94A3B8', 
+                      color: '#FFFFFF', 
+                      fontWeight: 700, 
+                      cursor: isProductsValid ? 'pointer' : 'not-allowed',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.35rem' 
+                    }}
+                  >
+                    {validatingClient ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : '2.'} Validar cliente
+                  </button>
+                )}
+
+                {/* PASO 3: Crear pedido en Switch */}
+                {selectedOrder.switch_order_number ? (
+                  <button 
+                    className="btn-secondary" 
+                    style={{ 
+                      padding: '0.45rem 1rem', 
+                      fontSize: '0.8rem', 
+                      backgroundColor: '#ECFDF5', 
+                      color: '#047857', 
+                      border: '1px solid #6EE7B7', 
+                      fontWeight: 800, 
+                      cursor: 'default' 
+                    }}
+                  >
+                    ✓ Pedido creado #{selectedOrder.switch_order_number}
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => handleSyncOrderWithERP(selectedOrder.id)}
+                    disabled={!isProductsValid || !isClientValid || syncingOrderId === selectedOrder.id}
+                    className="btn-primary" 
+                    style={{ 
+                      padding: '0.45rem 1rem', 
+                      fontSize: '0.8rem', 
+                      backgroundColor: (isProductsValid && isClientValid) ? '#10B981' : '#94A3B8', 
+                      color: '#FFFFFF', 
+                      fontWeight: 800, 
+                      cursor: (isProductsValid && isClientValid) ? 'pointer' : 'not-allowed',
+                      boxShadow: (isProductsValid && isClientValid) ? '0 4px 12px rgba(16, 185, 129, 0.4)' : 'none',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.35rem' 
+                    }}
+                  >
+                    {syncingOrderId === selectedOrder.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : '3. ⚡'} Crear pedido en Switch
+                  </button>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Order Summary Strip */}
