@@ -20,7 +20,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Asegurar id por defecto y columnas
+-- 1. Eliminar la restricción foreign key hacia auth.users para permitir precargar el directorio B2B de clientes ERP
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
+
+-- 2. Asegurar id por defecto y columnas
 ALTER TABLE public.profiles ALTER COLUMN id SET DEFAULT gen_random_uuid();
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS id_document_url TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS client_code TEXT;
