@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const profile: UserProfile = {
           email: userEmail,
           role: resolvedRole,
-          name: data.full_name || data.name || undefined,
+          name: data.full_name || data.name || (user.user_metadata?.full_name as string) || undefined,
           phone: data.whatsapp || data.phone || undefined,
           country: data.country_code || data.country || undefined,
           companyName: data.company_name || undefined,
@@ -75,12 +75,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserProfile(profile);
         setIsLoggedIn(true);
       } else {
+        const googleName = (user.user_metadata?.full_name as string) || (user.user_metadata?.name as string) || userEmail.split('@')[0];
         const profile: UserProfile = {
           email: userEmail,
           role: resolvedRole,
+          name: googleName,
         };
         setUserProfile(profile);
         setIsLoggedIn(true);
+
+        // Auto create profile row in Supabase for OAuth or first-time users
+        try {
+          await supabase.from('profiles').upsert({
+            id: user.id,
+            email: userEmail,
+            full_name: googleName,
+            company_name: 'Óptica / Cliente',
+            business_type: 'Óptica',
+            country_code: 'PA',
+            role: resolvedRole,
+            onboarding_completed: true,
+          }, { onConflict: 'id' });
+        } catch (e) {
+          console.warn('Auto-profile upsert on login:', e);
+        }
       }
     } finally {
       setIsLoading(false);
@@ -176,10 +194,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/catalogo`,
+        redirectTo: `${origin}/catalogo`,
       },
     });
 
