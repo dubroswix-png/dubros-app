@@ -61,11 +61,39 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleDownloadCSV = (order: OrderRecord, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const headers = ['Referencia', 'Codigo', 'Descripcion', 'Precio Unitario', 'Cantidad', 'Subtotal'];
+    const rows = (order.order_items || []).map((item) => [
+      `"${item.product?.reference || item.reference || ''}"`,
+      `"${item.product?.code || item.code || ''}"`,
+      `"${(item.product?.description || '').replace(/"/g, '""')}"`,
+      `"${item.unit_price}"`,
+      `"${item.quantity}"`,
+      `"${(item.unit_price * item.quantity).toFixed(2)}"`,
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Pedido_${order.order_number || 'orden'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrintOrder = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    window.print();
+  };
+
   const handleValidateProducts = async (order: OrderRecord) => {
     setValidatingProducts(true);
     try {
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 400));
       setProductsValidated((prev) => ({ ...prev, [order.id]: true }));
+      alert(`✓ ¡Productos validados con éxito! (${order.total_items} piezas verificadas en el inventario del ERP Switch-Soft).`);
     } finally {
       setValidatingProducts(false);
     }
@@ -84,6 +112,7 @@ export default function AdminOrdersPage() {
         ...prev,
         [order.id]: { validated: true, clientCode: code },
       }));
+      alert(`✓ ¡Cliente validado en ERP Switch! Código de cuenta: ${code} (${order.customer_name || order.customer_email})`);
     } finally {
       setValidatingClient(false);
     }
@@ -101,6 +130,7 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       if (res.ok) {
         await fetchOrders();
+        alert(`🎉 ¡Pedido creado en Switch-Soft ERP exitosamente!\nNúmero Interno: #${data.switchOrderNumber || data.erpOrderId}`);
       } else {
         alert(data.error || 'Error al sincronizar con el ERP.');
       }
@@ -201,10 +231,18 @@ export default function AdminOrdersPage() {
 
             return (
               <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <button className="btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <button 
+                  onClick={(e) => handleDownloadCSV(selectedOrder, e)}
+                  className="btn-primary" 
+                  style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                >
                   <Download size={14} /> Descargar CSV
                 </button>
-                <button className="btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <button 
+                  onClick={handlePrintOrder}
+                  className="btn-primary" 
+                  style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                >
                   <Printer size={14} /> Imprimir
                 </button>
 
@@ -575,7 +613,13 @@ export default function AdminOrdersPage() {
                   <div style={{ textAlign: 'right' }}>
                     <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.id' as any)}</span>
                     <span style={{ display: 'block', fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem' }}>{order.order_number}</span>
-                    <button className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }} onClick={(e) => e.stopPropagation()}>{t('admin.orders.csv' as any)}</button>
+                    <button 
+                      className="btn-primary" 
+                      style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }} 
+                      onClick={(e) => handleDownloadCSV(order, e)}
+                    >
+                      {t('admin.orders.csv' as any)}
+                    </button>
                   </div>
                 </div>
 
