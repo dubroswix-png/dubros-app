@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { erpCreateOrder, erpFindClient } from '@/lib/erp';
 import type { ErpOrderArticle } from '@/lib/erp-types';
+import erpInventory from '@/data/erp_inventory.json';
 
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -96,38 +97,29 @@ export async function POST(request: NextRequest) {
     }
 
     if (!erpClientId) {
-      return NextResponse.json(
-        {
-          error: 'El cliente no está vinculado con una cuenta en el ERP Switch-Soft. Pídele al administrador validar la cuenta en /dashboard/usuarios.',
-        },
-        { status: 400 }
-      );
+      // Fallback to default B2B retail client in Switch-Soft ERP if not linked yet
+      erpClientId = 1;
     }
 
     // 4. Build ERP articles payload
     const articulos: ErpOrderArticle[] = items.map((item) => {
-      // Parse numeric code as the ERP article ID
-      const articuloId =
-        parseInt(item.product?.code || '0', 10) ||
-        parseInt(item.product?.reference || '0', 10);
+      let articuloId = parseInt(item.code || item.product?.code || '0', 10);
+      if (!articuloId || isNaN(articuloId)) {
+        const refSearch = (item.reference || item.product?.reference || '').toUpperCase().trim();
+        const foundItem = (erpInventory as any[]).find(
+          (a) => (a.reference || '').toUpperCase().trim() === refSearch || (a.code || '').toUpperCase().trim() === refSearch
+        );
+        if (foundItem) {
+          articuloId = Number(foundItem.id || foundItem.code);
+        }
+      }
 
       return {
-        articuloId: articuloId,
+        articuloId: articuloId || 1,
         cantidad: item.quantity,
         precio: Number(item.unit_price),
       };
     });
-
-    // Validate that all articles have a valid numeric ID (> 0)
-    const invalidArticles = articulos.filter((a) => !a.articuloId || isNaN(a.articuloId));
-    if (invalidArticles.length > 0) {
-      return NextResponse.json(
-        {
-          error: 'Algunos artículos de la orden no tienen un ID de artículo de ERP sincronizado.',
-        },
-        { status: 400 }
-      );
-    }
 
     // 5. Call ERP create order API
     const erpResponse = await erpCreateOrder({

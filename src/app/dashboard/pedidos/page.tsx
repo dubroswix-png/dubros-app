@@ -22,6 +22,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -48,6 +49,28 @@ export default function AdminOrdersPage() {
       setError('Error al cargar los pedidos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSyncOrderWithERP = async (orderId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setSyncingOrderId(orderId);
+    try {
+      const res = await fetch('/api/checkout/erp-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await fetchOrders();
+      } else {
+        alert(data.error || 'Error al sincronizar con el ERP.');
+      }
+    } catch {
+      alert('Error de red al conectar con el servidor.');
+    } finally {
+      setSyncingOrderId(null);
     }
   };
 
@@ -134,12 +157,19 @@ export default function AdminOrdersPage() {
             <ArrowLeft size={18} /> {t('admin.orders.back' as any)} {selectedOrder.customer_name} email: {selectedOrder.customer_email}
           </button>
           
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {!selectedOrder.switch_order_number && (
+              <button 
+                onClick={() => handleSyncOrderWithERP(selectedOrder.id)}
+                disabled={syncingOrderId === selectedOrder.id}
+                className="btn-primary" 
+                style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', backgroundColor: '#0284C7', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+              >
+                {syncingOrderId === selectedOrder.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : '⚡'} Sincronizar con ERP Switch
+              </button>
+            )}
             <button className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}><Download size={14} style={{ display: 'inline', marginRight: '0.3rem' }}/> {t('admin.orders.csv' as any)}</button>
             <button className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}><Printer size={14} style={{ display: 'inline', marginRight: '0.3rem' }}/> {t('admin.orders.print' as any)}</button>
-            <button className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>{t('admin.orders.validate' as any)}</button>
-            <button className="btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', backgroundColor: '#E0E7FF', color: 'var(--blue)', border: 'none' }}>{t('admin.orders.clientValidated' as any)}</button>
-            <button className="btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', backgroundColor: '#E0E7FF', color: 'var(--blue)', border: 'none' }}>{t('admin.orders.orderCreated' as any)}</button>
           </div>
         </div>
 
@@ -330,16 +360,39 @@ export default function AdminOrdersPage() {
                 onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'}
                 onMouseOut={(e) => e.currentTarget.style.boxShadow = 'none'}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                    <Package size={40} color="#0CA5A5" />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'flex-start' }}>
+                    <Package size={36} color={order.switch_order_number ? "#10B981" : "#F59E0B"} />
                     <div>
-                      <span style={{ display: 'block', color: '#0CA5A5', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.2rem' }}>
-                        {t('admin.orders.switchStatus' as any)}
+                      <span style={{ 
+                        display: 'inline-block', 
+                        fontSize: '0.8rem', 
+                        fontWeight: 700, 
+                        color: order.switch_order_number ? '#047857' : '#B45309',
+                        backgroundColor: order.switch_order_number ? '#ECFDF5' : '#FFFBEB',
+                        padding: '0.2rem 0.55rem',
+                        borderRadius: '4px',
+                        marginBottom: '0.3rem' 
+                      }}>
+                        {order.switch_order_number ? '✓ Sincronizado en Switch ERP' : '⏳ Pendiente en Switch ERP'}
                       </span>
-                      <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        {t('admin.orders.switchId' as any)} <br/><strong style={{ color: '#0CA5A5' }}>{order.switch_order_number || '-'}</strong>
-                      </span>
+                      {order.switch_order_number ? (
+                        <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                          Pedido Switch: <strong style={{ color: 'var(--blue)' }}>#{order.switch_order_number}</strong>
+                        </span>
+                      ) : (
+                        <div style={{ marginTop: '0.25rem' }}>
+                          <button
+                            type="button"
+                            onClick={(e) => handleSyncOrderWithERP(order.id, e)}
+                            disabled={syncingOrderId === order.id}
+                            className="btn-primary"
+                            style={{ padding: '0.3rem 0.65rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                          >
+                            {syncingOrderId === order.id ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : '⚡'} Enviar a ERP Switch
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
