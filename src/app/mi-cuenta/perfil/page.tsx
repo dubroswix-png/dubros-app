@@ -59,7 +59,7 @@ export function getTaxIdLabel(countryName?: string): string {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isLoggedIn, userProfile, updateProfile } = useAuth();
+  const { isLoggedIn, isLoading, userProfile, updateProfile } = useAuth();
 
   const [name, setName] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -81,20 +81,31 @@ export default function ProfilePage() {
   const [passError, setPassError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.push('/login');
-      return;
+    if (!isLoading) {
+      if (!isLoggedIn) {
+        router.push('/login');
+        return;
+      }
+      if (userProfile) {
+        setName(userProfile.name || '');
+        setCompanyName(userProfile.companyName || '');
+        setCountry(userProfile.country || 'Panamá');
+        setBusinessType(userProfile.businessType || 'Óptica Independiente');
+        setPhone(userProfile.phone || '');
+        setTaxId(userProfile.taxId || '');
+        setAddress(userProfile.address || '');
+      }
     }
-    if (userProfile) {
-      setName(userProfile.name || '');
-      setCompanyName(userProfile.companyName || '');
-      setCountry(userProfile.country || 'Panamá');
-      setBusinessType(userProfile.businessType || 'Óptica Independiente');
-      setPhone(userProfile.phone || '');
-      setTaxId(userProfile.taxId || '');
-      setAddress(userProfile.address || '');
-    }
-  }, [isLoggedIn, userProfile, router]);
+  }, [isLoggedIn, isLoading, userProfile, router]);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', gap: '0.75rem' }}>
+        <Loader2 size={32} color="var(--blue)" className="animate-spin" />
+        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Cargando perfil...</span>
+      </div>
+    );
+  }
 
   if (!isLoggedIn) return null;
 

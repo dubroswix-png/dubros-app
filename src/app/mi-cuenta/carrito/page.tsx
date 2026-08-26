@@ -3,14 +3,14 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Trash2, ArrowRight, CheckCircle2, ShieldCheck, FileText, MessageSquare } from 'lucide-react';
+import { ShoppingCart, Trash2, ArrowRight, CheckCircle2, ShieldCheck, FileText, MessageSquare, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { createOrder } from '@/lib/orders';
 
 export default function CartPage() {
   const router = useRouter();
-  const { isLoggedIn, userProfile } = useAuth();
+  const { isLoggedIn, isLoading, userProfile } = useAuth();
   const { cartItems, updateQuantity, removeFromCart, clearCart, totalArticles, subtotal } = useCart();
   
   const [shippingAddress] = useState('A coordinar por WhatsApp (V2)');
@@ -26,8 +26,19 @@ export default function CartPage() {
   } | null>(null);
 
   React.useEffect(() => {
-    if (!isLoggedIn) router.push('/login');
-  }, [isLoggedIn, router]);
+    if (!isLoading && !isLoggedIn) {
+      router.push('/login');
+    }
+  }, [isLoggedIn, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', gap: '0.75rem' }}>
+        <Loader2 size={32} color="var(--blue)" className="animate-spin" />
+        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Cargando carrito...</span>
+      </div>
+    );
+  }
 
   if (!isLoggedIn) return null;
 

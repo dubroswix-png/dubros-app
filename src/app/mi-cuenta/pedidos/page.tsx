@@ -10,7 +10,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function MyOrdersPage() {
   const router = useRouter();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncingId, setSyncingId] = useState<string | null>(null);
@@ -24,12 +24,14 @@ export default function MyOrdersPage() {
   };
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.push('/login');
-      return;
+    if (!isLoading) {
+      if (!isLoggedIn) {
+        router.push('/login');
+        return;
+      }
+      loadOrders();
     }
-    loadOrders();
-  }, [isLoggedIn, router]);
+  }, [isLoggedIn, isLoading, router]);
 
   const handleSyncErpOrder = async (orderId: string) => {
     setSyncingId(orderId);

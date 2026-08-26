@@ -70,7 +70,17 @@ export default function LoginPage() {
   const [forgotSuccess, setForgotSuccess] = useState(false);
   const [forgotError, setForgotError] = useState<string | null>(null);
 
-  const { login, register, loginWithGoogle } = useAuth();
+  const { login, register, loginWithGoogle, isLoggedIn, isLoading, userProfile } = useAuth();
+
+  React.useEffect(() => {
+    if (!isLoading && isLoggedIn) {
+      if (userProfile?.role === 'admin') {
+        router.push('/dashboard');
+      } else {
+        router.push('/catalogo');
+      }
+    }
+  }, [isLoggedIn, isLoading, userProfile, router]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
