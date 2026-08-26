@@ -84,6 +84,23 @@ function CatalogContent() {
     setLoading(true);
     setError(null);
     try {
+      let minPrice: number | undefined;
+      let maxPrice: number | undefined;
+
+      if (selectedPrice === '1-5') {
+        minPrice = 1;
+        maxPrice = 5;
+      } else if (selectedPrice === '5-10') {
+        minPrice = 5;
+        maxPrice = 10;
+      } else if (selectedPrice === '10-20') {
+        minPrice = 10;
+        maxPrice = 20;
+      } else if (selectedPrice === '20+') {
+        minPrice = 20;
+        maxPrice = 99999;
+      }
+
       const result = await getProducts({
         page,
         pageSize: PAGE_SIZE,
@@ -92,6 +109,9 @@ function CatalogContent() {
         brandName: selectedBrand,
         categoryName: selectedCategory,
         material: selectedMaterial,
+        gender: selectedGender !== 'all' ? selectedGender : undefined,
+        minPrice,
+        maxPrice,
       });
       setAllProducts(result.products);
       setTotalCount(result.totalCount);
@@ -103,7 +123,7 @@ function CatalogContent() {
     } finally {
       setLoading(false);
     }
-  }, [collectionId, debouncedSearch, selectedBrand, selectedCategory, selectedMaterial]);
+  }, [collectionId, debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedPrice]);
 
   useEffect(() => {
     loadProducts(currentPage);

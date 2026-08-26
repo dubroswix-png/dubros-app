@@ -50,6 +50,7 @@ export interface GetProductsParams {
   brandName?: string;
   categoryName?: string;
   material?: string;
+  gender?: string;
   collectionId?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -65,7 +66,7 @@ export interface GetProductsResult {
 
 import productMetaMap from '@/data/product_meta_map.json';
 
-const metaMap = productMetaMap as Record<string, { b: string; c: string; q: number }>;
+const metaMap = productMetaMap as Record<string, { b: string; c: string; q: number; p: number; g?: string; m?: string }>;
 
 // Convert Supabase row → Product interface (compatible with existing components)
 // ---------------------------------------------------------------------------
@@ -196,6 +197,7 @@ export async function getProducts({
   brandName,
   categoryName,
   material,
+  gender,
   collectionId,
   minPrice,
   maxPrice,
@@ -206,120 +208,106 @@ export async function getProducts({
 
     const isBrandFilter = brandName && brandName !== 'all';
     const isCategoryFilter = categoryName && categoryName !== 'all';
+    const isMaterialFilter = material && material !== 'all';
+    const isGenderFilter = gender && gender !== 'all';
 
-    let matchedRefs: string[] | null = null;
+    const bUpper = isBrandFilter ? brandName.toUpperCase() : null;
+    const cUpper = isCategoryFilter ? categoryName.toUpperCase() : null;
+    const mUpper = isMaterialFilter ? material.toUpperCase() : null;
+    const gUpper = isGenderFilter ? gender.toUpperCase() : null;
+    const sUpper = search && search.trim() ? search.trim().toUpperCase() : null;
 
-    if (isBrandFilter || isCategoryFilter) {
-      const bUpper = isBrandFilter ? brandName.toUpperCase() : null;
-      const cUpper = isCategoryFilter ? categoryName.toUpperCase() : null;
+    const matchedRefs = Object.keys(metaMap).filter((ref) => {
+      const item = metaMap[ref];
+      if (bUpper && item.b.toUpperCase() !== bUpper) return false;
+      if (cUpper && item.c.toUpperCase() !== cUpper) return false;
+      if (mUpper && item.m && !item.m.toUpperCase().includes(mUpper)) return false;
+      if (gUpper && item.g && item.g.toUpperCase() !== gUpper) return false;
+      if (minPrice !== undefined && item.p < minPrice) return false;
+      if (maxPrice !== undefined && item.p > maxPrice) return false;
+      if (sUpper && !ref.includes(sUpper) && !item.b.toUpperCase().includes(sUpper)) return false;
+      return true;
+    });
 
-      matchedRefs = Object.keys(metaMap).filter((ref) => {
-        const item = metaMap[ref];
-        if (bUpper && item.b.toUpperCase() !== bUpper) return false;
-        if (cUpper && item.c.toUpperCase() !== cUpper) return false;
-        return true;
-      });
+    const totalCount = matchedRefs.length;
+    const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
-      if (search && search.trim()) {
-        const sUpper = search.trim().toUpperCase();
-        matchedRefs = matchedRefs.filter((ref) => ref.includes(sUpper));
-      }
+    if (totalCount === 0) {
+      return { products: [], totalCount: 0, page, pageSize, totalPages: 0 };
     }
+
+    const pageRefs = matchedRefs.slice(from, to + 1);
 
     let query = supabase
       .from('products')
-      .select('*, brands(id, name), categories(id, name)', { count: 'exact' });
+      .select('*, brands(id, name), categories(id, name)')
+      .in('reference', pageRefs);
 
     if (collectionId) {
       query = query.eq('collection_id', collectionId);
     }
 
-    if (matchedRefs !== null) {
-      const totalCount = matchedRefs.length;
-      const totalPages = Math.ceil(totalCount / pageSize) || 1;
+    const { data, error } = await query;
+    let productsList: Product[] = [];
 
-      if (totalCount === 0) {
-        return { products: [], totalCount: 0, page, pageSize, totalPages: 0 };
-      }
+    if (!error && data && data.length > 0) {
+      const mapById = new Map<string, Product>();
+      data.forEach((row) => {
+        const p = mapSupabaseToProduct(row);
+        mapById.set(p.reference.toUpperCase(), p);
+      });
 
-      const pageRefs = matchedRefs.slice(from, to + 1);
-      query = query.in('reference', pageRefs);
-
-      const { data, error } = await query;
-      if (error || !data || data.length === 0) {
-        const syntheticProducts: Product[] = pageRefs.map((ref) => {
-          const meta = metaMap[ref];
-          const imgUrl = `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(ref)}.jpg`;
-          return {
-            id: ref,
-            reference: ref,
-            code: ref,
-            description: `Montura oftálmica de alta calidad, referencia ${ref}.`,
-            price: 0,
-            eyeSize: 0,
-            brand: meta?.b || (brandName || 'Dubros'),
-            material: 'ACETATO / METAL',
-            gender: 'Unisex',
-            saleType: 'PIEZA',
-            category: meta?.c || (categoryName || 'Aros Ópticos'),
-            quantity: meta?.q || 0,
-            flex: true,
-            thumbnailUrl: imgUrl,
-            largeImageUrl: imgUrl,
-          };
-        });
-        return { products: syntheticProducts, totalCount, page, pageSize, totalPages };
-      }
-
-      const products = data.map(mapSupabaseToProduct);
-      return { products, totalCount, page, pageSize, totalPages };
-    }
-
-    // Standard search filter
-    if (search && search.trim()) {
-      const term = `%${search.trim()}%`;
-      query = query.or(`reference.ilike.${term},code.ilike.${term},description.ilike.${term}`);
-    }
-
-    // Material filter
-    if (material && material !== 'all') {
-      query = query.ilike('material', `%${material}%`);
-    }
-
-    // Price range filters
-    if (minPrice !== undefined) {
-      query = query.gte('price', minPrice);
-    }
-    if (maxPrice !== undefined) {
-      query = query.lte('price', maxPrice);
-    }
-
-    // Pagination
-    query = query.range(from, to).order('created_at', { ascending: false });
-
-    const { data, error, count } = await query;
-
-    if (error || !data || data.length === 0) {
-      if (!search && (!brandName || brandName === 'all') && (!categoryName || categoryName === 'all')) {
+      productsList = pageRefs.map((ref) => {
+        const found = mapById.get(ref.toUpperCase());
+        if (found) return found;
+        const meta = metaMap[ref];
+        const imgUrl = `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(ref)}.jpg`;
         return {
-          products: FALLBACK_FEATURED_PRODUCTS,
-          totalCount: FALLBACK_FEATURED_PRODUCTS.length,
-          page: 1,
-          pageSize,
-          totalPages: 1,
+          id: ref,
+          reference: ref,
+          code: ref,
+          description: `Montura oftálmica de alta calidad, referencia ${ref}.`,
+          price: meta?.p || 0,
+          eyeSize: 0,
+          brand: meta?.b || (brandName || 'Dubros'),
+          material: meta?.m || 'ACETATO / METAL',
+          gender: (meta?.g as any) || 'Unisex',
+          saleType: 'PIEZA',
+          category: meta?.c || (categoryName || 'Aros Ópticos'),
+          quantity: meta?.q || 0,
+          flex: true,
+          thumbnailUrl: imgUrl,
+          largeImageUrl: imgUrl,
         };
-      }
-      return { products: [], totalCount: 0, page, pageSize, totalPages: 0 };
+      });
+    } else {
+      productsList = pageRefs.map((ref) => {
+        const meta = metaMap[ref];
+        const imgUrl = `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(ref)}.jpg`;
+        return {
+          id: ref,
+          reference: ref,
+          code: ref,
+          description: `Montura oftálmica de alta calidad, referencia ${ref}.`,
+          price: meta?.p || 0,
+          eyeSize: 0,
+          brand: meta?.b || (brandName || 'Dubros'),
+          material: meta?.m || 'ACETATO / METAL',
+          gender: (meta?.g as any) || 'Unisex',
+          saleType: 'PIEZA',
+          category: meta?.c || (categoryName || 'Aros Ópticos'),
+          quantity: meta?.q || 0,
+          flex: true,
+          thumbnailUrl: imgUrl,
+          largeImageUrl: imgUrl,
+        };
+      });
     }
 
-    const products = data.map(mapSupabaseToProduct);
-    const totalCount = count || 0;
-    const totalPages = Math.ceil(totalCount / pageSize) || 1;
-
-    return { products, totalCount, page, pageSize, totalPages };
+    return { products: productsList, totalCount, page, pageSize, totalPages };
   } catch (e) {
     console.error('[getProducts] Unexpected error:', e);
-    return { products: [], totalCount: 0, page, pageSize, totalPages: 0 };
+    return { products: [], totalCount: 0, page: 1, pageSize, totalPages: 0 };
   }
 }
 
