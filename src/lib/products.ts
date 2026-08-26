@@ -216,8 +216,9 @@ export async function getProducts({
     const mUpper = isMaterialFilter ? material.toUpperCase() : null;
     const gUpper = isGenderFilter ? gender.toUpperCase() : null;
     const sUpper = search && search.trim() ? search.trim().toUpperCase() : null;
+    const allRefs = Object.keys(metaMap).reverse();
 
-    const matchedRefs = Object.keys(metaMap).filter((ref) => {
+    const matchedRefs = allRefs.filter((ref) => {
       const item = metaMap[ref];
       if (bUpper && item.b.toUpperCase() !== bUpper) return false;
       if (cUpper && item.c.toUpperCase() !== cUpper) return false;
