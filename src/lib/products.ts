@@ -84,6 +84,61 @@ function getBaseWholesalePrice(brand: string, category: string): number {
   return 14.00;
 }
 
+function resolveCleanBrand(dbBrand?: string | null, metaBrand?: string | null, ref?: string, desc?: string): string {
+  const cleanRef = (ref || '').toUpperCase();
+  const cleanDesc = (desc || '').toUpperCase();
+  const cleanDb = (dbBrand || '').trim();
+
+  // If meta has a specific brand (not generic Dubros/SM), use it!
+  if (metaBrand && metaBrand !== 'Dubros' && metaBrand !== 'SM' && metaBrand !== 'SM Eyewear' && metaBrand !== 'S-M' && metaBrand !== 'GENERAL') {
+    return metaBrand;
+  }
+
+  // Priority detection from Description and Reference
+  const KNOWN_BRANDS = [
+    'BELMOR', 'SMARTKIDS', 'SMART KIDS', 'FLEXXILON', 'KIAMIL', 'VELVETT', 
+    'MANTOVANNI', 'ROMANA', 'WEEKEND', 'IBERIA', 'VERONA', 'LCT', 
+    'BELLUNO', 'GREKO', 'GIORDANNI', 'DMOST', 'BEST VIEW', 
+    'HI-LINE', 'LOTTO', 'FAZZET', 'NAKARATA', 'MASK', 'VISION KIDS', 
+    'VISION', 'STEED', 'POLAR', 'FALCON', 'GUESS', 'LACOSTE', 'RAYBAN',
+    'OAKLEY', 'CARRERA', 'VOGUE', 'EMPORIO', 'PRADA', 'TOMMY', 'POLAROID', 'POLO'
+  ];
+
+  for (const b of KNOWN_BRANDS) {
+    if (cleanRef.startsWith(b.replace(/\s+/g, '')) || cleanDesc.includes(b)) {
+      if (b === 'LCT') return 'LCT';
+      if (b === 'BELMOR') return 'Belmor';
+      if (b === 'SMARTKIDS' || b === 'SMART KIDS') return 'Smartkids';
+      if (b === 'FLEXXILON') return 'Flexxilon';
+      if (b === 'KIAMIL') return 'Kiamil';
+      if (b === 'VELVETT') return 'Velvett';
+      if (b === 'MANTOVANNI') return 'Mantovanni';
+      if (b === 'ROMANA') return 'Romana';
+      if (b === 'WEEKEND') return 'Weekend';
+      if (b === 'IBERIA') return 'Iberia';
+      if (b === 'VERONA') return 'Verona';
+      if (b === 'BELLUNO') return 'Belluno';
+      if (b === 'GREKO') return 'Greko';
+      if (b === 'GIORDANNI') return 'Giordanni';
+      if (b === 'DMOST') return 'Dmost';
+      if (b === 'BEST VIEW') return 'Best View';
+      if (b === 'HI-LINE') return 'Hi-Line';
+      if (b === 'LOTTO') return 'Lotto';
+      if (b === 'FAZZET') return 'Fazzet';
+      if (b === 'NAKARATA') return 'Nakarata';
+      if (b === 'MASK') return 'Mask';
+      if (b === 'VISION KIDS' || b === 'VISION') return 'Vision';
+      return b.charAt(0) + b.slice(1).toLowerCase();
+    }
+  }
+
+  if (cleanDb && cleanDb !== 'Dubros' && cleanDb !== 'SM' && cleanDb !== 'S-M' && cleanDb !== 'GENERAL') {
+    return cleanDb;
+  }
+
+  return metaBrand || cleanDb || 'Dubros';
+}
+
 function mapSupabaseToProduct(row: SupabaseProduct): Product {
   const fixUrl = (url: string | undefined | null, refFallback: string) => {
     if (url && url.includes('http') && !url.includes('placeholder')) {
@@ -103,8 +158,9 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
   const code = row.code || row.reference || '';
   const refUpper = (ref || code || '').toUpperCase().trim();
   const meta = metaMap[refUpper];
+  const desc = row.description || `Montura oftálmica de alta calidad, referencia ${ref}.`;
 
-  const brand = row.brands?.name || meta?.b || 'Dubros';
+  const brand = resolveCleanBrand(row.brands?.name, meta?.b, ref, desc);
   const category = row.categories?.name || meta?.c || 'Aros Ópticos';
   const quantity = row.quantity || meta?.q || 0;
   const rawPrice = row.price ? Number(row.price) : 0;
@@ -114,7 +170,7 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
     id: row.id,
     reference: ref,
     code: code,
-    description: row.description || `Montura oftálmica de alta calidad, referencia ${ref}.`,
+    description: desc,
     price: finalPrice,
     eyeSize: 0, // Not stored in Supabase currently
     brand: brand,
