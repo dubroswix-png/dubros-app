@@ -140,6 +140,35 @@ function resolveCleanBrand(dbBrand?: string | null, metaBrand?: string | null, r
   return metaBrand || cleanDb || 'Dubros';
 }
 
+function resolveCleanGender(ref?: string, desc?: string, dbGender?: string | null, metaGender?: string | null): string {
+  const cleanRef = (ref || '').toUpperCase().trim();
+  const cleanDesc = (desc || '').toUpperCase().trim();
+  const cleanDb = (dbGender || '').trim();
+
+  // Kids / Niños patterns (e.g. S307PC47, S313PC34, SK5107, Smartkids, Visionkids, Flexxilon, etc.)
+  if (
+    /^S\d{3}PC/i.test(cleanRef) ||
+    /^SK\d/i.test(cleanRef) ||
+    cleanRef.includes('KID') ||
+    cleanRef.includes('NIÑ') ||
+    cleanRef.includes('CHILD') ||
+    cleanRef.includes('FLEXXILON') ||
+    cleanRef.includes('SMARTKIDS') ||
+    cleanRef.includes('VISIONKIDS') ||
+    cleanDesc.includes('KID') ||
+    cleanDesc.includes('NIÑO') ||
+    cleanDesc.includes('NIÑA') ||
+    cleanDesc.includes('INFANTIL')
+  ) {
+    return 'Niños';
+  }
+
+  if (metaGender && metaGender !== 'Unisex') return metaGender;
+  if (cleanDb && cleanDb !== 'Unisex' && cleanDb !== 'N/A') return cleanDb;
+
+  return metaGender || cleanDb || 'Unisex';
+}
+
 function mapSupabaseToProduct(row: SupabaseProduct): Product {
   const fixUrl = (url: string | undefined | null, refFallback: string) => {
     if (url && url.includes('http') && !url.includes('placeholder')) {
@@ -166,6 +195,7 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
   const quantity = row.quantity || meta?.q || 0;
   const rawPrice = row.price ? Number(row.price) : 0;
   const finalPrice = rawPrice > 0 ? rawPrice : getBaseWholesalePrice(brand, category);
+  const gender = resolveCleanGender(ref, desc, row.gender, meta?.g);
 
   return {
     id: row.id,
@@ -176,7 +206,7 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
     eyeSize: 0, // Not stored in Supabase currently
     brand: brand,
     material: row.material && row.material !== 'N/A' ? row.material : 'ACETATO / METAL',
-    gender: (row.gender as any) || 'Unisex',
+    gender: gender as any,
     saleType: row.sale_type || 'PIEZA',
     category: category,
     quantity: quantity,
@@ -223,7 +253,14 @@ export async function getProducts({
       if (bUpper && item.b.toUpperCase() !== bUpper) return false;
       if (cUpper && item.c.toUpperCase() !== cUpper) return false;
       if (mUpper && item.m && !item.m.toUpperCase().includes(mUpper)) return false;
-      if (gUpper && item.g && item.g.toUpperCase() !== gUpper) return false;
+      if (gUpper) {
+        const itemGender = (item.g || resolveCleanGender(ref, '', '', '')).toUpperCase();
+        if (gUpper.includes('NIÑ') || gUpper.includes('KID')) {
+          if (!itemGender.includes('NIÑ') && !itemGender.includes('KID')) return false;
+        } else if (itemGender !== gUpper) {
+          return false;
+        }
+      }
       if (minPrice !== undefined && item.p < minPrice) return false;
       if (maxPrice !== undefined && item.p > maxPrice) return false;
       if (sUpper && !ref.includes(sUpper) && !item.b.toUpperCase().includes(sUpper)) return false;
