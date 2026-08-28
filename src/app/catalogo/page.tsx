@@ -210,20 +210,20 @@ function CatalogContent() {
           </p>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: 'var(--bg-secondary)',
-            padding: '0.5rem 1rem',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-medium)',
-          }}
-        >
-          <Globe size={18} color="var(--blue)" />
-          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>País de venta:</span>
-          {isAdmin ? (
+        {isAdmin && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: 'var(--bg-secondary)',
+              padding: '0.5rem 1rem',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-medium)',
+            }}
+          >
+            <Globe size={18} color="var(--blue)" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>País de venta:</span>
             <select
               value={selectedCountry}
               onChange={(e) => setSelectedCountry(e.target.value)}
@@ -242,12 +242,8 @@ function CatalogContent() {
                 </option>
               ))}
             </select>
-          ) : (
-            <span style={{ fontWeight: 700, color: 'var(--navy)' }}>
-              {userCountryObj ? `${userCountryObj.flag} ${userCountryName}` : userCountryName}
-            </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '2rem' }}>
