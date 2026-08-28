@@ -316,5 +316,16 @@ button, input, select, textarea {
   }
 }
 
+/* ==========================================================================
+   TRANSPARENT LOGO STYLES (LIGHT & DARK MODE ADAPTIVE)
+   ========================================================================== */
+.dubros-logo-img {
+  background-color: transparent !important;
+}
+
+[data-theme="dark"] .dubros-logo-img:not(.logo-light-variant) {
+  filter: brightness(0) invert(1);
+}
+
 
 
