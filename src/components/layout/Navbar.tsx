@@ -56,10 +56,10 @@ export function Navbar() {
       style={{
         position: 'sticky',
         top: 0,
-        zIndex: 50,
-        backgroundColor: 'var(--bg-nav)',
+        zIndex: isMobileMenuOpen ? 999999 : 50,
+        backgroundColor: isMobileMenuOpen ? 'var(--bg-primary)' : 'var(--bg-nav)',
         borderBottom: '1px solid var(--border-light)',
-        backdropFilter: 'blur(8px)',
+        backdropFilter: isMobileMenuOpen ? 'none' : 'blur(8px)',
         transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
@@ -311,14 +311,16 @@ export function Navbar() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'var(--bg-nav)',
-            zIndex: 9999,
+            height: 'calc(100dvh - 76px)',
+            backgroundColor: 'var(--bg-primary)',
+            zIndex: 999999,
             display: 'flex',
             flexDirection: 'column',
-            padding: '1.5rem',
+            padding: '1.5rem 1.25rem 2.5rem 1.25rem',
             overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
             borderTop: '1px solid var(--border-light)',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           }}
         >
           {/* Main Mobile Navigation Links */}
