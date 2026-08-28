@@ -55,6 +55,8 @@ export async function GET(req: NextRequest) {
       image_url?: string;
     }> = [];
 
+    let lastError = null;
+
     // 1. Try SendGrid Marketing Single Sends API (v3)
     try {
       const singleSendsRes = await fetch('https://api.sendgrid.com/v3/marketing/singlesends', {
@@ -69,7 +71,6 @@ export async function GET(req: NextRequest) {
         const results = data.result || [];
 
         for (const item of results.slice(0, 15)) {
-          // Fetch full single send details to get html_content if needed
           let htmlContent = item.email_config?.html_content || '';
           let subject = item.email_config?.subject || item.name || 'Sin Asunto';
 
@@ -100,12 +101,15 @@ export async function GET(req: NextRequest) {
             image_url: extractFirstImage(htmlContent) || undefined,
           });
         }
+      } else {
+        const errData = await singleSendsRes.json().catch(() => ({}));
+        lastError = errData.errors?.[0]?.message || `Error ${singleSendsRes.status} de SendGrid`;
       }
-    } catch (e) {
-      console.warn('[SendGrid SingleSends Error]:', e);
+    } catch (e: any) {
+      lastError = e.message;
     }
 
-    // 2. Fallback / Additional: Try SendGrid Legacy Campaigns API
+    // 2. Fallback: Try SendGrid Legacy Campaigns API
     if (campaigns.length === 0) {
       try {
         const legacyRes = await fetch('https://api.sendgrid.com/v3/campaigns?limit=15', {
@@ -134,6 +138,47 @@ export async function GET(req: NextRequest) {
       } catch (err) {
         console.warn('[SendGrid Legacy Error]:', err);
       }
+    }
+
+    // 3. Fallback: Try SendGrid Dynamic Templates
+    if (campaigns.length === 0) {
+      try {
+        const tplRes = await fetch('https://api.sendgrid.com/v3/templates?generations=dynamic&page_size=15', {
+          headers: {
+            Authorization: `Bearer ${sendgridApiKey}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (tplRes.ok) {
+          const tplData = await tplRes.json();
+          const templates = tplData.templates || [];
+
+          for (const item of templates) {
+            const activeVersion = item.versions?.[0];
+            campaigns.push({
+              id: String(item.id),
+              title: item.name || 'Plantilla SendGrid',
+              subject: activeVersion?.subject || item.name || 'Sin Asunto',
+              status: 'template',
+              updated_at: item.updated_at || new Date().toISOString(),
+              preview_html: activeVersion?.html_content || '',
+              image_url: extractFirstImage(activeVersion?.html_content || '') || undefined,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('[SendGrid Templates Error]:', err);
+      }
+    }
+
+    if (campaigns.length === 0 && lastError) {
+      return NextResponse.json(
+        {
+          error: `Respuesta de SendGrid: "${lastError}". Verifica que tu API Key tenga permisos de 'Marketing' o 'Full Access' en SendGrid > Settings > API Keys, o usa la pestaña 'Pegar HTML'.`,
+        },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({

@@ -39,12 +39,19 @@ export default function AdminBlogPage() {
 
   // SendGrid Sync State
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncTab, setSyncTab] = useState<'api' | 'paste'>('paste');
   const [sendgridApiKey, setSendgridApiKey] = useState('');
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
   const [campaigns, setCampaigns] = useState<SendGridCampaign[]>([]);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [importingId, setImportingId] = useState<string | null>(null);
   const [previewCampaign, setPreviewCampaign] = useState<SendGridCampaign | null>(null);
+
+  // Paste Campaign State
+  const [pastedSubject, setPastedSubject] = useState('');
+  const [pastedHtml, setPastedHtml] = useState('');
+  const [pastedAuthor, setPastedAuthor] = useState('Boletín Dubros International');
+  const [isPublishingPasted, setIsPublishingPasted] = useState(false);
 
   // Manual Post State
   const [isCreatingManual, setIsCreatingManual] = useState(false);
@@ -106,7 +113,7 @@ export default function AdminBlogPage() {
       } else {
         setCampaigns(data.campaigns || []);
         if ((data.campaigns || []).length === 0) {
-          setSyncError('No se encontraron campañas recientes en esta cuenta de SendGrid.');
+          setSyncError('No se encontraron campañas recientes en esta cuenta de SendGrid. Puedes usar la pestaña "Pegar HTML de SendGrid".');
         }
       }
     } catch (err: any) {
@@ -144,6 +151,44 @@ export default function AdminBlogPage() {
       showNotification('error', 'Error de red al importar campaña.');
     } finally {
       setImportingId(null);
+    }
+  };
+
+  const handlePublishPastedCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pastedSubject.trim() || !pastedHtml.trim()) {
+      showNotification('error', 'El asunto y el código HTML del correo son obligatorios.');
+      return;
+    }
+
+    setIsPublishingPasted(true);
+    try {
+      const res = await fetch('/api/admin/blog/sendgrid-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: pastedSubject,
+          subject: pastedSubject,
+          htmlContent: pastedHtml,
+          author: pastedAuthor,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        showNotification('success', '¡Campaña de SendGrid importada y publicada en el Blog con éxito!');
+        setIsSyncModalOpen(false);
+        setPastedSubject('');
+        setPastedHtml('');
+        loadPosts();
+      } else {
+        showNotification('error', data.error || 'No se pudo publicar la campaña.');
+      }
+    } catch (err) {
+      showNotification('error', 'Error de conexión al publicar la campaña.');
+    } finally {
+      setIsPublishingPasted(false);
     }
   };
 
@@ -317,169 +362,265 @@ export default function AdminBlogPage() {
               </button>
             </div>
 
-            {/* API Key Form */}
-            <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                🔑 SendGrid API Key (Marketing Access):
-              </label>
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <input
-                  type="password"
-                  value={sendgridApiKey}
-                  onChange={(e) => setSendgridApiKey(e.target.value)}
-                  placeholder="SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  style={{
-                    flex: 1,
-                    minWidth: '280px',
-                    padding: '0.65rem 0.9rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-medium)',
-                    fontSize: '0.9rem',
-                    backgroundColor: 'var(--input-bg)',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={handleFetchSendGridCampaigns}
-                  disabled={loadingCampaigns}
-                  className="btn-primary"
-                  style={{
-                    backgroundColor: '#0284C7',
-                    padding: '0.65rem 1.5rem',
-                    fontSize: '0.9rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  {loadingCampaigns ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-                  {loadingCampaigns ? 'Buscando...' : 'Obtener Campañas'}
-                </button>
-              </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.4rem 0 0 0' }}>
-                Tu clave se almacena de forma segura en tu navegador y permite listar tus campañas de marketing enviadas.
-              </p>
+            {/* MODAL TABS SWITCHER */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setSyncTab('paste')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  borderRadius: 'var(--radius-md)',
+                  border: 'none',
+                  backgroundColor: syncTab === 'paste' ? '#0284C7' : 'transparent',
+                  color: syncTab === 'paste' ? '#FFFFFF' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+              >
+                📋 Pegar HTML de Campaña (Más Rápido)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSyncTab('api')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  borderRadius: 'var(--radius-md)',
+                  border: 'none',
+                  backgroundColor: syncTab === 'api' ? '#0284C7' : 'transparent',
+                  color: syncTab === 'api' ? '#FFFFFF' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+              >
+                🔑 Conectar por API Key de SendGrid
+              </button>
             </div>
 
-            {syncError && (
-              <div style={{ marginBottom: '1.5rem', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', backgroundColor: '#FEE2E2', color: '#9B1C1C', fontSize: '0.85rem', fontWeight: 600 }}>
-                {syncError}
-              </div>
-            )}
+            {syncTab === 'paste' ? (
+              /* TAB 1: PASTE HTML DIRECTLY */
+              <form onSubmit={handlePublishPastedCampaign} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ backgroundColor: '#F0F9FF', border: '1px solid #BAE6FD', padding: '1rem', borderRadius: 'var(--radius-md)', color: '#0369A1', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                  <strong>💡 ¿Cómo obtener el HTML de SendGrid?</strong>
+                  <p style={{ margin: '0.25rem 0 0 0' }}>
+                    En tu cuenta de SendGrid, ve a tu campaña o plantilla, haz clic en <em>"Code View"</em> o <em>"Export HTML"</em>, copia el código y pégalo abajo. El sistema extraerá automáticamente el título, las imágenes y el diseño.
+                  </p>
+                </div>
 
-            {/* Preview Modal overlay */}
-            {previewCampaign && (
-              <div style={{ marginBottom: '1.5rem', padding: '1.5rem', border: '2px solid #0284C7', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-secondary)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>Vista Previa: {previewCampaign.subject}</h3>
-                  <button onClick={() => setPreviewCampaign(null)} className="btn-secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}>
-                    Cerrar Vista Previa
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem' }}>
+                    Asunto del Correo / Título de la Campaña *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={pastedSubject}
+                    onChange={(e) => setPastedSubject(e.target.value)}
+                    placeholder="Ej. Descubre la Nueva Colección de Monturas Oftálmicas 2026"
+                    style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', fontSize: '0.9rem', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem' }}>
+                    Código HTML del Correo de SendGrid *
+                  </label>
+                  <textarea
+                    required
+                    rows={8}
+                    value={pastedHtml}
+                    onChange={(e) => setPastedHtml(e.target.value)}
+                    placeholder="Pega aquí el código HTML de tu correo enviado en SendGrid (ej: <table... o <div>...)..."
+                    style={{ width: '100%', padding: '0.75rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', fontSize: '0.85rem', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', fontFamily: 'monospace' }}
+                  />
+                </div>
+
+                <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
+                  <button
+                    type="submit"
+                    disabled={isPublishingPasted}
+                    className="btn-primary"
+                    style={{
+                      backgroundColor: '#0284C7',
+                      padding: '0.75rem 2rem',
+                      fontSize: '0.95rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {isPublishingPasted ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                    {isPublishingPasted ? 'Publicando en Blog...' : 'Publicar Campaña en Blog'}
                   </button>
                 </div>
-                <div
-                  style={{
-                    maxHeight: '350px',
-                    overflowY: 'auto',
-                    backgroundColor: '#FFFFFF',
-                    color: '#000000',
-                    padding: '1rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid #E2E8F0',
-                  }}
-                  dangerouslySetInnerHTML={{ __html: previewCampaign.preview_html || '<p>Sin contenido HTML disponible</p>' }}
-                />
-              </div>
-            )}
-
-            {/* List of SendGrid Campaigns */}
-            <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>
-                Campañas Disponibles ({campaigns.length})
-              </h3>
-
-              {campaigns.length === 0 && !loadingCampaigns ? (
-                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)', border: '1px dashed var(--border-medium)', borderRadius: 'var(--radius-md)' }}>
-                  <Mail size={36} color="var(--text-tertiary)" style={{ margin: '0 auto 0.75rem auto' }} />
-                  <p style={{ margin: 0, fontWeight: 600 }}>Ingresa tu API Key de SendGrid y haz clic en "Obtener Campañas".</p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {campaigns.map((camp) => (
-                    <div
-                      key={camp.id}
+              </form>
+            ) : (
+              /* TAB 2: CONNECT VIA API KEY */
+              <div>
+                <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
+                    🔑 SendGrid API Key:
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <input
+                      type="password"
+                      value={sendgridApiKey}
+                      onChange={(e) => setSendgridApiKey(e.target.value)}
+                      placeholder="SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '1rem 1.25rem',
+                        flex: 1,
+                        minWidth: '280px',
+                        padding: '0.65rem 0.9rem',
                         borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border-light)',
-                        backgroundColor: 'var(--bg-card)',
-                        flexWrap: 'wrap',
-                        gap: '1rem',
+                        border: '1px solid var(--border-medium)',
+                        fontSize: '0.9rem',
+                        backgroundColor: 'var(--input-bg)',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleFetchSendGridCampaigns}
+                      disabled={loadingCampaigns}
+                      className="btn-primary"
+                      style={{
+                        backgroundColor: '#0284C7',
+                        padding: '0.65rem 1.5rem',
+                        fontSize: '0.9rem',
+                        fontWeight: 700,
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '260px' }}>
-                        {camp.image_url ? (
-                          <img
-                            src={camp.image_url}
-                            alt={camp.subject}
-                            style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border-light)' }}
-                          />
-                        ) : (
-                          <div style={{ width: '60px', height: '60px', borderRadius: '6px', backgroundColor: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
-                            <FileText size={24} />
-                          </div>
-                        )}
+                      {loadingCampaigns ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                      {loadingCampaigns ? 'Buscando...' : 'Obtener Campañas'}
+                    </button>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.4rem 0 0 0' }}>
+                    Nota: La API Key debe tener permisos de <strong>Full Access</strong> o <strong>Marketing</strong> en tu panel de SendGrid (Settings &gt; API Keys).
+                  </p>
+                </div>
 
-                        <div>
-                          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>
-                            {camp.subject || camp.title}
-                          </h4>
-                          <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                            <span>📅 {new Date(camp.updated_at).toLocaleDateString('es-ES')}</span>
-                            <span style={{ textTransform: 'capitalize', color: camp.status === 'sent' ? '#059669' : '#D97706', fontWeight: 600 }}>
-                              ● {camp.status}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                {syncError && (
+                  <div style={{ marginBottom: '1.5rem', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', backgroundColor: '#FEE2E2', color: '#9B1C1C', fontSize: '0.85rem', fontWeight: 600 }}>
+                    {syncError}
+                  </div>
+                )}
 
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {camp.preview_html && (
-                          <button
-                            type="button"
-                            onClick={() => setPreviewCampaign(camp)}
-                            className="btn-secondary"
-                            style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                          >
-                            <Eye size={14} /> Ver
-                          </button>
-                        )}
+                {/* Preview Modal overlay */}
+                {previewCampaign && (
+                  <div style={{ marginBottom: '1.5rem', padding: '1.5rem', border: '2px solid #0284C7', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-secondary)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>Vista Previa: {previewCampaign.subject}</h3>
+                      <button onClick={() => setPreviewCampaign(null)} className="btn-secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}>
+                        Cerrar Vista Previa
+                      </button>
+                    </div>
+                    <div
+                      style={{
+                        maxHeight: '350px',
+                        overflowY: 'auto',
+                        backgroundColor: '#FFFFFF',
+                        color: '#000000',
+                        padding: '1rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid #E2E8F0',
+                      }}
+                      dangerouslySetInnerHTML={{ __html: previewCampaign.preview_html || '<p>Sin contenido HTML disponible</p>' }}
+                    />
+                  </div>
+                )}
 
-                        <button
-                          type="button"
-                          onClick={() => handleImportCampaign(camp)}
-                          disabled={importingId === camp.id}
-                          className="btn-primary"
+                {/* List of SendGrid Campaigns */}
+                <div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>
+                    Campañas Disponibles ({campaigns.length})
+                  </h3>
+
+                  {campaigns.length === 0 && !loadingCampaigns ? (
+                    <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)', border: '1px dashed var(--border-medium)', borderRadius: 'var(--radius-md)' }}>
+                      <Mail size={36} color="var(--text-tertiary)" style={{ margin: '0 auto 0.75rem auto' }} />
+                      <p style={{ margin: 0, fontWeight: 600 }}>Ingresa tu API Key de SendGrid y haz clic en "Obtener Campañas".</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {campaigns.map((camp) => (
+                        <div
+                          key={camp.id}
                           style={{
-                            backgroundColor: '#0284C7',
-                            padding: '0.45rem 1rem',
-                            fontSize: '0.8rem',
-                            fontWeight: 700,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.4rem',
+                            justifyContent: 'space-between',
+                            padding: '1rem 1.25rem',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--border-light)',
+                            backgroundColor: 'var(--bg-card)',
+                            flexWrap: 'wrap',
+                            gap: '1rem',
                           }}
                         >
-                          {importingId === camp.id ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                          {importingId === camp.id ? 'Publicando...' : 'Publicar en Blog'}
-                        </button>
-                      </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '260px' }}>
+                            {camp.image_url ? (
+                              <img
+                                src={camp.image_url}
+                                alt={camp.subject}
+                                style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border-light)' }}
+                              />
+                            ) : (
+                              <div style={{ width: '60px', height: '60px', borderRadius: '6px', backgroundColor: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
+                                <FileText size={24} />
+                              </div>
+                            )}
+
+                            <div>
+                              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>
+                                {camp.subject || camp.title}
+                              </h4>
+                              <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                <span>📅 {new Date(camp.updated_at).toLocaleDateString('es-ES')}</span>
+                                <span style={{ textTransform: 'capitalize', color: camp.status === 'sent' ? '#059669' : '#D97706', fontWeight: 600 }}>
+                                  ● {camp.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            {camp.preview_html && (
+                              <button
+                                type="button"
+                                onClick={() => setPreviewCampaign(camp)}
+                                className="btn-secondary"
+                                style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                              >
+                                <Eye size={14} /> Ver
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleImportCampaign(camp)}
+                              disabled={importingId === camp.id}
+                              className="btn-primary"
+                              style={{
+                                backgroundColor: '#0284C7',
+                                padding: '0.45rem 1rem',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                              }}
+                            >
+                              {importingId === camp.id ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                              {importingId === camp.id ? 'Publicando...' : 'Publicar en Blog'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}
