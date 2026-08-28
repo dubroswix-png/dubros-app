@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ArrowLeft, Download, Printer, CheckCircle, Package, Loader2, FileSpreadsheet } from 'lucide-react';
+import { Search, ArrowLeft, Download, Printer, CheckCircle, Package, Loader2, FileSpreadsheet, AlertTriangle, CheckCircle2, XCircle, Info, Sparkles, ArrowRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useLanguage } from '@/context/LanguageContext';
 import { getAllOrders, OrderRecord } from '@/lib/orders';
@@ -22,6 +22,17 @@ const getStatusColor = (status: string) => {
 import erpClients from '@/data/erp_clients.json';
 import erpInventory from '@/data/erp_inventory.json';
 
+interface AlertModalData {
+  isOpen: boolean;
+  type: 'success' | 'warning' | 'error' | 'info';
+  title: string;
+  message: string;
+  highlight?: string;
+  steps?: string[];
+  actionLabel?: string;
+  actionHref?: string;
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,11 +40,19 @@ export default function AdminOrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
   
+  // Custom Alert Modal State
+  const [alertModal, setAlertModal] = useState<AlertModalData>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
+
   // 3-Step Validation Flow States
   const [validatingProducts, setValidatingProducts] = useState(false);
   const [productsValidated, setProductsValidated] = useState<Record<string, boolean>>({});
   const [validatingClient, setValidatingClient] = useState(false);
-  const [clientValidated, setClientValidated] = useState<Record<string, { validated: boolean; clientCode?: string }>>({});
+  const [clientValidated, setClientValidated] = useState<Record<string, { validated: boolean; isNewClient?: boolean; clientCode?: string }>>({});
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -129,7 +148,13 @@ export default function AdminOrdersPage() {
     try {
       await new Promise((r) => setTimeout(r, 400));
       setProductsValidated((prev) => ({ ...prev, [order.id]: true }));
-      alert(`✓ ¡Productos validados con éxito! (${order.total_items} piezas verificadas en el inventario del ERP Switch-Soft).`);
+      setAlertModal({
+        isOpen: true,
+        type: 'success',
+        title: '¡Productos Validados con Éxito!',
+        message: `Se han verificado correctamente las ${order.total_items} piezas de este pedido contra el catálogo de referencias del ERP Switch.`,
+        highlight: `Pedido #${order.order_number} (${order.total_items} piezas - Total: $${Number(order.subtotal).toFixed(2)})`,
+      });
     } finally {
       setValidatingProducts(false);
     }
@@ -169,13 +194,31 @@ export default function AdminOrdersPage() {
           ...prev,
           [order.id]: { validated: true, isNewClient: false, clientCode: foundCode },
         }));
-        alert(`✓ ¡Cliente existente validado en ERP Switch!\nCódigo de cuenta: ${foundCode}\nCliente: ${order.company_name || order.customer_name || order.customer_email}\n\nPuedes proceder al Paso 3 para crear el pedido en Switch.`);
+        setAlertModal({
+          isOpen: true,
+          type: 'success',
+          title: '¡Cliente Validado en Switch ERP!',
+          message: `El cliente se encuentra registrado y activo en el sistema Switch-Soft ERP.`,
+          highlight: `Código de Cuenta ERP: ${foundCode} | Cliente: ${order.company_name || order.customer_name || order.customer_email}`,
+        });
       } else {
         setClientValidated((prev) => ({
           ...prev,
           [order.id]: { validated: false, isNewClient: true },
         }));
-        alert(`⚠️ CLIENTE NUEVO DETECTADO\n\nEl correo '${order.customer_email}' no se encuentra registrado en Switch-Soft ERP.\n\nFlujo a seguir:\n1. Crea el cliente manualmente en tu sistema Switch-Soft ERP.\n2. Asígnale su código en la pestaña '/dashboard/usuarios'.\n3. El pedido se mantiene en 'Pendiente' hasta que el cliente sea creado.`);
+        setAlertModal({
+          isOpen: true,
+          type: 'warning',
+          title: '⚠️ Cliente Nuevo Detectado',
+          message: `El correo '${order.customer_email}' no se encuentra aún registrado en Switch-Soft ERP.`,
+          steps: [
+            'Crea el cliente manualmente en tu sistema Switch-Soft ERP.',
+            'Asígnale su Código ERP en la pestaña de Usuarios.',
+            'El pedido se mantendrá en estado Pendiente hasta que el cliente sea creado.',
+          ],
+          actionLabel: '👥 Ir a Crear Usuario / Asignar Código',
+          actionHref: '/dashboard/usuarios',
+        });
       }
     } finally {
       setValidatingClient(false);
@@ -194,12 +237,28 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       if (res.ok) {
         await fetchOrders();
-        alert(`🎉 ¡Pedido creado en Switch-Soft ERP exitosamente!\nNúmero Interno: #${data.switchOrderNumber || data.erpOrderId}`);
+        setAlertModal({
+          isOpen: true,
+          type: 'success',
+          title: '🎉 ¡Pedido Creado en Switch-Soft ERP!',
+          message: `El pedido fue sincronizado y procesado exitosamente en Switch-Soft ERP.`,
+          highlight: `Número de Orden Interna ERP: #${data.switchOrderNumber || data.erpOrderId}`,
+        });
       } else {
-        alert(data.error || 'Error al sincronizar con el ERP.');
+        setAlertModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Error de Sincronización ERP',
+          message: data.error || 'No se pudo sincronizar el pedido con el ERP.',
+        });
       }
     } catch {
-      alert('Error de red al conectar con el servidor.');
+      setAlertModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Error de Red',
+        message: 'No fue posible conectar con el servidor para sincronizar con el ERP.',
+      });
     } finally {
       setSyncingOrderId(null);
     }
@@ -794,6 +853,188 @@ export default function AdminOrdersPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* MODERN BEAUTIFUL ALERT & NOTICE MODAL */}
+      {alertModal.isOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.65)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem',
+            backdropFilter: 'blur(6px)',
+          }}
+          onClick={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              borderRadius: 'var(--radius-lg)',
+              maxWidth: '560px',
+              width: '100%',
+              padding: '2rem',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem',
+              position: 'relative',
+              animation: 'fadeIn 0.2s ease-out',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* ICON & TITLE HEADER */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+              <div
+                style={{
+                  width: '52px',
+                  height: '52px',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  backgroundColor:
+                    alertModal.type === 'success'
+                      ? '#DEF7EC'
+                      : alertModal.type === 'warning'
+                      ? '#FEF3C7'
+                      : alertModal.type === 'error'
+                      ? '#FEE2E2'
+                      : '#E0F2FE',
+                  color:
+                    alertModal.type === 'success'
+                      ? '#059669'
+                      : alertModal.type === 'warning'
+                      ? '#D97706'
+                      : alertModal.type === 'error'
+                      ? '#DC2626'
+                      : '#0284C7',
+                }}
+              >
+                {alertModal.type === 'success' && <CheckCircle2 size={30} />}
+                {alertModal.type === 'warning' && <AlertTriangle size={30} />}
+                {alertModal.type === 'error' && <XCircle size={30} />}
+                {alertModal.type === 'info' && <Info size={30} />}
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 0.35rem 0', color: 'var(--text-primary)' }}>
+                  {alertModal.title}
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: '1.55' }}>
+                  {alertModal.message}
+                </p>
+              </div>
+            </div>
+
+            {/* HIGHLIGHT BOX IF PRESENT */}
+            {alertModal.highlight && (
+              <div
+                style={{
+                  backgroundColor: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-medium)',
+                  padding: '0.85rem 1rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  color: 'var(--text-primary)',
+                  fontFamily: 'monospace',
+                }}
+              >
+                {alertModal.highlight}
+              </div>
+            )}
+
+            {/* NUMBERED STEPS IF PRESENT */}
+            {alertModal.steps && alertModal.steps.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: '#FFFBEB',
+                  border: '1px solid #FDE68A',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '1.1rem 1.25rem',
+                }}
+              >
+                <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#92400E', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.05em' }}>
+                  Flujo recomendado a seguir:
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  {alertModal.steps.map((step, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', fontSize: '0.86rem', color: '#78350F', lineHeight: '1.45' }}>
+                      <span
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          backgroundColor: '#F59E0B',
+                          color: '#FFFFFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.75rem',
+                          fontWeight: 800,
+                          flexShrink: 0,
+                          marginTop: '2px',
+                        }}
+                      >
+                        {idx + 1}
+                      </span>
+                      <span>{step}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* MODAL ACTION BUTTONS */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+              {alertModal.actionHref && (
+                <Link
+                  href={alertModal.actionHref}
+                  className="btn-primary"
+                  style={{
+                    padding: '0.65rem 1.25rem',
+                    fontSize: '0.88rem',
+                    backgroundColor: '#0284C7',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                  }}
+                  onClick={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
+                >
+                  {alertModal.actionLabel || 'Continuar'} <ArrowRight size={15} />
+                </Link>
+              )}
+
+              <button
+                type="button"
+                className="btn-primary"
+                style={{
+                  padding: '0.65rem 1.5rem',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  backgroundColor:
+                    alertModal.type === 'success'
+                      ? '#059669'
+                      : alertModal.type === 'warning'
+                      ? '#D97706'
+                      : 'var(--blue)',
+                }}
+                onClick={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
