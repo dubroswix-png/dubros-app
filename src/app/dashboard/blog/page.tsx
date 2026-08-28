@@ -89,21 +89,18 @@ export default function AdminBlogPage() {
   };
 
   const handleFetchSendGridCampaigns = async () => {
-    if (!sendgridApiKey.trim()) {
-      setSyncError('Por favor ingresa tu API Key de SendGrid.');
-      return;
-    }
-
     setLoadingCampaigns(true);
     setSyncError(null);
 
     try {
-      localStorage.setItem('dubros-sendgrid-api-key', sendgridApiKey.trim());
+      const headers: Record<string, string> = {};
+      if (sendgridApiKey.trim()) {
+        headers['x-sendgrid-key'] = sendgridApiKey.trim();
+        localStorage.setItem('dubros-sendgrid-api-key', sendgridApiKey.trim());
+      }
 
       const res = await fetch('/api/admin/blog/sendgrid-sync', {
-        headers: {
-          'x-sendgrid-key': sendgridApiKey.trim(),
-        },
+        headers,
       });
 
       const data = await res.json();
@@ -113,7 +110,7 @@ export default function AdminBlogPage() {
       } else {
         setCampaigns(data.campaigns || []);
         if ((data.campaigns || []).length === 0) {
-          setSyncError('No se encontraron campañas recientes en esta cuenta de SendGrid. Puedes usar la pestaña "Pegar HTML de SendGrid".');
+          setSyncError('No se encontraron campañas recientes en esta cuenta de SendGrid.');
         }
       }
     } catch (err: any) {
@@ -459,14 +456,14 @@ export default function AdminBlogPage() {
               <div>
                 <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                    🔑 SendGrid API Key:
+                    🔑 SendGrid API Key (Opcional si ya está en Vercel / Servidor):
                   </label>
                   <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                     <input
                       type="password"
                       value={sendgridApiKey}
                       onChange={(e) => setSendgridApiKey(e.target.value)}
-                      placeholder="SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      placeholder="Dejar vacío para usar SENDGRID_API_KEY secreta del servidor..."
                       style={{
                         flex: 1,
                         minWidth: '280px',
@@ -495,7 +492,7 @@ export default function AdminBlogPage() {
                     </button>
                   </div>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.4rem 0 0 0' }}>
-                    Nota: La API Key debe tener permisos de <strong>Full Access</strong> o <strong>Marketing</strong> en tu panel de SendGrid (Settings &gt; API Keys).
+                    Si tu clave ya está guardada en las variables de entorno de Vercel como <strong>SENDGRID_API_KEY</strong>, solo haz clic en <strong>"Obtener Campañas"</strong> sin escribir nada.
                   </p>
                 </div>
 
