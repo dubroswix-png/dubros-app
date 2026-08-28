@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Package, RefreshCw } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getUserOrders, OrderRecord } from '@/lib/orders';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -13,7 +13,6 @@ export default function MyOrdersPage() {
   const { isLoggedIn, isLoading } = useAuth();
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [syncingId, setSyncingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const loadOrders = async () => {
@@ -33,28 +32,6 @@ export default function MyOrdersPage() {
     }
   }, [isLoggedIn, isLoading, router]);
 
-  const handleSyncErpOrder = async (orderId: string) => {
-    setSyncingId(orderId);
-    setErrorMsg(null);
-    try {
-      const res = await fetch('/api/checkout/erp-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setErrorMsg(data.error || 'Error al sincronizar con el ERP');
-      } else {
-        await loadOrders();
-      }
-    } catch (err) {
-      setErrorMsg('Error de red al intentar conectar con el servidor.');
-    } finally {
-      setSyncingId(null);
-    }
-  };
-
   if (!isLoggedIn) return null;
 
   return (
@@ -63,7 +40,7 @@ export default function MyOrdersPage() {
         <div>
           <h1 style={{ fontSize: '2.2rem', fontWeight: 800 }}>📦 Historial de Pedidos</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Consulta el estado de tus compras y la sincronización con el sistema ERP.
+            Consulta el estado y seguimiento de tus pedidos mayoristas en tiempo real.
           </p>
         </div>
 
@@ -182,55 +159,6 @@ export default function MyOrdersPage() {
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                     {order.total_items} piezas
                   </div>
-                </div>
-              </div>
-
-              {/* ERP SWITCH STATUS BADGE & PAY BUTTON */}
-              <div
-                style={{
-                  backgroundColor: 'var(--bg-secondary)',
-                  padding: '0.75rem 1rem',
-                  borderRadius: 'var(--radius-md)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.82rem',
-                  flexWrap: 'wrap',
-                  gap: '0.75rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <RefreshCw size={15} color="var(--blue)" className={syncingId === order.id ? 'spin' : ''} />
-                  <span>
-                    Integración ERP <strong>Switch</strong>:
-                  </span>
-                  <span style={{ fontWeight: 700, color: order.switch_synced ? 'var(--green)' : 'var(--text-secondary)' }}>
-                    {order.switch_synced ? `Sincronizado (${order.switch_order_number || 'SW-OK'})` : 'En cola de sincronización'}
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-
-
-                  {!order.switch_synced && (
-                    <button
-                      onClick={() => handleSyncErpOrder(order.id)}
-                      disabled={syncingId === order.id}
-                      className="btn-secondary"
-                      style={{
-                        padding: '0.4rem 0.8rem',
-                        fontSize: '0.78rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.35rem',
-                        color: 'var(--blue)',
-                        borderColor: 'var(--blue)',
-                      }}
-                    >
-                      <RefreshCw size={13} className={syncingId === order.id ? 'spin' : ''} />
-                      {syncingId === order.id ? 'Sincronizando...' : 'Sincronizar ERP'}
-                    </button>
-                  )}
                 </div>
               </div>
 
