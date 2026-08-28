@@ -88,24 +88,27 @@ export default async function BlogPostDetailPage({
       </div>
 
       <div
+        className="blog-post-content"
         style={{
           fontSize: '1.1rem',
           lineHeight: '1.8',
           color: 'var(--text-primary)',
         }}
       >
-        <p style={{ marginBottom: '1.5rem' }}>{post.shortDescription}</p>
-        <p style={{ marginBottom: '1.5rem' }}>
-          En el competitivo sector óptico latinoamericano, seleccionar los socios de distribución y las colecciones adecuadas resulta fundamental para mantener márgenes saludables y clientes satisfechos. Durante los últimos años, la demanda de aros ópticos ultraligeros como el titanio y el TR90 ha crecido un 35% en mercados clave como Colombia, Panamá y México.
-        </p>
-        <h2 style={{ fontSize: '1.6rem', fontWeight: 700, margin: '2rem 0 1rem 0' }}>
-          Factores clave para la selección de inventario
-        </h2>
-        <p style={{ marginBottom: '1.5rem' }}>
-          1. <strong>Calidad del Flex:</strong> Las bisagras con resorte garantizan una vida útil más prolongada del marco.<br/>
-          2. <strong>Diversidad de Tallas:</strong> Mantener una variedad de tallas oculares (desde 50 hasta 58 mm) asegura cubrir diferentes perfiles anatómicos.<br/>
-          3. <strong>Respaldo de Garantía:</strong> Trabajar con distribuidores consolidados como Dubros evita pérdidas por defectos de origen.
-        </p>
+        {post.content ? (
+          <div
+            dangerouslySetInnerHTML={{ __html: post.content }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem',
+            }}
+          />
+        ) : (
+          <div>
+            <p style={{ marginBottom: '1.5rem' }}>{post.shortDescription}</p>
+          </div>
+        )}
       </div>
     </article>
   );
