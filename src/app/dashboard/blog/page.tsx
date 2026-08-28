@@ -41,6 +41,7 @@ export default function AdminBlogPage() {
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [syncTab, setSyncTab] = useState<'webhook' | 'paste' | 'api'>('webhook');
   const [sendgridApiKey, setSendgridApiKey] = useState('');
+  const [templateIdInput, setTemplateIdInput] = useState('d-075e046c78a047518048d52c7a0815e7');
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
   const [campaigns, setCampaigns] = useState<SendGridCampaign[]>([]);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -88,7 +89,7 @@ export default function AdminBlogPage() {
     setTimeout(() => setNotification(null), 5000);
   };
 
-  const handleFetchSendGridCampaigns = async () => {
+  const handleFetchSendGridCampaigns = async (targetTemplateId?: string) => {
     setLoadingCampaigns(true);
     setSyncError(null);
 
@@ -99,7 +100,8 @@ export default function AdminBlogPage() {
         localStorage.setItem('dubros-sendgrid-api-key', sendgridApiKey.trim());
       }
 
-      const res = await fetch('/api/admin/blog/sendgrid-sync', {
+      const tplQuery = targetTemplateId ? `?templateId=${encodeURIComponent(targetTemplateId.trim())}` : '';
+      const res = await fetch(`/api/admin/blog/sendgrid-sync${tplQuery}`, {
         headers,
       });
 
@@ -110,7 +112,7 @@ export default function AdminBlogPage() {
       } else {
         setCampaigns(data.campaigns || []);
         if ((data.campaigns || []).length === 0) {
-          setSyncError('No se encontraron campañas recientes en esta cuenta de SendGrid.');
+          setSyncError('No se encontraron campañas o plantillas recientes en esta cuenta de SendGrid.');
         }
       }
     } catch (err: any) {
@@ -537,7 +539,7 @@ export default function AdminBlogPage() {
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
                     🔑 SendGrid API Key (Opcional si ya está en Vercel / Servidor):
                   </label>
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                     <input
                       type="password"
                       value={sendgridApiKey}
@@ -556,7 +558,7 @@ export default function AdminBlogPage() {
                     />
                     <button
                       type="button"
-                      onClick={handleFetchSendGridCampaigns}
+                      onClick={() => handleFetchSendGridCampaigns()}
                       disabled={loadingCampaigns}
                       className="btn-primary"
                       style={{
@@ -567,12 +569,50 @@ export default function AdminBlogPage() {
                       }}
                     >
                       {loadingCampaigns ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-                      {loadingCampaigns ? 'Buscando...' : 'Obtener Campañas'}
+                      {loadingCampaigns ? 'Buscando...' : 'Listar Campañas'}
                     </button>
                   </div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.4rem 0 0 0' }}>
-                    Si tu clave ya está guardada en las variables de entorno de Vercel como <strong>SENDGRID_API_KEY</strong>, solo haz clic en <strong>"Obtener Campañas"</strong> sin escribir nada.
-                  </p>
+
+                  {/* Direct Template ID fetcher */}
+                  <div style={{ borderTop: '1px dashed var(--border-medium)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', color: '#0369A1' }}>
+                      🎯 O buscar directamente por Template ID de SendGrid:
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                      <input
+                        type="text"
+                        value={templateIdInput}
+                        onChange={(e) => setTemplateIdInput(e.target.value)}
+                        placeholder="Ej. d-075e046c78a047518048d52c7a0815e7"
+                        style={{
+                          flex: 1,
+                          minWidth: '280px',
+                          padding: '0.65rem 0.9rem',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1px solid #BAE6FD',
+                          fontSize: '0.9rem',
+                          backgroundColor: 'var(--input-bg)',
+                          color: 'var(--text-primary)',
+                          fontFamily: 'monospace',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleFetchSendGridCampaigns(templateIdInput)}
+                        disabled={loadingCampaigns || !templateIdInput.trim()}
+                        className="btn-primary"
+                        style={{
+                          backgroundColor: '#0369A1',
+                          padding: '0.65rem 1.5rem',
+                          fontSize: '0.9rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {loadingCampaigns ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                        {loadingCampaigns ? 'Consultando...' : 'Obtener Plantilla'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {syncError && (
