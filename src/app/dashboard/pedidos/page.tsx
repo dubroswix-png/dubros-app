@@ -62,7 +62,29 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleDownloadCSV = (order: OrderRecord, e?: React.MouseEvent) => {
+  const handleDownloadSwitchCSV = (order: OrderRecord, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    // Exact format required by Switch ERP Excel Import: CODIGO, CANTIDAD, PRECIO, DESCUENTO
+    const headers = ['CODIGO', 'CANTIDAD', 'PRECIO', 'DESCUENTO'];
+    const rows = (order.order_items || []).map((item) => {
+      const code = (item.product?.code || item.code || item.product?.reference || item.reference || '').trim();
+      const qty = item.quantity || 1;
+      const price = Number(item.unit_price || 0).toFixed(2);
+      const discount = '0';
+      return [code, qty, price, discount];
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Switch_Pedido_${order.order_number || 'orden'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadFullCSV = (order: OrderRecord, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const headers = ['Referencia', 'Codigo', 'Descripcion', 'Precio Unitario', 'Cantidad', 'Subtotal'];
     const rows = (order.order_items || []).map((item) => [
@@ -74,11 +96,11 @@ export default function AdminOrdersPage() {
       `"${(item.unit_price * item.quantity).toFixed(2)}"`,
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Pedido_${order.order_number || 'orden'}.csv`);
+    link.setAttribute('download', `Detalle_Pedido_${order.order_number || 'orden'}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -261,11 +283,19 @@ export default function AdminOrdersPage() {
             return (
               <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <button 
-                  onClick={(e) => handleDownloadCSV(selectedOrder, e)}
+                  onClick={(e) => handleDownloadSwitchCSV(selectedOrder, e)}
                   className="btn-primary" 
+                  style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem', backgroundColor: '#059669' }}
+                  title="Descargar con formato oficial Switch ERP: CODIGO, CANTIDAD, PRECIO, DESCUENTO"
+                >
+                  <Download size={14} /> 📥 Plantilla Switch (Excel/CSV)
+                </button>
+                <button 
+                  onClick={(e) => handleDownloadFullCSV(selectedOrder, e)}
+                  className="btn-secondary" 
                   style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                 >
-                  <Download size={14} /> Descargar CSV
+                  <Download size={14} /> Detalle B2B
                 </button>
                 <button 
                   onClick={handlePrintOrder}
@@ -664,10 +694,11 @@ export default function AdminOrdersPage() {
                     <span style={{ display: 'block', fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem' }}>{order.order_number}</span>
                     <button 
                       className="btn-primary" 
-                      style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }} 
-                      onClick={(e) => handleDownloadCSV(order, e)}
+                      style={{ padding: '0.4rem 0.85rem', fontSize: '0.78rem', backgroundColor: '#059669', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }} 
+                      onClick={(e) => handleDownloadSwitchCSV(order, e)}
+                      title="Descargar plantilla Excel para Switch ERP (CODIGO, CANTIDAD, PRECIO, DESCUENTO)"
                     >
-                      {t('admin.orders.csv' as any)}
+                      <Download size={13} /> Excel Switch ERP
                     </button>
                   </div>
                 </div>
