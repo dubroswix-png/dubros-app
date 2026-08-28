@@ -129,19 +129,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. BRANDS MOVING BANNER (MARQUEE) */}
-      <section style={{ width: '100%', overflow: 'hidden' }}>
+      {/* 2. BRANDS MOVING BANNER (MARQUEE) - ALWAYS CLEAN LIGHT MODE STYLING */}
+      <section style={{ width: '100%', overflow: 'hidden', backgroundColor: '#FFFFFF', padding: '2.5rem 0 2rem 0' }}>
         <div className="container" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>
             {t('home.brands.title' as any)}
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+          <p style={{ color: '#64748B', fontSize: '0.95rem' }}>
             Distribución autorizada de las marcas más reconocidas en Latinoamérica
           </p>
         </div>
 
         {/* Continuous Smooth Scrolling Marquee */}
-        <div className="marquee-container" style={{ backgroundColor: 'var(--bg-secondary)', borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)' }}>
+        <div className="marquee-container" style={{ backgroundColor: '#F8FAFC', borderTop: '1px solid #E2E8F0', borderBottom: '1px solid #E2E8F0' }}>
           <div className="marquee-track">
             {/* First Set */}
             {marqueeBrands.map((brand, idx) => (
