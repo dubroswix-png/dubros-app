@@ -117,6 +117,12 @@ export default function ProfilePage() {
     setProfileSuccess(null);
     setProfileError(null);
 
+    if (!name.trim() || !companyName.trim() || !taxId.trim() || !phone.trim()) {
+      setProfileError('Por favor completa todos los campos obligatorios marcados con asterisco rojo (*).');
+      setLoadingProfile(false);
+      return;
+    }
+
     const res = await updateProfile({
       name,
       companyName,
@@ -285,7 +291,7 @@ export default function ProfilePage() {
             <form onSubmit={handleSaveProfile} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
               <div>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <User size={14} color="var(--blue)" /> Nombre del Contacto Principal
+                  <User size={14} color="var(--blue)" /> Nombre del Contacto Principal <span style={{ color: '#EF4444', fontWeight: 700 }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -308,7 +314,7 @@ export default function ProfilePage() {
 
               <div>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <Building2 size={14} color="var(--blue)" /> Nombre Comercial de la Óptica
+                  <Building2 size={14} color="var(--blue)" /> Nombre Comercial de la Óptica / Distribución <span style={{ color: '#EF4444', fontWeight: 700 }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -331,7 +337,7 @@ export default function ProfilePage() {
 
               <div>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <Globe size={14} color="var(--blue)" /> País de Operación
+                  <Globe size={14} color="var(--blue)" /> País de Operación <span style={{ color: '#EF4444', fontWeight: 700 }}>*</span>
                 </label>
                 <select
                   value={country}
@@ -357,10 +363,11 @@ export default function ProfilePage() {
 
               <div>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <FileText size={14} color="var(--blue)" /> {currentTaxLabel}
+                  <FileText size={14} color="var(--blue)" /> {currentTaxLabel} <span style={{ color: '#EF4444', fontWeight: 700 }}>*</span>
                 </label>
                 <input
                   type="text"
+                  required
                   placeholder={`Ej: 123456789-0 o número de ${currentTaxLabel.split(' ')[0]}`}
                   value={taxId}
                   onChange={(e) => setTaxId(e.target.value)}
@@ -379,7 +386,7 @@ export default function ProfilePage() {
 
               <div>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <Briefcase size={14} color="var(--blue)" /> Tipo de Negocio Óptico
+                  <Briefcase size={14} color="var(--blue)" /> Tipo de Negocio Óptico <span style={{ color: '#EF4444', fontWeight: 700 }}>*</span>
                 </label>
                 <select
                   value={businessType}
@@ -405,7 +412,7 @@ export default function ProfilePage() {
 
               <div>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <Phone size={14} color="var(--blue)" /> Teléfono / WhatsApp de Compras
+                  <Phone size={14} color="var(--blue)" /> Teléfono / WhatsApp de Compras <span style={{ color: '#EF4444', fontWeight: 700 }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -428,7 +435,7 @@ export default function ProfilePage() {
 
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <MapPin size={14} color="var(--blue)" /> Dirección Principal de Envío / Oficina
+                  <MapPin size={14} color="var(--blue)" /> Dirección Principal de Envío / Oficina <span style={{ color: '#94A3B8', fontWeight: 400, fontSize: '0.75rem' }}>(Opcional)</span>
                 </label>
                 <input
                   type="text"
