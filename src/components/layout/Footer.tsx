@@ -261,7 +261,7 @@ export function Footer() {
                   <MapPin size={17} color="#FFFFFF" />
                 </div>
                 <p style={{ margin: 0, color: '#FFFFFF', fontSize: '0.95rem', lineHeight: '1.45', maxWidth: '380px' }}>
-                  Colón- Zona Libre, Ave. Dominador Bazan Calle 18 Edfi Atlantic Plaza Local 3B, Panamá
+                  Zona Libre de Interplaza Piso 4- Local 514, Colón, Panamá
                 </p>
               </div>
 
