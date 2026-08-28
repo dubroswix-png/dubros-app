@@ -39,7 +39,7 @@ export default function AdminBlogPage() {
 
   // SendGrid Sync State
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
-  const [syncTab, setSyncTab] = useState<'api' | 'paste'>('paste');
+  const [syncTab, setSyncTab] = useState<'webhook' | 'paste' | 'api'>('webhook');
   const [sendgridApiKey, setSendgridApiKey] = useState('');
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
   const [campaigns, setCampaigns] = useState<SendGridCampaign[]>([]);
@@ -360,7 +360,24 @@ export default function AdminBlogPage() {
             </div>
 
             {/* MODAL TABS SWITCHER */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setSyncTab('webhook')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  borderRadius: 'var(--radius-md)',
+                  border: 'none',
+                  backgroundColor: syncTab === 'webhook' ? '#0284C7' : 'transparent',
+                  color: syncTab === 'webhook' ? '#FFFFFF' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+              >
+                ⚡ Webhook Automático (Opción 1)
+              </button>
+
               <button
                 type="button"
                 onClick={() => setSyncTab('paste')}
@@ -375,7 +392,7 @@ export default function AdminBlogPage() {
                   cursor: 'pointer',
                 }}
               >
-                📋 Pegar HTML de Campaña (Más Rápido)
+                📋 Pegar HTML de Campaña
               </button>
 
               <button
@@ -392,11 +409,73 @@ export default function AdminBlogPage() {
                   cursor: 'pointer',
                 }}
               >
-                🔑 Conectar por API Key de SendGrid
+                🔑 Conectar por API Key
               </button>
             </div>
 
-            {syncTab === 'paste' ? (
+            {syncTab === 'webhook' ? (
+              /* TAB 0: INBOUND PARSE WEBHOOK (OPCION 1) */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ backgroundColor: '#DEF7EC', border: '1px solid #84E1BC', padding: '1.25rem', borderRadius: 'var(--radius-md)', color: '#03543F' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '1rem', marginBottom: '0.5rem' }}>
+                    <Sparkles size={18} /> ¡Publicación 100% Automática vía Inbound Parse!
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', lineHeight: '1.6' }}>
+                    Al configurar este Webhook en SendGrid, cada vez que envíes tu campaña de correo (o reenvíes/agregues en CCO una dirección), SendGrid enviará el correo a nuestra web y <strong>se creará el post en el Blog automáticamente</strong> con imágenes, formato y enlaces.
+                  </p>
+                </div>
+
+                <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
+                    📍 URL de Destino del Webhook (Destination URL):
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <input
+                      type="text"
+                      readOnly
+                      value={typeof window !== 'undefined' ? `${window.location.origin}/api/blog/sendgrid-webhook` : 'https://tudominio.com/api/blog/sendgrid-webhook'}
+                      style={{
+                        flex: 1,
+                        minWidth: '280px',
+                        padding: '0.65rem 0.9rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--border-medium)',
+                        fontSize: '0.9rem',
+                        backgroundColor: 'var(--input-bg)',
+                        color: 'var(--text-primary)',
+                        fontFamily: 'monospace',
+                        fontWeight: 600,
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = `${window.location.origin}/api/blog/sendgrid-webhook`;
+                        navigator.clipboard.writeText(url);
+                        showNotification('success', '¡URL del Webhook copiada al portapapeles!');
+                      }}
+                      className="btn-primary"
+                      style={{ backgroundColor: '#059669', padding: '0.65rem 1.25rem', fontSize: '0.85rem', fontWeight: 700 }}
+                    >
+                      Copiar URL
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ backgroundColor: 'var(--bg-card)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0 0 0.75rem 0' }}>
+                    🛠️ Pasos de configuración en tu cuenta de SendGrid:
+                  </h4>
+                  <ol style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.88rem', lineHeight: '1.7', color: 'var(--text-secondary)' }}>
+                    <li>Entra a tu cuenta de SendGrid y ve a <strong>Settings &gt; Inbound Parse</strong>.</li>
+                    <li>Haz clic en el botón <strong>"Add Host &amp; URL"</strong>.</li>
+                    <li>En <strong>Receiving Domain / Host</strong>, ingresa tu subdominio de correo (ej: <code>blog.dubros.com</code> o <code>mail.dubros.com</code>).</li>
+                    <li>En <strong>Destination URL</strong>, pega la URL que copiaste arriba (<code>/api/blog/sendgrid-webhook</code>).</li>
+                    <li>Haz clic en <strong>Save</strong>. ¡Listo! Cualquier correo enviado o en CCO a <code>post@blog.dubros.com</code> se publicará en el Blog de inmediato.</li>
+                  </ol>
+                </div>
+              </div>
+            ) : syncTab === 'paste' ? (
               /* TAB 1: PASTE HTML DIRECTLY */
               <form onSubmit={handlePublishPastedCampaign} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div style={{ backgroundColor: '#F0F9FF', border: '1px solid #BAE6FD', padding: '1rem', borderRadius: 'var(--radius-md)', color: '#0369A1', fontSize: '0.85rem', lineHeight: '1.5' }}>
