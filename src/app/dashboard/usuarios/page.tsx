@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, Database } from 'lucide-react';
+import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, Database, UserPlus, ArrowLeft, Camera, Loader2 } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
 import { UserRole } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { LATAM_COUNTRIES } from '@/data/mock';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserProfileRecord[]>([]);
@@ -13,6 +14,20 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  // New User Form State
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserCompany, setNewUserCompany] = useState('');
+  const [newUserCountry, setNewUserCountry] = useState('PA');
+  const [newUserWhatsappCode, setNewUserWhatsappCode] = useState('+507');
+  const [newUserWhatsapp, setNewUserWhatsapp] = useState('');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('client');
+  const [newUserErpCode, setNewUserErpCode] = useState('');
+  const [creatingLoading, setCreatingLoading] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -24,6 +39,56 @@ export default function AdminUsersPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleCreateUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateError(null);
+    setCreatingLoading(true);
+
+    try {
+      const fullWhatsapp = `${newUserWhatsappCode} ${newUserWhatsapp}`.trim();
+
+      const res = await fetch('/api/admin/users/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newUserName,
+          email: newUserEmail,
+          password: newUserPassword,
+          companyName: newUserCompany || newUserName,
+          country: newUserCountry,
+          whatsapp: fullWhatsapp,
+          role: newUserRole,
+          erpClientCode: newUserErpCode || null,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setCreateError(data.error || 'Error al crear el usuario.');
+      } else {
+        setNotification({
+          type: 'success',
+          message: `¡Usuario ${newUserEmail} creado con éxito! Ya puede iniciar sesión.`,
+        });
+        // Reset form
+        setNewUserName('');
+        setNewUserEmail('');
+        setNewUserPassword('');
+        setNewUserCompany('');
+        setNewUserWhatsapp('');
+        setNewUserErpCode('');
+        setIsCreatingUser(false);
+        await loadData();
+        setTimeout(() => setNotification(null), 5000);
+      }
+    } catch (err) {
+      setCreateError('Error de red al conectar con el servidor.');
+    } finally {
+      setCreatingLoading(false);
+    }
+  };
 
   const handleRoleChange = async (userId: string, newRole: UserRole, userEmail: string) => {
     setProcessingId(userId);
@@ -128,6 +193,238 @@ export default function AdminUsersPage() {
     });
   }, [users, activeTab, searchTerm]);
 
+  if (isCreatingUser) {
+    return (
+      <div style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '3rem' }}>
+        {/* Header with Back Arrow */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setIsCreatingUser(false);
+              setCreateError(null);
+            }}
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '8px',
+              border: '1px solid #CBD5E1',
+              backgroundColor: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            }}
+          >
+            <ArrowLeft size={20} color="#1E293B" />
+          </button>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#1E293B', margin: 0 }}>Crea Usuario</h1>
+        </div>
+
+        {createError && (
+          <div
+            style={{
+              marginBottom: '1.5rem',
+              padding: '1rem 1.25rem',
+              borderRadius: 'var(--radius-md)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              backgroundColor: '#FEE2E2',
+              color: '#9B1C1C',
+              border: '1px solid #F87171',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+            }}
+          >
+            <AlertCircle size={20} />
+            <span>{createError}</span>
+          </div>
+        )}
+
+        <div className="card" style={{ padding: '2.5rem', backgroundColor: '#FFFFFF', borderRadius: 'var(--radius-lg)' }}>
+          <form onSubmit={handleCreateUserSubmit}>
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              {/* Left Column: Avatar Placeholder */}
+              <div
+                style={{
+                  width: '150px',
+                  height: '150px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '2px dashed #CBD5E1',
+                  backgroundColor: '#F8FAFC',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  color: '#64748B',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                <Camera size={26} color="#94A3B8" />
+                <span style={{ color: 'var(--blue)', fontSize: '0.8rem', textAlign: 'center', padding: '0 0.5rem' }}>
+                  Agrega una foto
+                </span>
+              </div>
+
+              {/* Right Column: Form Inputs */}
+              <div style={{ flex: 1, minWidth: '280px', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>
+                    Nombre
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newUserName}
+                    onChange={(e) => setNewUserName(e.target.value)}
+                    placeholder="Nombre"
+                    style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={newUserEmail}
+                    onChange={(e) => setNewUserEmail(e.target.value)}
+                    placeholder="Email"
+                    style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>
+                    Contraseña de Acceso
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={newUserPassword}
+                    onChange={(e) => setNewUserPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>
+                    Nombre de la Óptica / Empresa
+                  </label>
+                  <input
+                    type="text"
+                    value={newUserCompany}
+                    onChange={(e) => setNewUserCompany(e.target.value)}
+                    placeholder="Ej. Óptica Visión Real"
+                    style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>
+                    País
+                  </label>
+                  <select
+                    value={newUserCountry}
+                    onChange={(e) => setNewUserCountry(e.target.value)}
+                    style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem', backgroundColor: '#FFFFFF' }}
+                  >
+                    {LATAM_COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>
+                    WhatsApp
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input
+                      type="text"
+                      value={newUserWhatsappCode}
+                      onChange={(e) => setNewUserWhatsappCode(e.target.value)}
+                      style={{ width: '80px', padding: '0.65rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem', textAlign: 'center' }}
+                    />
+                    <input
+                      type="tel"
+                      value={newUserWhatsapp}
+                      onChange={(e) => setNewUserWhatsapp(e.target.value)}
+                      placeholder="Whatsapp 6123456"
+                      style={{ flex: 1, padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>
+                    Rol
+                  </label>
+                  <select
+                    value={newUserRole}
+                    onChange={(e) => setNewUserRole(e.target.value as UserRole)}
+                    style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem', backgroundColor: '#FFFFFF' }}
+                  >
+                    <option value="client">Cliente B2B (Aprobado)</option>
+                    <option value="pending">Pendiente de Aprobación</option>
+                    <option value="admin">Administrador del Sistema</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>
+                    Código de Cliente ERP (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={newUserErpCode}
+                    onChange={(e) => setNewUserErpCode(e.target.value)}
+                    placeholder="Ej. CLI-1045"
+                    style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
+              <button
+                type="submit"
+                disabled={creatingLoading}
+                className="btn-primary"
+                style={{
+                  backgroundColor: '#004A99',
+                  padding: '0.8rem 3rem',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  borderRadius: '6px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 4px 12px rgba(0, 74, 153, 0.3)',
+                }}
+              >
+                {creatingLoading ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
+                {creatingLoading ? 'Creando Usuario...' : 'Crear Usuario'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* HEADER SECTION */}
@@ -139,13 +436,31 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
-        <button
-          onClick={loadData}
-          className="btn-secondary"
-          style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <RefreshCw size={15} className={loading ? 'spin' : ''} /> Actualizar Datos
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <button
+            onClick={() => setIsCreatingUser(true)}
+            className="btn-primary"
+            style={{
+              padding: '0.5rem 1.25rem',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: '#004A99',
+              fontWeight: 700,
+            }}
+          >
+            <UserPlus size={16} /> + Crear Usuario
+          </button>
+
+          <button
+            onClick={loadData}
+            className="btn-secondary"
+            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <RefreshCw size={15} className={loading ? 'spin' : ''} /> Actualizar Datos
+          </button>
+        </div>
       </div>
 
       {/* NOTIFICATION TOAST */}
