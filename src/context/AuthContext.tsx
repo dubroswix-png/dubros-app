@@ -40,10 +40,14 @@ export const isUserAdmin = (email?: string | null): boolean => {
   return ADMIN_EMAILS.includes(email.toLowerCase().trim());
 };
 
-export function translateAuthError(errorMsg?: string | null): string {
+export function translateAuthError(errorMsg?: any): string {
   if (!errorMsg) return 'Ocurrió un error inesperado. Intenta de nuevo.';
-  const msg = errorMsg.toLowerCase();
+  const str = typeof errorMsg === 'string' ? errorMsg : (errorMsg?.message || JSON.stringify(errorMsg) || '');
+  const msg = str.toLowerCase();
   
+  if (msg.includes('legacy api keys are disabled')) {
+    return 'Las claves API antiguas están desactivadas en Supabase. Por favor activa "Enable Legacy API keys" en Supabase Settings > API.';
+  }
   if (msg.includes('user already registered') || msg.includes('already exists') || msg.includes('email already in use')) {
     return 'Este correo electrónico ya está registrado. Por favor inicia sesión o recupera tu contraseña.';
   }
@@ -65,7 +69,7 @@ export function translateAuthError(errorMsg?: string | null): string {
   if (msg.includes('invalid email') || msg.includes('unable to validate email')) {
     return 'El formato de correo electrónico ingresado no es válido.';
   }
-  return errorMsg;
+  return str;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
