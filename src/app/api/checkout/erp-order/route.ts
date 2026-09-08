@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { erpCreateOrder } from '@/lib/erp';
+import { erpAuth, erpCreateOrder } from '@/lib/erp';
 import type { ErpOrderArticle } from '@/lib/erp-types';
 import erpInventory from '@/data/erp_inventory.json';
 import erpClients from '@/data/erp_clients.json';
@@ -14,6 +14,34 @@ function getSupabaseAdmin() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
   return createClient(url, serviceKey);
+}
+
+/**
+ * Queries Switch ERP live to get the exact `codigoBarraId` for a product model.
+ * Switch-Soft ERP requires this specific barcode ID to create orders.
+ */
+async function fetchCodigoBarraIdFromERP(token: string, searchCode: string): Promise<number | null> {
+  if (!searchCode) return null;
+  try {
+    const baseUrl = process.env.ERP_BASE_URL || 'https://dubros.switch-soft.com';
+    const res = await fetch(`${baseUrl}/apiarticulos/info?codigoBarra=${encodeURIComponent(searchCode)}`, {
+      headers: {
+        Authorization: token,
+        AuthorizationApp: process.env.ERP_AUTH_APP || 'TRUE',
+        TipoApp: process.env.ERP_TIPO_APP || 'ZonaLibre',
+      },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const cbId = json.data?.articulo?.codigoBarraId;
+      if (cbId && !isNaN(Number(cbId))) {
+        return Number(cbId);
+      }
+    }
+  } catch (e) {
+    console.warn(`[fetchCodigoBarraIdFromERP] Failed for ${searchCode}:`, e);
+  }
+  return null;
 }
 
 export async function POST(request: NextRequest) {
@@ -95,6 +123,7 @@ export async function POST(request: NextRequest) {
 
       if (profile?.erp_client_id && !isNaN(Number(profile.erp_client_id))) {
         erpClientId = Number(profile.erp_client_id);
+        if (profile.erp_vendor_id) erpVendorId = Number(profile.erp_vendor_id);
       } else if (profile?.erp_client_code) {
         const codeClean = String(profile.erp_client_code).trim().toLowerCase();
         const matched = (erpClients as any[]).find(
@@ -115,9 +144,11 @@ export async function POST(request: NextRequest) {
       const matched = (erpClients as any[]).find((c) => {
         const cEmail = (c.email || c.correo || '').trim().toLowerCase();
         const cName = (c.nombre || c.razonsocial || c.razon_social || '').trim().toLowerCase();
+        const cCode = String(c.codigo || c.code || '').trim().toLowerCase();
         return (
           (emailClean && cEmail === emailClean) ||
-          (nameClean && cName && (cName.includes(nameClean) || nameClean.includes(cName)))
+          (nameClean && cName && (cName.includes(nameClean) || nameClean.includes(cName))) ||
+          (nameClean && cCode === nameClean)
         );
       });
 
@@ -132,44 +163,45 @@ export async function POST(request: NextRequest) {
       erpClientId = 390;
     }
 
-    // 4. Build ERP articles payload with exact codigoBarraId required by Switch-Soft
-    const articulos: ErpOrderArticle[] = items.map((item) => {
-      const refSearch = (item.reference || item.product?.reference || '').toUpperCase().trim();
-      const codeSearch = (item.code || item.product?.code || '').toUpperCase().trim();
+    // 4. Authenticate against ERP to resolve barcodes live
+    const erpToken = await erpAuth();
 
-      // Find article in ERP inventory
-      const foundItem = (erpInventory as any[]).find((a) => {
-        const aRef = (a.reference || '').toUpperCase().trim();
-        const aCode = (a.code || '').toUpperCase().trim();
-        return (
-          (refSearch && aRef === refSearch) ||
-          (codeSearch && aCode === codeSearch) ||
-          (refSearch && aCode === refSearch) ||
-          (codeSearch && aRef === codeSearch)
-        );
-      });
+    // 5. Build ERP articles payload with exact live codigoBarraId required by Switch-Soft
+    const articulos: ErpOrderArticle[] = [];
 
-      // Switch-Soft ERP requires codigoBarraId
-      let codigoBarraId = foundItem?.erp_id || foundItem?.codigoBarraId || foundItem?.id;
+    for (const item of items) {
+      const refSearch = (item.reference || item.product?.reference || '').trim();
+      const codeSearch = (item.code || item.product?.code || '').trim();
 
-      if (!codigoBarraId) {
-        const parsedCode = parseInt(codeSearch || refSearch, 10);
-        codigoBarraId = !isNaN(parsedCode) && parsedCode > 0 ? parsedCode : 1;
+      // Query Switch ERP live to get exact codigoBarraId (e.g. ECLIPSEC1 -> 15025)
+      let liveCbId = await fetchCodigoBarraIdFromERP(erpToken, codeSearch || refSearch);
+      if (!liveCbId && refSearch && refSearch !== codeSearch) {
+        liveCbId = await fetchCodigoBarraIdFromERP(erpToken, refSearch);
       }
 
-      return {
-        codigoBarraId: Number(codigoBarraId),
+      // Fallback to local inventory if ERP live lookup did not respond
+      if (!liveCbId) {
+        const found = (erpInventory as any[]).find(
+          (a) =>
+            (a.reference && a.reference.toUpperCase() === refSearch.toUpperCase()) ||
+            (a.code && a.code.toUpperCase() === codeSearch.toUpperCase())
+        );
+        liveCbId = found?.codigoBarraId || found?.erp_id || 1;
+      }
+
+      articulos.push({
+        codigoBarraId: Number(liveCbId),
         cantidad: Number(item.quantity || 1),
         precio: Number(item.unit_price || item.product?.price || 0),
-      };
-    });
+      });
+    }
 
-    // 5. Call Switch-Soft ERP Create Order API
+    // 6. Call Switch-Soft ERP Create Order API
     console.log('[ERP Order Checkout] Sending to Switch-Soft:', {
       clienteId: erpClientId,
       vendedorId: erpVendorId,
       articulosCount: articulos.length,
-      sampleArticulo: articulos[0],
+      articulos,
     });
 
     const erpResponse = await erpCreateOrder({
@@ -192,7 +224,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Update local Supabase order with real Switch-Soft data
+    // 7. Update local Supabase order with real Switch-Soft data
     await supabase
       .from('orders')
       .update({
