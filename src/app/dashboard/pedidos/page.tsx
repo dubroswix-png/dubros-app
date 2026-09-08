@@ -130,16 +130,31 @@ export default function AdminOrdersPage() {
       const email = (order.customer_email || '').toLowerCase().trim();
 
       let foundCode: string | null = null;
+      let foundId: number | null = null;
+      let foundVendorId: number = 4;
       let foundName: string = order.company_name || order.customer_name || order.customer_email || '';
 
       if (order.user_id) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('erp_client_code, erp_client_id, company_name, full_name')
+          .select('erp_client_code, erp_client_id, erp_vendor_id, company_name, full_name')
           .eq('id', order.user_id)
           .single();
-        if (profile?.erp_client_code) {
+
+        if (profile?.erp_client_id) {
+          foundId = profile.erp_client_id;
+          foundCode = profile.erp_client_code || String(profile.erp_client_id);
+          foundVendorId = profile.erp_vendor_id || 4;
+          foundName = profile.company_name || profile.full_name || foundName;
+        } else if (profile?.erp_client_code) {
           foundCode = profile.erp_client_code;
+          const matched = (erpClients as any[]).find(
+            (c) => String(c.codigo) === String(foundCode) || String(c.code) === String(foundCode)
+          );
+          if (matched) {
+            foundId = matched.id;
+            foundVendorId = matched.vendedorId || 4;
+          }
           foundName = profile.company_name || profile.full_name || foundName;
         }
       }
@@ -150,14 +165,18 @@ export default function AdminOrdersPage() {
         const matched = (erpClients as any[]).find((c) => {
           const cEmail = (c.email || c.correo || '').toLowerCase().trim();
           const cName = (c.nombre || c.razonsocial || c.razon_social || '').toLowerCase().trim();
+          const cCode = String(c.codigo || c.code || '').toLowerCase().trim();
           return (
             (cEmail && cEmail === normEmail) ||
-            (normName && cName && (cName.includes(normName) || normName.includes(cName)))
+            (normName && cName && (cName.includes(normName) || normName.includes(cName))) ||
+            (normName && cCode === normName)
           );
         });
 
         if (matched) {
+          foundId = matched.id;
           foundCode = String(matched.codigo || matched.code || matched.id);
+          foundVendorId = matched.vendedorId || 4;
           foundName = matched.nombre || matched.razonsocial || matched.razon_social || foundName;
           if (order.user_id) {
             await supabase
@@ -165,7 +184,7 @@ export default function AdminOrdersPage() {
               .update({
                 erp_client_code: foundCode,
                 erp_client_id: matched.id,
-                erp_vendor_id: matched.vendedorId || 4,
+                erp_vendor_id: foundVendorId,
               })
               .eq('id', order.user_id);
           }
@@ -173,6 +192,15 @@ export default function AdminOrdersPage() {
       }
 
       if (foundCode) {
+        setClientValidated((prev) => ({
+          ...prev,
+          [order.id]: {
+            validated: true,
+            clientCode: foundCode!,
+            clientId: foundId || undefined,
+            vendorId: foundVendorId,
+          },
+        }));
         setClientFoundModal({
           isOpen: true,
           orderId: order.id,
@@ -207,10 +235,16 @@ export default function AdminOrdersPage() {
   const handleSyncOrderWithERP = async (orderId: string) => {
     setSyncingOrderId(orderId);
     try {
+      const clientInfo = clientValidated[orderId];
       const res = await fetch('/api/checkout/erp-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId }),
+        body: JSON.stringify({
+          orderId,
+          clientId: (clientInfo as any)?.clientId,
+          clientCode: clientInfo?.clientCode,
+          vendorId: (clientInfo as any)?.vendorId,
+        }),
       });
       const data = await res.json();
       if (res.ok) {

@@ -1,13 +1,10 @@
 // =============================================================================
-// API Route: Create Order in ERP + Get SwitchPay Payment URL
-// =============================================================================
-// Synchronizes a local Supabase order with the Switch-Soft ERP and returns
-// the SwitchPay payment gateway link for checkout.
+// API Route: Create Order in Switch-Soft ERP + Get SwitchPay Payment URL
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { erpCreateOrder, erpFindClient } from '@/lib/erp';
+import { erpCreateOrder } from '@/lib/erp';
 import type { ErpOrderArticle } from '@/lib/erp-types';
 import erpInventory from '@/data/erp_inventory.json';
 import erpClients from '@/data/erp_clients.json';
@@ -22,7 +19,7 @@ function getSupabaseAdmin() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { orderId } = body;
+    const { orderId, clientId: bodyClientId, clientCode: bodyClientCode, vendorId: bodyVendorId } = body;
 
     if (!orderId) {
       return NextResponse.json(
@@ -48,10 +45,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Fetch order items
-    // 2. Fetch order items
     let { data: items, error: itemsError } = await supabase
       .from('order_items')
-      .select('*, product:products(id, reference, code)')
+      .select('*, product:products(id, reference, code, price)')
       .eq('order_id', orderId);
 
     if (itemsError || !items || items.length === 0) {
@@ -61,145 +57,142 @@ export async function POST(request: NextRequest) {
           order_id: orderId,
           quantity: order.total_items || 1,
           unit_price: Number(order.subtotal || 2),
-          reference: 'PORTOFINO-001',
-          code: '1001',
+          reference: '1312D',
+          code: '1312D',
           product: null,
         } as any,
       ];
     }
 
-    // 3. Get customer ERP Linkage from profiles
+    // 3. Resolve exact ERP Client ID (Switch-Soft numeric database ID)
     let erpClientId: number | null = null;
-    let erpVendorId: number = 1; // default seller ID
+    let erpVendorId: number = Number(bodyVendorId || 4);
 
-    if (order.user_id) {
+    // Priority A: Passed directly from validated client in request body
+    if (bodyClientId && !isNaN(Number(bodyClientId)) && Number(bodyClientId) > 0) {
+      erpClientId = Number(bodyClientId);
+    }
+
+    // Priority B: Match client code passed in body
+    if (!erpClientId && bodyClientCode) {
+      const codeClean = String(bodyClientCode).trim().toLowerCase();
+      const matched = (erpClients as any[]).find(
+        (c) => String(c.codigo || c.code || '').trim().toLowerCase() === codeClean
+      );
+      if (matched) {
+        erpClientId = Number(matched.id);
+        if (matched.vendedorId) erpVendorId = Number(matched.vendedorId);
+      }
+    }
+
+    // Priority C: Check customer profile in Supabase
+    if (!erpClientId && order.user_id) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('erp_client_id, erp_client_code, erp_vendor_id, email, tax_id')
         .eq('id', order.user_id)
         .single();
 
-      if (profile?.erp_client_id) {
-        erpClientId = profile.erp_client_id;
-        if (profile.erp_vendor_id) erpVendorId = profile.erp_vendor_id;
+      if (profile?.erp_client_id && !isNaN(Number(profile.erp_client_id))) {
+        erpClientId = Number(profile.erp_client_id);
       } else if (profile?.erp_client_code) {
-        const clientCodeStr = String(profile.erp_client_code).trim();
+        const codeClean = String(profile.erp_client_code).trim().toLowerCase();
         const matched = (erpClients as any[]).find(
-          (c) => String(c.codigo || c.code) === clientCodeStr
+          (c) => String(c.codigo || c.code || '').trim().toLowerCase() === codeClean
         );
         if (matched) {
-          erpClientId = matched.id;
-          if (matched.vendedorId) erpVendorId = matched.vendedorId;
-        } else {
-          const parsedCode = parseInt(clientCodeStr, 10);
-          if (!isNaN(parsedCode) && parsedCode > 0) {
-            erpClientId = parsedCode;
-          }
-        }
-      } else if (profile?.email || order.customer_email) {
-        const email = (profile?.email || order.customer_email || '').toLowerCase().trim();
-        const matched = (erpClients as any[]).find(
-          (c) => (c.email || '').toLowerCase().trim() === email || (c.correo || '').toLowerCase().trim() === email
-        );
-        if (matched) {
-          erpClientId = matched.id;
-          if (matched.vendedorId) erpVendorId = matched.vendedorId;
-          await supabase
-            .from('profiles')
-            .update({
-              erp_client_id: matched.id,
-              erp_client_code: matched.codigo,
-              erp_vendor_id: matched.vendedorId,
-            })
-            .eq('id', order.user_id);
-        } else {
-          // Auto-attempt live lookup in ERP
-          const found = await erpFindClient({
-            email: email,
-            identificacion: profile?.tax_id || undefined,
-          });
-
-          if (found) {
-            erpClientId = found.id;
-            erpVendorId = found.vendedorId || 1;
-            await supabase
-              .from('profiles')
-              .update({
-                erp_client_id: found.id,
-                erp_client_code: found.codigo,
-                erp_vendor_id: found.vendedorId,
-              })
-              .eq('id', order.user_id);
-          }
+          erpClientId = Number(matched.id);
+          if (matched.vendedorId) erpVendorId = Number(matched.vendedorId);
         }
       }
     }
 
-    if (!erpClientId && order.customer_email) {
-      const email = order.customer_email.toLowerCase().trim();
-      const matched = (erpClients as any[]).find(
-        (c) => (c.email || '').toLowerCase().trim() === email || (c.correo || '').toLowerCase().trim() === email
-      );
-      if (matched) {
-        erpClientId = matched.id;
-        if (matched.vendedorId) erpVendorId = matched.vendedorId;
-      }
-    }
-
+    // Priority D: Match by email or company/customer name in erpClients
     if (!erpClientId) {
-      erpClientId = 1;
+      const emailClean = (order.customer_email || '').trim().toLowerCase();
+      const nameClean = (order.company_name || order.customer_name || '').trim().toLowerCase();
+
+      const matched = (erpClients as any[]).find((c) => {
+        const cEmail = (c.email || c.correo || '').trim().toLowerCase();
+        const cName = (c.nombre || c.razonsocial || c.razon_social || '').trim().toLowerCase();
+        return (
+          (emailClean && cEmail === emailClean) ||
+          (nameClean && cName && (cName.includes(nameClean) || nameClean.includes(cName)))
+        );
+      });
+
+      if (matched) {
+        erpClientId = Number(matched.id);
+        if (matched.vendedorId) erpVendorId = Number(matched.vendedorId);
+      }
     }
 
-    // 4. Build ERP articles payload
+    // Fallback: Default to client 390 (HUMANOPTIC S.A)
+    if (!erpClientId) {
+      erpClientId = 390;
+    }
+
+    // 4. Build ERP articles payload with exact codigoBarraId required by Switch-Soft
     const articulos: ErpOrderArticle[] = items.map((item) => {
-      let articuloId = parseInt(item.code || item.product?.code || '0', 10);
-      if (!articuloId || isNaN(articuloId)) {
-        const refSearch = (item.reference || item.product?.reference || '').toUpperCase().trim();
-        const foundItem = (erpInventory as any[]).find(
-          (a) => (a.reference || '').toUpperCase().trim() === refSearch || (a.code || '').toUpperCase().trim() === refSearch
+      const refSearch = (item.reference || item.product?.reference || '').toUpperCase().trim();
+      const codeSearch = (item.code || item.product?.code || '').toUpperCase().trim();
+
+      // Find article in ERP inventory
+      const foundItem = (erpInventory as any[]).find((a) => {
+        const aRef = (a.reference || '').toUpperCase().trim();
+        const aCode = (a.code || '').toUpperCase().trim();
+        return (
+          (refSearch && aRef === refSearch) ||
+          (codeSearch && aCode === codeSearch) ||
+          (refSearch && aCode === refSearch) ||
+          (codeSearch && aRef === codeSearch)
         );
-        if (foundItem) {
-          articuloId = Number(foundItem.id || foundItem.code);
-        }
+      });
+
+      // Switch-Soft ERP requires codigoBarraId
+      let codigoBarraId = foundItem?.erp_id || foundItem?.codigoBarraId || foundItem?.id;
+
+      if (!codigoBarraId) {
+        const parsedCode = parseInt(codeSearch || refSearch, 10);
+        codigoBarraId = !isNaN(parsedCode) && parsedCode > 0 ? parsedCode : 1;
       }
 
       return {
-        articuloId: articuloId || 1,
-        cantidad: item.quantity,
-        precio: Number(item.unit_price),
+        codigoBarraId: Number(codigoBarraId),
+        cantidad: Number(item.quantity || 1),
+        precio: Number(item.unit_price || item.product?.price || 0),
       };
     });
 
-    // 5. Call ERP create order API
-    let numeroInterno: string = '';
-    let pedidoId: number = 0;
-    let urlswitchpay: string = '';
+    // 5. Call Switch-Soft ERP Create Order API
+    console.log('[ERP Order Checkout] Sending to Switch-Soft:', {
+      clienteId: erpClientId,
+      vendedorId: erpVendorId,
+      articulosCount: articulos.length,
+      sampleArticulo: articulos[0],
+    });
 
-    try {
-      const erpResponse = await erpCreateOrder({
-        clienteId: erpClientId,
-        vendedorId: erpVendorId,
-        articulos: articulos,
-      });
+    const erpResponse = await erpCreateOrder({
+      clienteId: erpClientId,
+      vendedorId: erpVendorId,
+      articulos: articulos,
+    });
 
-      if (erpResponse?.data?.numeroInterno) {
-        numeroInterno = String(erpResponse.data.numeroInterno);
-        pedidoId = Number(erpResponse.data.pedidoId || 0);
-        urlswitchpay = erpResponse.data.urlswitchpay || '';
-      }
-    } catch (erpErr: any) {
-      console.warn('[ERP Order Checkout] Live ERP call failed, generating verified Switch reference:', erpErr?.message);
-    }
+    console.log('[ERP Order Checkout] Switch-Soft Response:', JSON.stringify(erpResponse, null, 2));
 
-    // Fallback if live ERP API is in test mode or returned error
+    const numeroInterno = String(erpResponse?.data?.numeroInterno || '');
+    const pedidoId = Number(erpResponse?.data?.pedidoId || 0);
+    const urlswitchpay = erpResponse?.data?.urlswitchpay || '';
+
     if (!numeroInterno) {
-      const cleanNum = (order.order_number || '').replace(/\D/g, '') || String(Math.floor(1000 + Math.random() * 9000));
-      numeroInterno = `16-${cleanNum.padStart(9, '0')}`;
-      pedidoId = Math.floor(100000 + Math.random() * 900000);
-      urlswitchpay = `https://dubros.switch-soft.com/pedidos/${numeroInterno}`;
+      throw new Error(
+        erpResponse?.data?.mensaje ||
+        (erpResponse as any)?.error?.message ||
+        'El ERP Switch no devolvió un número de pedido interno.'
+      );
     }
 
-    // 6. Update local Supabase order
+    // 6. Update local Supabase order with real Switch-Soft data
     await supabase
       .from('orders')
       .update({
@@ -213,18 +206,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'PEDIDO REALIZADO CON EXITO',
+      message: erpResponse.data.mensaje || 'PEDIDO REALIZADO CON EXITO EN SWITCH ERP',
       switchOrderNumber: numeroInterno,
       erpOrderId: pedidoId,
       paymentUrl: urlswitchpay,
     });
-  } catch (error) {
-    console.error('[ERP Order Checkout] Unexpected error:', error);
+  } catch (error: any) {
+    console.error('[ERP Order Checkout] Switch ERP Error:', error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Error inesperado al generar pedido en el ERP.',
+        error: error instanceof Error ? error.message : 'Error inesperado al generar pedido en Switch ERP.',
       },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }

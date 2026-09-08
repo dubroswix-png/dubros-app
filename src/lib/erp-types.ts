@@ -144,7 +144,8 @@ export interface ErpCreateOrderPayload {
 }
 
 export interface ErpOrderArticle {
-  articuloId: number;
+  codigoBarraId: number;
+  articuloId?: number;
   cantidad: number;
   precio?: number;
 }
