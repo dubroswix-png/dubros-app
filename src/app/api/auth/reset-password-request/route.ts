@@ -45,24 +45,54 @@ export async function POST(req: NextRequest) {
         .maybeSingle();
 
       if (profile?.email) {
-        // Provision user in auth.users
-        const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
-          id: profile.id,
-          email: profile.email,
-          email_confirm: true,
-        });
+        // Fetch complete profile before deleting to avoid trigger duplicate email collision
+        const { data: fullProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('*')
+          .eq('id', profile.id)
+          .single();
 
-        if (!createErr) {
-          // Retry generating recovery link
-          const retry = await supabaseAdmin.auth.admin.generateLink({
-            type: 'recovery',
-            email: profile.email,
-            options: {
-              redirectTo: `${origin}/reset-password`,
-            },
+        if (fullProfile) {
+          await supabaseAdmin.from('profiles').delete().eq('id', fullProfile.id);
+
+          // Provision user in auth.users
+          const { data: newAuthUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+            email: fullProfile.email,
+            email_confirm: true,
+            password: 'DubrosRecoveryTemp2026!',
           });
-          linkData = retry.data;
-          linkError = retry.error;
+
+          if (!createErr && newAuthUser?.user) {
+            // Restore complete profile data under the new authenticated ID
+            await supabaseAdmin.from('profiles').update({
+              full_name: fullProfile.full_name,
+              company_name: fullProfile.company_name,
+              business_type: fullProfile.business_type,
+              country_code: fullProfile.country_code,
+              whatsapp: fullProfile.whatsapp,
+              role: fullProfile.role || 'client',
+              erp_client_id: fullProfile.erp_client_id,
+              erp_client_code: fullProfile.erp_client_code,
+              client_code: fullProfile.client_code,
+              tax_id: fullProfile.tax_id,
+              address: fullProfile.address,
+              onboarding_completed: fullProfile.onboarding_completed,
+            }).eq('id', newAuthUser.user.id);
+
+            // Retry generating recovery link
+            const retry = await supabaseAdmin.auth.admin.generateLink({
+              type: 'recovery',
+              email: fullProfile.email,
+              options: {
+                redirectTo: `${origin}/reset-password`,
+              },
+            });
+            linkData = retry.data;
+            linkError = retry.error;
+          } else {
+            // If createUser failed, restore original profile
+            await supabaseAdmin.from('profiles').insert(fullProfile);
+          }
         }
       }
     }

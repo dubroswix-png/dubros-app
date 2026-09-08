@@ -36,25 +36,43 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.warn('[AdminUpdatePassword] updateUserById error, attempting to create auth user:', error.message);
       // If user exists in public.profiles but not yet in auth.users, provision them now
-      const { data: profile } = await supabaseAdmin
+      const { data: fullProfile } = await supabaseAdmin
         .from('profiles')
-        .select('id, email')
+        .select('*')
         .eq('id', userId)
         .maybeSingle();
 
-      if (profile?.email) {
+      if (fullProfile?.email) {
+        await supabaseAdmin.from('profiles').delete().eq('id', fullProfile.id);
+
         const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-          id: profile.id,
-          email: profile.email,
+          email: fullProfile.email,
           password: newPassword,
           email_confirm: true,
         });
 
         if (!createError && newUser?.user) {
+          await supabaseAdmin.from('profiles').update({
+            full_name: fullProfile.full_name,
+            company_name: fullProfile.company_name,
+            business_type: fullProfile.business_type,
+            country_code: fullProfile.country_code,
+            whatsapp: fullProfile.whatsapp,
+            role: fullProfile.role || 'client',
+            erp_client_id: fullProfile.erp_client_id,
+            erp_client_code: fullProfile.erp_client_code,
+            client_code: fullProfile.client_code,
+            tax_id: fullProfile.tax_id,
+            address: fullProfile.address,
+            onboarding_completed: fullProfile.onboarding_completed,
+          }).eq('id', newUser.user.id);
+
           return NextResponse.json({
             success: true,
-            message: `Usuario aprovisionado y contraseña actualizada con éxito para ${profile.email}.`,
+            message: `Usuario aprovisionado y contraseña actualizada con éxito para ${fullProfile.email}.`,
           });
+        } else {
+          await supabaseAdmin.from('profiles').insert(fullProfile);
         }
       }
 
