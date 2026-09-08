@@ -237,12 +237,15 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       if (res.ok) {
         await fetchOrders();
-        setAlertModal({
+        const targetOrder = orders.find((o) => o.id === orderId) || selectedOrder;
+        setCreatedOrderModal({
           isOpen: true,
-          type: 'success',
-          title: '🎉 ¡Pedido Creado en Switch-Soft ERP!',
-          message: `El pedido fue sincronizado y procesado exitosamente en Switch-Soft ERP.`,
-          highlight: `Número de Orden Interna ERP: #${data.switchOrderNumber || data.erpOrderId}`,
+          orderNumber: targetOrder?.order_number || '',
+          switchOrderNumber: data.switchOrderNumber || data.erpOrderId || 'SW-CONFIRMADO',
+          clientName: targetOrder?.company_name || targetOrder?.customer_name || targetOrder?.customer_email || 'Cliente',
+          totalItems: targetOrder?.total_items || (targetOrder?.order_items || []).length || 1,
+          subtotal: Number(targetOrder?.subtotal || 0),
+          order: targetOrder!,
         });
       } else {
         setAlertModal({
@@ -314,6 +317,17 @@ export default function AdminOrdersPage() {
     setCurrentPage(1);
   }, [search, statusFilter, dateFrom, dateTo]);
 
+  // Order Created Success Modal State
+  const [createdOrderModal, setCreatedOrderModal] = useState<{
+    isOpen: boolean;
+    orderNumber: string;
+    switchOrderNumber: string;
+    clientName: string;
+    totalItems: number;
+    subtotal: number;
+    order: OrderRecord;
+  } | null>(null);
+
   const selectedOrder = orders.find((o) => o.id === selectedOrderId);
 
   if (loading) {
@@ -335,63 +349,142 @@ export default function AdminOrdersPage() {
 
   if (selectedOrder) {
     return (
-      <div style={{ backgroundColor: '#FFF', padding: '2rem', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '2rem', textAlign: 'center' }}>{t('admin.orders.title' as any)}</h1>
+      <div style={{ backgroundColor: '#FFF', padding: '1.5rem', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1.5rem', textAlign: 'center', color: '#0F172A' }}>
+          {t('admin.orders.title' as any)}
+        </h1>
         
-        {/* Detail Header & Back Button */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '1rem' }}>
+        {/* Tier 1: Back Button, Client Header & Export Buttons */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '1.25rem', 
+          borderBottom: '1px solid var(--border-light)', 
+          paddingBottom: '1rem', 
+          flexWrap: 'wrap', 
+          gap: '1rem' 
+        }}>
           <button 
             onClick={() => setSelectedOrderId(null)}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: 'var(--blue)', fontSize: '0.9rem', cursor: 'pointer', fontWeight: 600 }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              background: 'none', 
+              border: 'none', 
+              color: 'var(--blue)', 
+              fontSize: '0.9rem', 
+              cursor: 'pointer', 
+              fontWeight: 700 
+            }}
           >
-            <ArrowLeft size={18} /> {t('admin.orders.back' as any)} {selectedOrder.customer_name} email: {selectedOrder.customer_email}
+            <ArrowLeft size={18} /> {t('admin.orders.back' as any)}
           </button>
-          
-          {(() => {
-            const isProductsValid = !!productsValidated[selectedOrder.id] || !!selectedOrder.switch_order_number;
-            const clientData = clientValidated[selectedOrder.id];
-            const isClientValid = !!clientData?.validated || !!selectedOrder.switch_order_number;
 
-            return (
-              <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <button 
-                  onClick={(e) => handleDownloadSwitchXLSX(selectedOrder, e)}
-                  className="btn-primary" 
-                  style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem', backgroundColor: '#059669', fontWeight: 700 }}
-                  title="Descargar archivo Excel .xlsx oficial para Switch ERP: CODIGO, CANTIDAD, PRECIO, DESCUENTO"
-                >
-                  <FileSpreadsheet size={15} /> 📥 Plantilla Switch (.xlsx)
-                </button>
-                <button 
-                  onClick={(e) => handleDownloadFullCSV(selectedOrder, e)}
-                  className="btn-secondary" 
-                  style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                >
-                  <Download size={14} /> Detalle B2B
-                </button>
-                <button 
-                  onClick={handlePrintOrder}
-                  className="btn-primary" 
-                  style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                >
-                  <Printer size={14} /> Imprimir
-                </button>
+          {/* Client badge */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            backgroundColor: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            padding: '0.35rem 0.85rem',
+            borderRadius: '9999px',
+            fontSize: '0.82rem',
+            color: '#1E40AF',
+          }}>
+            <strong>{selectedOrder.company_name || selectedOrder.customer_name || 'Cliente'}</strong>
+            <span style={{ opacity: 0.8 }}>({selectedOrder.customer_email})</span>
+          </div>
 
+          {/* Export tools */}
+          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button 
+              onClick={(e) => handleDownloadSwitchXLSX(selectedOrder, e)}
+              className="btn-primary" 
+              style={{ 
+                padding: '0.55rem 1.1rem', 
+                fontSize: '0.84rem', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.4rem', 
+                backgroundColor: '#059669', 
+                fontWeight: 700,
+                borderRadius: '0.5rem',
+              }}
+              title="Descargar archivo Excel .xlsx oficial para Switch ERP: CODIGO, CANTIDAD, PRECIO, DESCUENTO"
+            >
+              <FileSpreadsheet size={16} /> 📥 Plantilla Switch (.xlsx)
+            </button>
+            <button 
+              onClick={handlePrintOrder}
+              className="btn-secondary" 
+              style={{ 
+                padding: '0.55rem 1.1rem', 
+                fontSize: '0.84rem', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.4rem',
+                borderRadius: '0.5rem',
+                fontWeight: 600,
+              }}
+            >
+              <Printer size={15} /> Imprimir
+            </button>
+          </div>
+        </div>
+
+        {/* Tier 2: Validation Steps (1, 2, 3) - Larger Buttons & Fully Responsive on Mobile */}
+        {(() => {
+          const isProductsValid = !!productsValidated[selectedOrder.id] || !!selectedOrder.switch_order_number;
+          const clientData = clientValidated[selectedOrder.id];
+          const isClientValid = !!clientData?.validated || !!selectedOrder.switch_order_number;
+
+          return (
+            <div style={{
+              backgroundColor: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: '0.75rem',
+              padding: '1rem 1.25rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Flujo de Aprobación & Creación de Pedido:
+              </div>
+
+              <div style={{ 
+                display: 'flex', 
+                gap: '0.75rem', 
+                flexWrap: 'wrap', 
+                alignItems: 'center',
+                width: '100%',
+              }}>
                 {/* PASO 1: Validar productos */}
                 {isProductsValid ? (
                   <button 
                     className="btn-secondary" 
                     style={{ 
-                      padding: '0.45rem 1rem', 
-                      fontSize: '0.8rem', 
+                      padding: '0.65rem 1.25rem', 
+                      fontSize: '0.88rem', 
                       backgroundColor: '#DCFCE7', 
                       color: '#166534', 
                       border: '1px solid #86EFAC', 
-                      fontWeight: 700, 
-                      cursor: 'default' 
+                      fontWeight: 800, 
+                      cursor: 'default',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      borderRadius: '0.5rem',
+                      flex: '1 1 auto',
+                      justifyContent: 'center',
+                      minWidth: '180px',
                     }}
                   >
-                    ✓ Productos validados
+                    <CheckCircle2 size={18} color="#16A34A" /> ✓ 1. Productos validados
                   </button>
                 ) : (
                   <button 
@@ -399,54 +492,72 @@ export default function AdminOrdersPage() {
                     disabled={validatingProducts}
                     className="btn-primary" 
                     style={{ 
-                      padding: '0.45rem 1rem', 
-                      fontSize: '0.8rem', 
+                      padding: '0.65rem 1.25rem', 
+                      fontSize: '0.88rem', 
                       backgroundColor: '#2563EB', 
                       color: '#FFFFFF', 
-                      fontWeight: 700, 
-                      display: 'flex', 
+                      fontWeight: 800, 
+                      display: 'inline-flex', 
                       alignItems: 'center', 
-                      gap: '0.35rem' 
+                      gap: '0.45rem',
+                      cursor: 'pointer',
+                      borderRadius: '0.5rem',
+                      boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+                      flex: '1 1 auto',
+                      justifyContent: 'center',
+                      minWidth: '180px',
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    {validatingProducts ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : '1.'} Validar productos
+                    {validatingProducts ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : '1.'} Validar productos
                   </button>
                 )}
 
-                {/* PASO 2: Validar cliente */}
+                {/* PASO 2: Validar cliente (SIN CÓDIGO 123) */}
                 {isClientValid ? (
                   <button 
                     className="btn-secondary" 
                     style={{ 
-                      padding: '0.45rem 1rem', 
-                      fontSize: '0.8rem', 
+                      padding: '0.65rem 1.25rem', 
+                      fontSize: '0.88rem', 
                       backgroundColor: '#DCFCE7', 
                       color: '#166534', 
                       border: '1px solid #86EFAC', 
-                      fontWeight: 700, 
-                      cursor: 'default' 
+                      fontWeight: 800, 
+                      cursor: 'default',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      borderRadius: '0.5rem',
+                      flex: '1 1 auto',
+                      justifyContent: 'center',
+                      minWidth: '180px',
                     }}
                   >
-                    ✓ Cliente validado {clientData?.clientCode ? `(${clientData.clientCode})` : ''}
+                    <CheckCircle2 size={18} color="#16A34A" /> ✓ 2. Cliente validado
                   </button>
                 ) : clientData?.isNewClient ? (
                   <Link
                     href="/dashboard/usuarios"
                     className="btn-secondary"
                     style={{
-                      padding: '0.45rem 1rem',
-                      fontSize: '0.8rem',
+                      padding: '0.65rem 1.25rem',
+                      fontSize: '0.85rem',
                       backgroundColor: '#FEF3C7',
                       color: '#92400E',
                       border: '1px solid #FCD34D',
-                      fontWeight: 700,
+                      fontWeight: 800,
                       textDecoration: 'none',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '0.35rem',
+                      gap: '0.45rem',
+                      borderRadius: '0.5rem',
+                      flex: '1 1 auto',
+                      justifyContent: 'center',
+                      minWidth: '180px',
                     }}
                   >
-                    ⚠️ Cliente Nuevo (Crear en ERP / Asignar Código)
+                    ⚠️ Cliente Nuevo (Asignar Código)
                   </Link>
                 ) : (
                   <button 
@@ -454,170 +565,323 @@ export default function AdminOrdersPage() {
                     disabled={!isProductsValid || validatingClient}
                     className="btn-primary" 
                     style={{ 
-                      padding: '0.45rem 1rem', 
-                      fontSize: '0.8rem', 
+                      padding: '0.65rem 1.25rem', 
+                      fontSize: '0.88rem', 
                       backgroundColor: isProductsValid ? '#0284C7' : '#94A3B8', 
                       color: '#FFFFFF', 
-                      fontWeight: 700, 
+                      fontWeight: 800, 
                       cursor: isProductsValid ? 'pointer' : 'not-allowed',
-                      display: 'flex', 
+                      display: 'inline-flex', 
                       alignItems: 'center', 
-                      gap: '0.35rem' 
+                      gap: '0.45rem',
+                      borderRadius: '0.5rem',
+                      boxShadow: isProductsValid ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none',
+                      flex: '1 1 auto',
+                      justifyContent: 'center',
+                      minWidth: '180px',
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    {validatingClient ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : '2.'} Validar cliente
+                    {validatingClient ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : '2.'} Validar cliente
                   </button>
                 )}
 
                 {/* PASO 3: Crear pedido en Switch */}
                 {selectedOrder.switch_order_number ? (
                   <button 
+                    onClick={() => {
+                      setCreatedOrderModal({
+                        isOpen: true,
+                        orderNumber: selectedOrder.order_number,
+                        switchOrderNumber: selectedOrder.switch_order_number!,
+                        clientName: selectedOrder.company_name || selectedOrder.customer_name || selectedOrder.customer_email || 'Cliente',
+                        totalItems: selectedOrder.total_items || (selectedOrder.order_items || []).length,
+                        subtotal: Number(selectedOrder.subtotal || 0),
+                        order: selectedOrder,
+                      });
+                    }}
                     className="btn-secondary" 
                     style={{ 
-                      padding: '0.45rem 1rem', 
-                      fontSize: '0.8rem', 
+                      padding: '0.65rem 1.35rem', 
+                      fontSize: '0.88rem', 
                       backgroundColor: '#ECFDF5', 
                       color: '#047857', 
                       border: '1px solid #6EE7B7', 
                       fontWeight: 800, 
-                      cursor: 'default' 
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      borderRadius: '0.5rem',
+                      flex: '1 1 auto',
+                      justifyContent: 'center',
+                      minWidth: '200px',
                     }}
                   >
-                    ✓ Pedido creado #{selectedOrder.switch_order_number}
+                    <Sparkles size={16} color="#059669" /> ✓ Pedido creado en Switch #{selectedOrder.switch_order_number}
                   </button>
                 ) : (
                   <button 
                     onClick={() => handleSyncOrderWithERP(selectedOrder.id)}
                     disabled={!isProductsValid || !isClientValid || syncingOrderId === selectedOrder.id}
                     className="btn-primary" 
-                    title={!isClientValid ? 'Valida primero el cliente o regístralo en ERP si es nuevo' : ''}
+                    title={!isClientValid ? 'Valida primero el cliente antes de crear en Switch' : ''}
                     style={{ 
-                      padding: '0.45rem 1rem', 
-                      fontSize: '0.8rem', 
+                      padding: '0.65rem 1.35rem', 
+                      fontSize: '0.9rem', 
                       backgroundColor: (isProductsValid && isClientValid) ? '#10B981' : '#94A3B8', 
                       color: '#FFFFFF', 
                       fontWeight: 800, 
                       cursor: (isProductsValid && isClientValid) ? 'pointer' : 'not-allowed',
-                      boxShadow: (isProductsValid && isClientValid) ? '0 4px 12px rgba(16, 185, 129, 0.4)' : 'none',
-                      display: 'flex', 
+                      boxShadow: (isProductsValid && isClientValid) ? '0 4px 14px rgba(16, 185, 129, 0.4)' : 'none',
+                      display: 'inline-flex', 
                       alignItems: 'center', 
-                      gap: '0.35rem' 
+                      gap: '0.45rem',
+                      borderRadius: '0.5rem',
+                      flex: '1 1 auto',
+                      justifyContent: 'center',
+                      minWidth: '200px',
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    {syncingOrderId === selectedOrder.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : '3. ⚡'} Crear pedido en Switch
+                    {syncingOrderId === selectedOrder.id ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : '3. ⚡'} Crear pedido en Switch
                   </button>
                 )}
               </div>
-            );
-          })()}
-        </div>
+            </div>
+          );
+        })()}
 
-        {/* Order Summary Strip */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8FAFC', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0CA5A5', fontWeight: 600, fontSize: '0.9rem' }}>
-              <Package size={24} color="#F87171" />
-              <span>{t('admin.orders.switchStatus' as any)}</span>
-            </div>
-            <div>
-              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.date' as any)}</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{new Date(selectedOrder.created_at).toLocaleDateString()}</span>
-            </div>
-            <div>
-              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.subtotal' as any)}</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>${selectedOrder.subtotal.toFixed(2)}</span>
-            </div>
-            <div>
-              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.articles' as any)}</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                {selectedOrder.total_items}
+        {/* Responsive Grid Summary Strip (Never squashes on Mobile/Tablet) */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', 
+          gap: '0.85rem', 
+          backgroundColor: '#F8FAFC', 
+          padding: '1.25rem', 
+          borderRadius: 'var(--radius-md)', 
+          border: '1px solid #E2E8F0',
+          marginBottom: '2rem',
+        }}>
+          {/* Card: Switch State */}
+          <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0' }}>
+            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase' }}>
+              Estado en Switch
+            </span>
+            {selectedOrder.switch_order_number ? (
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#059669', display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem' }}>
+                <CheckCircle2 size={15} color="#10B981" /> Ordenado (#{selectedOrder.switch_order_number})
               </span>
-            </div>
-            <div>
-              <span style={{ display: 'block', fontSize: '0.7rem', color: '#0CA5A5' }}>{t('admin.orders.switchId' as any)}</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0CA5A5' }}>{selectedOrder.switch_order_number || '-'}</span>
-            </div>
+            ) : (
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#D97706', display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem' }}>
+                <Package size={15} color="#F59E0B" /> Pendiente
+              </span>
+            )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <div>
-              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.filterState' as any)}</span>
-              <span style={{ 
-                padding: '0.3rem 0.8rem', 
-                fontSize: '0.8rem', 
-                borderRadius: 'var(--radius-sm)', 
-                backgroundColor: getStatusColor(selectedOrder.status), 
-                color: '#FFF',
-                fontWeight: 600 
-              }}>
-                {selectedOrder.status}
-              </span>
-            </div>
-            <div>
-              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.id' as any)}</span>
-              <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{selectedOrder.order_number}</span>
-            </div>
+          {/* Card: Date */}
+          <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0' }}>
+            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase' }}>
+              {t('admin.orders.date' as any)}
+            </span>
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1E293B', display: 'block', marginTop: '0.2rem' }}>
+              {new Date(selectedOrder.created_at).toLocaleDateString()}
+            </span>
+          </div>
+
+          {/* Card: Subtotal */}
+          <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0' }}>
+            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase' }}>
+              {t('admin.orders.subtotal' as any)}
+            </span>
+            <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0F172A', display: 'block', marginTop: '0.2rem' }}>
+              ${selectedOrder.subtotal.toFixed(2)} USD
+            </span>
+          </div>
+
+          {/* Card: Articles */}
+          <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0' }}>
+            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase' }}>
+              {t('admin.orders.articles' as any)}
+            </span>
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1E293B', display: 'block', marginTop: '0.2rem' }}>
+              {selectedOrder.total_items} {selectedOrder.total_items === 1 ? 'pieza' : 'piezas'}
+            </span>
+          </div>
+
+          {/* Card: Switch ID */}
+          <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0' }}>
+            <span style={{ display: 'block', fontSize: '0.7rem', color: '#0CA5A5', fontWeight: 600, textTransform: 'uppercase' }}>
+              Nº Pedido Switch
+            </span>
+            <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0CA5A5', display: 'block', marginTop: '0.2rem' }}>
+              {selectedOrder.switch_order_number || '-'}
+            </span>
+          </div>
+
+          {/* Card: Status */}
+          <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0' }}>
+            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase' }}>
+              {t('admin.orders.filterState' as any)}
+            </span>
+            <span style={{ 
+              display: 'inline-block',
+              padding: '0.25rem 0.65rem', 
+              fontSize: '0.78rem', 
+              borderRadius: 'var(--radius-sm)', 
+              backgroundColor: getStatusColor(selectedOrder.status), 
+              color: '#FFF',
+              fontWeight: 700,
+              marginTop: '0.2rem',
+            }}>
+              {selectedOrder.status}
+            </span>
+          </div>
+
+          {/* Card: Order Number */}
+          <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0' }}>
+            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase' }}>
+              {t('admin.orders.id' as any)}
+            </span>
+            <span style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--blue)', display: 'block', marginTop: '0.2rem' }}>
+              {selectedOrder.order_number}
+            </span>
           </div>
         </div>
 
-        {/* Order Items */}
+        {/* Order Items with Availability Badges */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {selectedOrder.order_items?.map((item, idx) => (
-            <div key={idx} style={{ display: 'flex', gap: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-light)' }}>
-              <div style={{ width: '150px', height: '100px', flexShrink: 0, position: 'relative' }}>
-                <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '0.6rem', color: 'var(--text-tertiary)' }}>Model: {item.product?.reference || item.reference}</span>
-                <img src={item.product?.thumbnail_url || 'https://via.placeholder.com/150'} alt={item.product?.reference || item.reference} style={{ width: '100%', height: '100%', objectFit: 'contain', marginTop: '0.5rem' }} />
-              </div>
-              
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--blue)', fontWeight: 600 }}>{item.product?.reference || item.reference}</span>
+          {selectedOrder.order_items?.map((item, idx) => {
+            const itemRef = (item.product?.reference || item.reference || '').trim();
+            const itemCode = (item.product?.code || item.code || itemRef).trim();
+
+            const invMatch = (erpInventory as any[]).find(
+              (inv) => (inv.code && inv.code.toLowerCase() === itemCode.toLowerCase()) ||
+                       (inv.reference && inv.reference.toLowerCase() === itemRef.toLowerCase()) ||
+                       (inv.code && inv.code.toLowerCase() === itemRef.toLowerCase())
+            );
+
+            const currentStock = invMatch ? Number(invMatch.quantity || 0) : (item.product?.quantity ?? 10);
+            const isAvailable = currentStock >= item.quantity && currentStock > 0;
+
+            return (
+              <div 
+                key={idx} 
+                style={{ 
+                  display: 'flex', 
+                  gap: '1.5rem', 
+                  padding: '1.25rem', 
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: !isAvailable ? '#FFF5F5' : '#FAFAFA',
+                  border: !isAvailable ? '1px solid #FCA5A5' : '1px solid var(--border-light)',
+                  flexWrap: 'wrap',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ width: '150px', height: '100px', flexShrink: 0, position: 'relative' }}>
+                  <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '0.6rem', color: 'var(--text-tertiary)' }}>Model: {itemRef}</span>
+                  <img 
+                    src={item.product?.thumbnail_url || 'https://via.placeholder.com/150'} 
+                    alt={itemRef} 
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', marginTop: '0.5rem' }} 
+                  />
                 </div>
-                <h3 style={{ fontSize: '1rem', color: 'var(--blue)', margin: '0 0 1rem 0', fontWeight: 700, textTransform: 'uppercase' }}>
-                  {item.product?.description || ''}
-                </h3>
                 
-                <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.price' as any)}</span>
-                    <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                      ${item.unit_price} USD.
+                <div style={{ flex: 1 }}>
+                  {/* Reference line WITH AVAILABILITY BADGE */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--blue)', fontWeight: 800 }}>
+                      {itemRef}
                     </span>
+                    {isAvailable ? (
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                        backgroundColor: '#DCFCE7',
+                        color: '#15803D',
+                        border: '1px solid #86EFAC',
+                        padding: '0.2rem 0.65rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                      }}>
+                        <CheckCircle2 size={13} color="#16A34A" /> ✓ DISPONIBLE ({currentStock} un. en bodega)
+                      </span>
+                    ) : (
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                        backgroundColor: '#FEE2E2',
+                        color: '#991B1B',
+                        border: '1px solid #FCA5A5',
+                        padding: '0.2rem 0.65rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                      }}>
+                        <XCircle size={13} color="#DC2626" /> ✕ NO DISPONIBLE / SIN STOCK ({currentStock} en bodega)
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.size' as any)}</span>
-                    <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                      N/A
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.material' as any)}</span>
-                    <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      {item.product?.material || item.material || 'N/A'}
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.saleType' as any)}</span>
-                    <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      {item.product?.sale_type || 'N/A'}
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.qtyReq' as any)}</span>
-                    <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                      {item.quantity}
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.erpStatus' as any)}</span>
-                    <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                      {t('admin.orders.available' as any)}
-                    </span>
+
+                  <h3 style={{ fontSize: '1rem', color: 'var(--blue)', margin: '0 0 1rem 0', fontWeight: 700, textTransform: 'uppercase' }}>
+                    {item.product?.description || ''}
+                  </h3>
+                  
+                  <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.price' as any)}</span>
+                      <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                        ${item.unit_price} USD.
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.size' as any)}</span>
+                      <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                        N/A
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.material' as any)}</span>
+                      <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                        {item.product?.material || item.material || 'N/A'}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.saleType' as any)}</span>
+                      <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                        {item.product?.sale_type || 'N/A'}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{t('admin.orders.qtyReq' as any)}</span>
+                      <span style={{ display: 'inline-block', backgroundColor: '#0B2347', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                        {item.quantity}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>Estado ERP</span>
+                      <span style={{ 
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        backgroundColor: isAvailable ? '#065F46' : '#991B1B', 
+                        color: '#FFF', 
+                        padding: '0.2rem 0.65rem', 
+                        borderRadius: '1rem', 
+                        fontSize: '0.75rem', 
+                        fontWeight: 700 
+                      }}>
+                        {isAvailable ? `✓ En Stock (${currentStock})` : `✕ Agotado (${currentStock})`}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
@@ -1031,6 +1295,163 @@ export default function AdminOrdersPage() {
                 onClick={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
               >
                 Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP DE CREACIÓN DE PEDIDO EN SWITCH */}
+      {createdOrderModal && createdOrderModal.isOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem',
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '1.25rem',
+              maxWidth: '560px',
+              width: '100%',
+              padding: '2.25rem',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border: '1px solid #E2E8F0',
+              position: 'relative',
+              animation: 'scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            {/* Celebration Icon Header */}
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div
+                style={{
+                  width: '68px',
+                  height: '68px',
+                  borderRadius: '50%',
+                  backgroundColor: '#DCFCE7',
+                  color: '#16A34A',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '1rem',
+                  boxShadow: '0 10px 25px rgba(16, 185, 129, 0.25)',
+                }}
+              >
+                <Sparkles size={34} />
+              </div>
+              <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0F172A', margin: '0 0 0.4rem 0' }}>
+                🎉 ¡Pedido Creado en Switch ERP con Éxito!
+              </h2>
+              <p style={{ fontSize: '0.88rem', color: '#64748B', margin: 0 }}>
+                La orden ha sido procesada, registrada y vinculada en el sistema Switch-Soft ERP.
+              </p>
+            </div>
+
+            {/* Info Grid */}
+            <div
+              style={{
+                backgroundColor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '0.75rem',
+                padding: '1.25rem',
+                marginBottom: '1.5rem',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '1rem',
+              }}
+            >
+              <div>
+                <span style={{ display: 'block', fontSize: '0.72rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
+                  Nº Pedido Switch
+                </span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#059669' }}>
+                  #{createdOrderModal.switchOrderNumber}
+                </span>
+              </div>
+
+              <div>
+                <span style={{ display: 'block', fontSize: '0.72rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
+                  Nº Orden Dubros
+                </span>
+                <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0F172A' }}>
+                  {createdOrderModal.orderNumber}
+                </span>
+              </div>
+
+              <div>
+                <span style={{ display: 'block', fontSize: '0.72rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
+                  Cliente / Empresa
+                </span>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1E293B' }}>
+                  {createdOrderModal.clientName}
+                </span>
+              </div>
+
+              <div>
+                <span style={{ display: 'block', fontSize: '0.72rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
+                  Total Piezas y Monto
+                </span>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1E293B' }}>
+                  {createdOrderModal.totalItems} piezas (${createdOrderModal.subtotal.toFixed(2)} USD)
+                </span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              {createdOrderModal.order && (
+                <button
+                  onClick={(e) => handleDownloadSwitchXLSX(createdOrderModal.order, e)}
+                  className="btn-primary"
+                  style={{
+                    backgroundColor: '#059669',
+                    padding: '0.6rem 1.1rem',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                  }}
+                >
+                  <FileSpreadsheet size={15} /> 📥 Plantilla Switch (.xlsx)
+                </button>
+              )}
+
+              <button
+                onClick={handlePrintOrder}
+                className="btn-secondary"
+                style={{
+                  padding: '0.6rem 1.1rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                }}
+              >
+                <Printer size={15} /> Imprimir
+              </button>
+
+              <button
+                onClick={() => setCreatedOrderModal(null)}
+                className="btn-primary"
+                style={{
+                  padding: '0.6rem 1.25rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  backgroundColor: '#0F172A',
+                }}
+              >
+                Aceptar
               </button>
             </div>
           </div>
