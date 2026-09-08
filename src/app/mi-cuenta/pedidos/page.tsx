@@ -3,17 +3,85 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Package } from 'lucide-react';
+import { Package, ChevronRight, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getUserOrders, OrderRecord } from '@/lib/orders';
 import { EmptyState } from '@/components/ui/EmptyState';
+
+// Helper to format Spanish dates like "Septiembre 26, 2025"
+function formatOrderDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    const month = d.toLocaleDateString('es-ES', { month: 'long' });
+    const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+    return `${capitalizedMonth} ${d.getDate()}, ${d.getFullYear()}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+// Helper to get product image URL from S3 / Supabase
+function getItemImageUrl(item: any): string {
+  if (item.product?.thumbnail_url && item.product.thumbnail_url.includes('http') && !item.product.thumbnail_url.includes('placeholder')) {
+    return item.product.thumbnail_url.replace(
+      'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository',
+      'https://dubros-image-repository.s3.amazonaws.com'
+    );
+  }
+  if (item.product?.large_image_url && item.product.large_image_url.includes('http') && !item.product.large_image_url.includes('placeholder')) {
+    return item.product.large_image_url.replace(
+      'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository',
+      'https://dubros-image-repository.s3.amazonaws.com'
+    );
+  }
+  const ref = (item.reference || item.code || item.product?.reference || item.product?.code || '').trim();
+  if (ref) {
+    return `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(ref)}.jpg`;
+  }
+  return '/images/product-placeholder.png';
+}
+
+// Helper to format item description / title (e.g. AROS OPTICOS ACETATO DUBROS CON ESTUCHE)
+function getItemTitle(item: any): string {
+  if (item.product?.description && item.product.description.trim()) {
+    return item.product.description.toUpperCase();
+  }
+  const mat = (item.material || item.product?.material || 'ACETATO').toUpperCase();
+  const brand = (item.brand || item.product?.brands?.name || 'DUBROS').toUpperCase();
+  return `AROS OPTICOS ${mat} ${brand} CON ESTUCHE`;
+}
+
+// Helper to format eye size (e.g. 53, 54)
+function getItemEyeSize(item: any): string {
+  if (item.product?.eye_size && item.product.eye_size !== 0) {
+    return String(item.product.eye_size);
+  }
+  const desc = item.product?.description || '';
+  const match = desc.match(/\b(4[4-9]|5[0-9]|6[0-2])\b/);
+  if (match) return match[1];
+  return '53';
+}
+
+// Helper for status badge styling
+function getStatusBadgeStyle(status: string) {
+  switch (status) {
+    case 'Completada':
+      return { backgroundColor: '#DEF7EC', color: '#03543F' };
+    case 'Cancelada':
+      return { backgroundColor: '#FEE2E2', color: '#991B1B' };
+    case 'En Proceso':
+      return { backgroundColor: '#E0F2FE', color: '#0369A1' };
+    case 'Pendiente':
+    default:
+      return { backgroundColor: '#F4F4F5', color: '#374151' };
+  }
+}
 
 export default function MyOrdersPage() {
   const router = useRouter();
   const { isLoggedIn, isLoading } = useAuth();
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -35,54 +103,38 @@ export default function MyOrdersPage() {
   if (!isLoggedIn) return null;
 
   return (
-    <div className="container" style={{ padding: '3rem 1.5rem 5rem 1.5rem' }}>
-      <div style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2.5rem 1.5rem 5rem 1.5rem' }}>
+      {/* BREADCRUMB */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', marginBottom: '2rem' }}>
+        <Link href="/mi-cuenta" style={{ color: '#475569', textDecoration: 'none' }}>
+          Mi cuenta
+        </Link>
+        <span style={{ color: '#94a3b8' }}>&gt;</span>
+        <span style={{ fontWeight: 700, color: '#0f172a' }}>Mis pedidos</span>
+      </div>
+
+      {/* HEADER */}
+      <div style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 800 }}>📦 Historial de Pedidos</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Consulta el estado y seguimiento de tus pedidos mayoristas en tiempo real.
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
+            Mis pedidos
+          </h1>
+          <p style={{ color: '#64748b', fontSize: '0.95rem' }}>
+            Consulta tus pedidos recientes y su estado.
           </p>
         </div>
 
-        <Link href="/catalogo" className="btn-primary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.9rem' }}>
-          + Nuevo Pedido
+        <Link
+          href="/catalogo"
+          className="btn-primary"
+          style={{ padding: '0.6rem 1.25rem', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+        >
+          <ShoppingBag size={16} /> + Nuevo Pedido
         </Link>
       </div>
 
-      {errorMsg && (
-        <div
-          style={{
-            backgroundColor: '#FEE2E2',
-            color: '#991B1B',
-            padding: '1rem 1.25rem',
-            borderRadius: 'var(--radius-md)',
-            marginBottom: '1.5rem',
-            border: '1px solid #FCA5A5',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '0.9rem',
-          }}
-        >
-          <span>⚠️ {errorMsg}</span>
-          <button
-            onClick={() => setErrorMsg(null)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              color: '#991B1B',
-              fontSize: '1rem',
-            }}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-tertiary)' }}>
+        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#64748b' }}>
           Cargando pedidos...
         </div>
       ) : orders.length === 0 ? (
@@ -94,108 +146,197 @@ export default function MyOrdersPage() {
           onAction={() => router.push('/catalogo')}
         />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="card"
-              style={{
-                padding: '1.75rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.25rem',
-              }}
-            >
-              {/* HEADER ROW */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingBottom: '1rem',
-                  borderBottom: '1px solid var(--border-light)',
-                  flexWrap: 'wrap',
-                  gap: '1rem',
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                    <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--navy)' }}>
-                      #{order.order_number}
-                    </span>
-                    <span
-                      style={{
-                        padding: '0.25rem 0.65rem',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        backgroundColor:
-                          order.status === 'Completada'
-                            ? '#DEF7EC'
-                            : order.status === 'Cancelada'
-                            ? '#FEE2E2'
-                            : '#FEF08A',
-                        color:
-                          order.status === 'Completada'
-                            ? '#03543F'
-                            : order.status === 'Cancelada'
-                            ? '#9B1C1C'
-                            : '#713F12',
-                      }}
-                    >
-                      {order.status}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-                    Realizado el {new Date(order.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </div>
-                </div>
+        <div>
+          {/* COUNTER */}
+          <div style={{ fontSize: '0.92rem', color: '#475569', marginBottom: '1.25rem' }}>
+            {orders.length} encontrados
+          </div>
 
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>Subtotal</div>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                    ${Number(order.subtotal).toFixed(2)}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    {order.total_items} piezas
-                  </div>
-                </div>
-              </div>
+          {/* ORDERS LIST */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+            {orders.map((order) => {
+              const statusStyle = getStatusBadgeStyle(order.status);
+              const orderNumberDisplay = order.order_number ? `#${order.order_number.replace(/^DB-\d{4}-/, '')}` : `#${order.id.slice(0, 6)}`;
 
-              {/* ITEMS BREAKDOWN */}
-              {order.order_items && order.order_items.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingTop: '0.5rem' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
-                    Detalle de Piezas ({order.order_items.length} modelos)
-                  </span>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
-                    {order.order_items.map((item) => (
-                      <div
-                        key={item.id || item.product_id}
-                        style={{
-                          padding: '0.65rem 0.85rem',
-                          backgroundColor: 'var(--bg-primary)',
-                          border: '1px solid var(--border-light)',
-                          borderRadius: 'var(--radius-md)',
-                          fontSize: '0.82rem',
-                        }}
-                      >
-                        <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{item.reference}</div>
-                        <div style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>
-                          {item.brand} | Cód: {item.code}
+              return (
+                <div
+                  key={order.id}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #f1f5f9',
+                    borderRadius: '16px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {/* CARD HEADER ROW */}
+                  <div
+                    style={{
+                      padding: '1.25rem 1.75rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '1.25rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '0.2rem' }}>
+                          Fecha del pedido:
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem', fontWeight: 600 }}>
-                          <span>{item.quantity} pzs x ${Number(item.unit_price).toFixed(2)}</span>
-                          <span style={{ color: 'var(--blue)' }}>${Number(item.total_price).toFixed(2)}</span>
+                        <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#1e293b' }}>
+                          {formatOrderDate(order.created_at)}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-            </div>
-          ))}
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '0.2rem' }}>
+                          Número de pedido:
+                        </div>
+                        <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#1e293b' }}>
+                          {orderNumberDisplay}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '0.2rem' }}>
+                          Subtotal:
+                        </div>
+                        <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#1e293b' }}>
+                          ${Number(order.subtotal || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          padding: '0.4rem 1.15rem',
+                          borderRadius: '9999px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          backgroundColor: statusStyle.backgroundColor,
+                          color: statusStyle.color,
+                        }}
+                      >
+                        {order.status || 'Pendiente'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* ITEMS IN ORDER */}
+                  {order.order_items && order.order_items.length > 0 ? (
+                    <div>
+                      {order.order_items.map((item, idx) => {
+                        const imageUrl = getItemImageUrl(item);
+                        const title = getItemTitle(item);
+                        const model = item.reference || item.code || item.product?.reference || 'N/A';
+                        const eyeSize = getItemEyeSize(item);
+                        const material = item.material || item.product?.material || 'Acetato';
+                        const saleType = item.product?.sale_type || 'PIEZA';
+                        const quantity = item.quantity || 1;
+
+                        return (
+                          <div
+                            key={item.id || `${order.id}-${idx}`}
+                            style={{
+                              padding: '1.5rem 1.75rem',
+                              borderTop: '1px solid #f1f5f9',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '1.75rem',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            {/* THUMBNAIL IMAGE */}
+                            <div
+                              style={{
+                                width: '130px',
+                                height: '90px',
+                                flexShrink: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: '#ffffff',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <img
+                                src={imageUrl}
+                                alt={model}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = '/images/product-placeholder.png';
+                                }}
+                                style={{
+                                  maxWidth: '100%',
+                                  maxHeight: '100%',
+                                  objectFit: 'contain',
+                                }}
+                              />
+                            </div>
+
+                            {/* ITEM INFO */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: 1, minWidth: '220px' }}>
+                              <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#1e293b', letterSpacing: '0.01em' }}>
+                                {title}
+                              </span>
+
+                              <span style={{ fontSize: '0.84rem', color: '#475569' }}>
+                                Modelo: {model}
+                              </span>
+
+                              {/* PILLS ROW */}
+                              <div style={{ display: 'flex', gap: '0.45rem', margin: '0.15rem 0' }}>
+                                <span
+                                  style={{
+                                    backgroundColor: '#f1f5f9',
+                                    color: '#475569',
+                                    padding: '0.2rem 0.65rem',
+                                    borderRadius: '6px',
+                                    fontSize: '0.76rem',
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {eyeSize}
+                                </span>
+                                <span
+                                  style={{
+                                    backgroundColor: '#f1f5f9',
+                                    color: '#475569',
+                                    padding: '0.2rem 0.65rem',
+                                    borderRadius: '6px',
+                                    fontSize: '0.76rem',
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {material}
+                                </span>
+                              </div>
+
+                              <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                                Tipo de venta: {saleType}
+                              </span>
+
+                              <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                                Cantidad: {quantity}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{ padding: '1.25rem 1.75rem', borderTop: '1px solid #f1f5f9', color: '#94a3b8', fontSize: '0.85rem' }}>
+                      {order.total_items} piezas registradas
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

@@ -164,7 +164,7 @@ export async function getUserOrders(): Promise<OrderRecord[]> {
 
     const { data: orders, error } = await supabase
       .from('orders')
-      .select('*, order_items(*)')
+      .select('*, order_items(*, product:products(id, reference, code, description, price, eye_size, material, sale_type, thumbnail_url, large_image_url, brand_id, brands(name)))')
       .eq('user_id', userData.user.id)
       .order('created_at', { ascending: false });
 
