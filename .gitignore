@@ -36,6 +36,7 @@ scratch/
 # scripts, sql migrations and sensitive data
 /scripts/
 *.sql
+!database/migrations/*.sql
 *.pdf
 *.log
 

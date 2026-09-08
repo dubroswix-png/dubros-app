@@ -3,43 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Package, ChevronRight, ShoppingBag } from 'lucide-react';
+import { Package, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getUserOrders, OrderRecord } from '@/lib/orders';
 import { EmptyState } from '@/components/ui/EmptyState';
-
-// Helper to format Spanish dates like "Septiembre 26, 2025"
-function formatOrderDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    const month = d.toLocaleDateString('es-ES', { month: 'long' });
-    const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
-    return `${capitalizedMonth} ${d.getDate()}, ${d.getFullYear()}`;
-  } catch {
-    return dateStr;
-  }
-}
-
-// Helper to get product image URL from S3 / Supabase
-function getItemImageUrl(item: any): string {
-  if (item.product?.thumbnail_url && item.product.thumbnail_url.includes('http') && !item.product.thumbnail_url.includes('placeholder')) {
-    return item.product.thumbnail_url.replace(
-      'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository',
-      'https://dubros-image-repository.s3.amazonaws.com'
-    );
-  }
-  if (item.product?.large_image_url && item.product.large_image_url.includes('http') && !item.product.large_image_url.includes('placeholder')) {
-    return item.product.large_image_url.replace(
-      'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository',
-      'https://dubros-image-repository.s3.amazonaws.com'
-    );
-  }
-  const ref = (item.reference || item.code || item.product?.reference || item.product?.code || '').trim();
-  if (ref) {
-    return `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(ref)}.jpg`;
-  }
-  return '/images/product-placeholder.png';
-}
+import { formatPrice, formatDateSpanish, formatOrderNumber } from '@/lib/formatters';
+import { resolveProductImageUrl, handleImageFallback } from '@/lib/images';
+import { OrderStatusBadge } from '@/components/dashboard/orders/OrderStatusBadge';
 
 // Helper to format item description / title (e.g. AROS OPTICOS ACETATO DUBROS CON ESTUCHE)
 function getItemTitle(item: any): string {
@@ -60,21 +30,6 @@ function getItemEyeSize(item: any): string {
   const match = desc.match(/\b(4[4-9]|5[0-9]|6[0-2])\b/);
   if (match) return match[1];
   return '53';
-}
-
-// Helper for status badge styling
-function getStatusBadgeStyle(status: string) {
-  switch (status) {
-    case 'Completada':
-      return { backgroundColor: '#DEF7EC', color: '#03543F' };
-    case 'Cancelada':
-      return { backgroundColor: '#FEE2E2', color: '#991B1B' };
-    case 'En Proceso':
-      return { backgroundColor: '#E0F2FE', color: '#0369A1' };
-    case 'Pendiente':
-    default:
-      return { backgroundColor: '#F4F4F5', color: '#374151' };
-  }
 }
 
 export default function MyOrdersPage() {
@@ -155,8 +110,7 @@ export default function MyOrdersPage() {
           {/* ORDERS LIST */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
             {orders.map((order) => {
-              const statusStyle = getStatusBadgeStyle(order.status);
-              const orderNumberDisplay = order.order_number ? `#${order.order_number.replace(/^DB-\d{4}-/, '')}` : `#${order.id.slice(0, 6)}`;
+              const orderNumberDisplay = formatOrderNumber(order.order_number);
 
               return (
                 <div
@@ -186,7 +140,7 @@ export default function MyOrdersPage() {
                           Fecha del pedido:
                         </div>
                         <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#1e293b' }}>
-                          {formatOrderDate(order.created_at)}
+                          {formatDateSpanish(order.created_at, 'bubble')}
                         </div>
                       </div>
 
@@ -204,25 +158,13 @@ export default function MyOrdersPage() {
                           Subtotal:
                         </div>
                         <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#1e293b' }}>
-                          ${Number(order.subtotal || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {formatPrice(order.subtotal, true)}
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          padding: '0.4rem 1.15rem',
-                          borderRadius: '9999px',
-                          fontSize: '0.82rem',
-                          fontWeight: 600,
-                          backgroundColor: statusStyle.backgroundColor,
-                          color: statusStyle.color,
-                        }}
-                      >
-                        {order.status || 'Pendiente'}
-                      </span>
+                      <OrderStatusBadge status={order.status} size="md" />
                     </div>
                   </div>
 
@@ -230,7 +172,7 @@ export default function MyOrdersPage() {
                   {order.order_items && order.order_items.length > 0 ? (
                     <div>
                       {order.order_items.map((item, idx) => {
-                        const imageUrl = getItemImageUrl(item);
+                        const imageUrl = resolveProductImageUrl(item);
                         const title = getItemTitle(item);
                         const model = item.reference || item.code || item.product?.reference || 'N/A';
                         const eyeSize = getItemEyeSize(item);
@@ -267,9 +209,7 @@ export default function MyOrdersPage() {
                               <img
                                 src={imageUrl}
                                 alt={model}
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = '/images/product-placeholder.png';
-                                }}
+                                onError={handleImageFallback}
                                 style={{
                                   maxWidth: '100%',
                                   maxHeight: '100%',
