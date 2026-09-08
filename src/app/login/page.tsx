@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Mail,
@@ -44,8 +44,11 @@ const LATAM_COUNTRIES = [
   { code: 'OTHER', name: 'Otro país' },
 ];
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect') || searchParams.get('returnUrl');
+
   const [isRegister, setIsRegister] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -74,13 +77,15 @@ export default function LoginPage() {
 
   React.useEffect(() => {
     if (!isLoading && isLoggedIn) {
-      if (userProfile?.role === 'admin') {
+      if (redirectParam && redirectParam.startsWith('/')) {
+        router.push(redirectParam);
+      } else if (userProfile?.role === 'admin') {
         router.push('/dashboard');
       } else {
         router.push('/catalogo');
       }
     }
-  }, [isLoggedIn, isLoading, userProfile, router]);
+  }, [isLoggedIn, isLoading, userProfile, router, redirectParam]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +98,9 @@ export default function LoginPage() {
       if (!result.success) {
         setError(translateAuthError(result.error) || 'Correo o contraseña incorrectos. Verifica tus credenciales.');
       } else {
-        if (isUserAdmin(email)) {
+        if (redirectParam && redirectParam.startsWith('/')) {
+          router.push(redirectParam);
+        } else if (isUserAdmin(email)) {
           router.push('/dashboard');
         } else {
           router.push('/catalogo');
@@ -780,5 +787,19 @@ export default function LoginPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <Loader2 size={32} color="var(--blue)" className="animate-spin" />
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 }

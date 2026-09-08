@@ -65,8 +65,27 @@ export default function AdminOrdersPage() {
     }
   };
 
+  // Orders selection with URL query preservation on refresh
+  const handleSelectOrder = (orderId: string | null) => {
+    setSelectedOrderId(orderId);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (orderId) {
+        url.searchParams.set('order', orderId);
+      } else {
+        url.searchParams.delete('order');
+      }
+      window.history.replaceState(null, '', url.toString());
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const orderParam = params.get('order');
+      if (orderParam) setSelectedOrderId(orderParam);
+    }
   }, []);
 
   // Filtered Orders calculation
@@ -315,7 +334,7 @@ export default function AdminOrdersPage() {
       <>
         <OrderDetailView
           order={selectedOrder}
-          onBack={() => setSelectedOrderId(null)}
+          onBack={() => handleSelectOrder(null)}
           isProductsValid={isProductsValid}
           isClientValid={isClientValid}
           isOrderCreated={isOrderCreated}
@@ -386,7 +405,7 @@ export default function AdminOrdersPage() {
             <OrderListItem
               key={order.id}
               order={order}
-              onClick={() => setSelectedOrderId(order.id)}
+              onClick={() => handleSelectOrder(order.id)}
             />
           ))}
         </div>

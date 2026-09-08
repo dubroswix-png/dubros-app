@@ -49,7 +49,7 @@ export default function MyOrdersPage() {
   useEffect(() => {
     if (!isLoading) {
       if (!isLoggedIn) {
-        router.push('/login');
+        router.push('/login?redirect=/mi-cuenta/pedidos');
         return;
       }
       loadOrders();

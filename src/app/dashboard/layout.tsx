@@ -33,11 +33,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (isLoading) return; // Wait until authentication state is fully verified
 
     if (!isLoggedIn) {
-      router.push('/login');
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
     } else if (userProfile?.role !== 'admin') {
       router.push('/catalogo');
     }
-  }, [isLoggedIn, isLoading, userProfile, router]);
+  }, [isLoggedIn, isLoading, userProfile, pathname, router]);
 
   if (isLoading) {
     return (

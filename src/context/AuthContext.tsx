@@ -75,9 +75,32 @@ export function translateAuthError(errorMsg?: any): string {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('dubros_is_logged_in') === 'true';
+    }
+    return false;
+  });
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('dubros_user_profile');
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch {
+          // ignore corrupted JSON
+        }
+      }
+    }
+    return null;
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      // If we have a cached profile, we don't block the UI with a full-page spinner
+      return !localStorage.getItem('dubros_user_profile');
+    }
+    return true;
+  });
 
   // Fetch profile from Supabase
   const fetchProfile = async (user: User) => {
@@ -89,8 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       const userEmail = data?.email || user.email || '';
-      const isAdmin = isUserAdmin(userEmail);
-      const resolvedRole: UserRole = isAdmin ? 'admin' : 'client';
+      const isAdmin = isUserAdmin(userEmail) || data?.role === 'admin';
+      const resolvedRole: UserRole = isAdmin ? 'admin' : (data?.role as UserRole) || 'client';
 
       if (data && !error) {
         const profile: UserProfile = {
@@ -106,6 +129,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         setUserProfile(profile);
         setIsLoggedIn(true);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('dubros_user_profile', JSON.stringify(profile));
+          localStorage.setItem('dubros_is_logged_in', 'true');
+        }
       } else {
         const googleName = (user.user_metadata?.full_name as string) || (user.user_metadata?.name as string) || userEmail.split('@')[0];
         const profile: UserProfile = {
@@ -115,6 +142,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         setUserProfile(profile);
         setIsLoggedIn(true);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('dubros_user_profile', JSON.stringify(profile));
+          localStorage.setItem('dubros_is_logged_in', 'true');
+        }
 
         // Auto create profile row in Supabase for OAuth or first-time users
         try {
@@ -138,29 +169,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // Check current session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
       if (session?.user) {
         fetchProfile(session.user);
       } else {
+        setIsLoggedIn(false);
+        setUserProfile(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('dubros_user_profile');
+          localStorage.removeItem('dubros_is_logged_in');
+        }
         setIsLoading(false);
       }
     });
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        if (!isMounted) return;
+        if (event === 'INITIAL_SESSION') {
+          // Prevent race condition with getSession() above
+          return;
+        }
         if (session?.user) {
           await fetchProfile(session.user);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           setIsLoggedIn(false);
           setUserProfile(null);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('dubros_user_profile');
+            localStorage.removeItem('dubros_is_logged_in');
+          }
           setIsLoading(false);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
@@ -293,10 +345,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: error.message };
     }
 
-    setUserProfile({
+    const updated = {
       ...userProfile,
       ...data,
-    });
+    };
+    setUserProfile(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dubros_user_profile', JSON.stringify(updated));
+    }
     return { success: true };
   };
 
@@ -304,10 +360,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setIsLoggedIn(false);
     setUserProfile(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('dubros_user_profile');
+      localStorage.removeItem('dubros_is_logged_in');
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, userProfile, login, register, loginWithGoogle, completeOnboarding, updateProfile, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, isLoading, userProfile, login, register, loginWithGoogle, completeOnboarding, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );

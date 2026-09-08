@@ -29,7 +29,7 @@ export default function CartPage() {
 
   React.useEffect(() => {
     if (!isLoading && !isLoggedIn) {
-      router.push('/login');
+      router.push('/login?redirect=/mi-cuenta/carrito');
     }
   }, [isLoggedIn, isLoading, router]);
 

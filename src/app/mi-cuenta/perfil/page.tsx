@@ -85,7 +85,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!isLoading) {
       if (!isLoggedIn) {
-        router.push('/login');
+        router.push('/login?redirect=/mi-cuenta/perfil');
         return;
       }
       if (userProfile) {
