@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Package, FileSpreadsheet } from 'lucide-react';
+import { Package, FileSpreadsheet, Calendar, User, ChevronRight } from 'lucide-react';
 import { OrderRecord } from '@/lib/orders';
-import { formatPrice } from '@/lib/formatters';
+import { formatPrice, formatDateSpanish } from '@/lib/formatters';
 import { downloadSwitchXLSX } from '@/lib/export-excel';
 import { OrderStatusBadge } from './OrderStatusBadge';
 
@@ -13,116 +13,146 @@ export interface OrderListItemProps {
 }
 
 export const OrderListItem: React.FC<OrderListItemProps> = ({ order, onClick }) => {
+  const totalPieces = order.total_items || (order.order_items || []).reduce((acc, i) => acc + (i.quantity || 1), 0);
+  const clientName = order.company_name || order.customer_name || 'Cliente';
+
   return (
     <div
       onClick={onClick}
+      className="order-card-modern"
       style={{
-        border: '1px solid #E2E8F0',
-        borderRadius: '10px',
-        padding: '1.5rem',
+        padding: '1.25rem 1.5rem',
         cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        backgroundColor: '#FFFFFF',
-      }}
-      onMouseOver={(e) => {
-        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.06)';
-        e.currentTarget.style.borderColor = '#CBD5E1';
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.boxShadow = 'none';
-        e.currentTarget.style.borderColor = '#E2E8F0';
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
       }}
     >
-      {/* Top Row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-          <Package size={34} color={order.switch_order_number ? '#10B981' : '#1864F6'} />
-          <div>
-            {order.switch_order_number ? (
-              <span
-                style={{
-                  display: 'inline-block',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  color: '#047857',
-                  backgroundColor: '#ECFDF5',
-                  padding: '0.2rem 0.55rem',
-                  borderRadius: '4px',
-                }}
-              >
-                ✓ Switch ERP: #{order.switch_order_number}
-              </span>
-            ) : (
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748B' }}>
-                Pedido Dubros
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-          <div>
-            <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B' }}>Fecha</span>
-            <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#1E293B' }}>
-              {new Date(order.created_at).toLocaleDateString('es-ES')}
-            </span>
-          </div>
-
-          <div>
-            <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B' }}>Subtotal</span>
-            <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1E293B' }}>
-              {formatPrice(order.subtotal, true)}
-            </span>
-          </div>
-
-          <div>
-            <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B', marginBottom: '0.2rem' }}>Estado</span>
-            <OrderStatusBadge status={order.status} size="sm" />
-          </div>
-        </div>
-
-        <div style={{ textAlign: 'right' }}>
-          <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B' }}>No. de Orden</span>
-          <span style={{ display: 'block', fontSize: '1rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.4rem' }}>
-            {order.order_number}
-          </span>
-          <button
-            className="btn-primary"
+      {/* Top Header Row */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <div
             style={{
-              padding: '0.35rem 0.75rem',
-              fontSize: '0.76rem',
-              backgroundColor: '#059669',
-              display: 'inline-flex',
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              backgroundColor: order.switch_order_number ? '#ECFDF5' : 'var(--blue-light)',
+              display: 'flex',
               alignItems: 'center',
-              gap: '0.35rem',
-              fontWeight: 700,
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
-            onClick={(e) => downloadSwitchXLSX(order, e)}
-            title="Descargar archivo Excel .xlsx para Switch ERP"
           >
-            <FileSpreadsheet size={13} /> Excel Switch (.xlsx)
-          </button>
+            <Package size={22} color={order.switch_order_number ? '#10B981' : 'var(--blue)'} />
+          </div>
+
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--navy)' }}>
+                {order.order_number}
+              </span>
+              {order.switch_order_number && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    color: '#065F46',
+                    backgroundColor: '#D1FAE5',
+                    padding: '0.15rem 0.55rem',
+                    borderRadius: '9999px',
+                  }}
+                >
+                  ✓ Switch: #{order.switch_order_number}
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <Calendar size={13} color="var(--text-tertiary)" />
+              {formatDateSpanish(order.created_at, 'bubble')}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <OrderStatusBadge status={order.status} size="md" />
+          <ChevronRight size={18} color="var(--text-tertiary)" />
         </div>
       </div>
 
-      {/* Bottom Metadata */}
-      <div style={{ display: 'flex', gap: '3rem', paddingTop: '0.85rem', borderTop: '1px solid #F1F5F9', fontSize: '0.84rem' }}>
+      {/* Middle Responsive Stats Grid */}
+      <div
+        className="order-meta-grid"
+        style={{
+          padding: '0.85rem 1rem',
+          backgroundColor: 'var(--bg-secondary)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--border-light)',
+        }}
+      >
         <div>
-          <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B' }}>Artículos</span>
-          <span style={{ fontWeight: 600, color: '#1E293B' }}>
-            {order.total_items || (order.order_items || []).reduce((acc, i) => acc + (i.quantity || 1), 0)} piezas
+          <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600 }}>
+            Subtotal
+          </span>
+          <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+            {formatPrice(order.subtotal, false)}
           </span>
         </div>
 
         <div>
-          <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B' }}>Email</span>
-          <span style={{ fontWeight: 600, color: '#1E293B' }}>{order.customer_email}</span>
+          <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600 }}>
+            Artículos
+          </span>
+          <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            {totalPieces} {totalPieces === 1 ? 'pieza' : 'piezas'}
+          </span>
         </div>
 
-        <div>
-          <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B' }}>Cliente / Empresa</span>
-          <span style={{ fontWeight: 600, color: '#1E293B' }}>{order.company_name || order.customer_name || 'N/A'}</span>
+        <div style={{ gridColumn: 'span 2' }}>
+          <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600 }}>
+            Cliente / Empresa
+          </span>
+          <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <User size={13} color="var(--blue)" />
+            {clientName}
+            {order.customer_email && (
+              <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', fontWeight: 400 }}>
+                ({order.customer_email})
+              </span>
+            )}
+          </span>
         </div>
+      </div>
+
+      {/* Bottom Actions Row */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          className="btn-primary"
+          style={{
+            padding: '0.45rem 0.9rem',
+            fontSize: '0.8rem',
+            backgroundColor: '#059669',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            fontWeight: 700,
+            borderRadius: 'var(--radius-sm)',
+          }}
+          onClick={(e) => downloadSwitchXLSX(order, e)}
+          title="Descargar archivo Excel .xlsx para Switch ERP"
+        >
+          <FileSpreadsheet size={14} /> Excel Switch (.xlsx)
+        </button>
       </div>
     </div>
   );

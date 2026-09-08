@@ -7,6 +7,8 @@ import { ShoppingCart, Trash2, ArrowRight, CheckCircle2, ShieldCheck, FileText, 
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { createOrder } from '@/lib/orders';
+import { formatPrice } from '@/lib/formatters';
+import { resolveProductImageUrl, handleImageFallback } from '@/lib/images';
 
 export default function CartPage() {
   const router = useRouter();
@@ -130,7 +132,7 @@ export default function CartPage() {
           </Link>
         </div>
       ) : (
-        <form onSubmit={handleSendOrder} style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem' }}>
+        <form onSubmit={handleSendOrder} className="cart-layout-grid">
           
           {/* ITEMS LIST */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -143,62 +145,60 @@ export default function CartPage() {
             {cartItems.map(({ product, quantity }) => (
               <div
                 key={product.id}
-                className="card"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '90px 1fr auto auto',
-                  gap: '1.25rem',
-                  alignItems: 'center',
-                }}
+                className="card cart-item-grid"
+                style={{ padding: '1.25rem' }}
               >
                 <img
-                  src={product.thumbnailUrl}
+                  src={resolveProductImageUrl(product.thumbnailUrl || (product as any).image || (product as any).imagen)}
                   alt={product.reference}
-                  style={{ width: '90px', height: '80px', objectFit: 'cover', borderRadius: 'var(--radius-md)' }}
+                  onError={handleImageFallback}
+                  style={{ width: '80px', height: '70px', objectFit: 'contain', backgroundColor: '#F8FAFC', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', padding: '4px' }}
                 />
 
-                <div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--blue)' }}>{product.brand}</span>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{product.reference}</h3>
+                <div style={{ minWidth: 0 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--blue)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{product.brand}</span>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '2px 0', wordBreak: 'break-word' }}>{product.reference}</h3>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-                    Cód: {product.code} | Talla {product.eyeSize} | {product.material}
+                    Cód: {product.code} {product.eyeSize ? `| Talla ${product.eyeSize}` : ''} {product.material ? `| ${product.material}` : ''}
                   </div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '0.25rem' }}>
-                    ${product.price.toFixed(2)} por pieza
+                    {formatPrice(product.price)} por pieza
                   </div>
                 </div>
 
-                {/* QUANTITY CONTROLS */}
-                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border-medium)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(product.id, -1)}
-                    style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-secondary)', border: 'none', cursor: 'pointer', fontWeight: 700 }}
-                  >
-                    -
-                  </button>
-                  <span style={{ padding: '0.4rem 0.9rem', fontSize: '0.9rem', fontWeight: 700 }}>{quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(product.id, 1)}
-                    style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-secondary)', border: 'none', cursor: 'pointer', fontWeight: 700 }}
-                  >
-                    +
-                  </button>
-                </div>
-
-                {/* ITEM TOTAL & DELETE */}
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 800 }}>
-                    ${(product.price * quantity).toFixed(2)}
+                <div className="cart-item-actions" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                  {/* QUANTITY CONTROLS */}
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border-medium)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(product.id, -1)}
+                      style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-secondary)', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      -
+                    </button>
+                    <span style={{ padding: '0.4rem 0.9rem', fontSize: '0.9rem', fontWeight: 700 }}>{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(product.id, 1)}
+                      style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-secondary)', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      +
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeFromCart(product.id)}
-                    style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', marginTop: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}
-                  >
-                    <Trash2 size={14} /> Eliminar
-                  </button>
+
+                  {/* ITEM TOTAL & DELETE */}
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 800 }}>
+                      {formatPrice(product.price * quantity)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFromCart(product.id)}
+                      style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', marginTop: '0.25rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}
+                    >
+                      <Trash2 size={14} /> Eliminar
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
