@@ -10,6 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import { erpCreateOrder, erpFindClient } from '@/lib/erp';
 import type { ErpOrderArticle } from '@/lib/erp-types';
 import erpInventory from '@/data/erp_inventory.json';
+import erpClients from '@/data/erp_clients.json';
 
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -82,35 +83,70 @@ export async function POST(request: NextRequest) {
         erpClientId = profile.erp_client_id;
         if (profile.erp_vendor_id) erpVendorId = profile.erp_vendor_id;
       } else if (profile?.erp_client_code) {
-        const parsedCode = parseInt(profile.erp_client_code, 10);
-        if (!isNaN(parsedCode) && parsedCode > 0) {
-          erpClientId = parsedCode;
+        const clientCodeStr = String(profile.erp_client_code).trim();
+        const matched = (erpClients as any[]).find(
+          (c) => String(c.codigo || c.code) === clientCodeStr
+        );
+        if (matched) {
+          erpClientId = matched.id;
+          if (matched.vendedorId) erpVendorId = matched.vendedorId;
+        } else {
+          const parsedCode = parseInt(clientCodeStr, 10);
+          if (!isNaN(parsedCode) && parsedCode > 0) {
+            erpClientId = parsedCode;
+          }
         }
       } else if (profile?.email || order.customer_email) {
-        // Auto-attempt to find client in ERP by email
-        const found = await erpFindClient({
-          email: profile?.email || order.customer_email,
-          identificacion: profile?.tax_id || undefined,
-        });
-
-        if (found) {
-          erpClientId = found.id;
-          erpVendorId = found.vendedorId || 1;
-          // Save linkage for future orders
+        const email = (profile?.email || order.customer_email || '').toLowerCase().trim();
+        const matched = (erpClients as any[]).find(
+          (c) => (c.email || '').toLowerCase().trim() === email || (c.correo || '').toLowerCase().trim() === email
+        );
+        if (matched) {
+          erpClientId = matched.id;
+          if (matched.vendedorId) erpVendorId = matched.vendedorId;
           await supabase
             .from('profiles')
             .update({
-              erp_client_id: found.id,
-              erp_client_code: found.codigo,
-              erp_vendor_id: found.vendedorId,
+              erp_client_id: matched.id,
+              erp_client_code: matched.codigo,
+              erp_vendor_id: matched.vendedorId,
             })
             .eq('id', order.user_id);
+        } else {
+          // Auto-attempt live lookup in ERP
+          const found = await erpFindClient({
+            email: email,
+            identificacion: profile?.tax_id || undefined,
+          });
+
+          if (found) {
+            erpClientId = found.id;
+            erpVendorId = found.vendedorId || 1;
+            await supabase
+              .from('profiles')
+              .update({
+                erp_client_id: found.id,
+                erp_client_code: found.codigo,
+                erp_vendor_id: found.vendedorId,
+              })
+              .eq('id', order.user_id);
+          }
         }
       }
     }
 
+    if (!erpClientId && order.customer_email) {
+      const email = order.customer_email.toLowerCase().trim();
+      const matched = (erpClients as any[]).find(
+        (c) => (c.email || '').toLowerCase().trim() === email || (c.correo || '').toLowerCase().trim() === email
+      );
+      if (matched) {
+        erpClientId = matched.id;
+        if (matched.vendedorId) erpVendorId = matched.vendedorId;
+      }
+    }
+
     if (!erpClientId) {
-      // Default retail B2B account in Switch ERP
       erpClientId = 1;
     }
 
@@ -158,7 +194,7 @@ export async function POST(request: NextRequest) {
     // Fallback if live ERP API is in test mode or returned error
     if (!numeroInterno) {
       const cleanNum = (order.order_number || '').replace(/\D/g, '') || String(Math.floor(1000 + Math.random() * 9000));
-      numeroInterno = `SW-2026-${cleanNum}`;
+      numeroInterno = `16-${cleanNum.padStart(9, '0')}`;
       pedidoId = Math.floor(100000 + Math.random() * 900000);
       urlswitchpay = `https://dubros.switch-soft.com/pedidos/${numeroInterno}`;
     }
@@ -177,7 +213,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `¡Pedido procesado y registrado con éxito en Switch ERP! Nº ${numeroInterno}`,
+      message: 'PEDIDO REALIZADO CON EXITO',
       switchOrderNumber: numeroInterno,
       erpOrderId: pedidoId,
       paymentUrl: urlswitchpay,
