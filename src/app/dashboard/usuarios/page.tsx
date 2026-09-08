@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2 } from 'lucide-react';
+import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
 import { UserRole } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -14,6 +14,14 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  // Password Reset / Update Modal State
+  const [passwordModalUser, setPasswordModalUser] = useState<UserProfileRecord | null>(null);
+  const [directNewPassword, setDirectNewPassword] = useState('');
+  const [passwordActionLoading, setPasswordActionLoading] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [passwordModalMsg, setPasswordModalMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // New User Form State
   const [isCreatingUser, setIsCreatingUser] = useState(false);
@@ -113,6 +121,79 @@ export default function AdminUsersPage() {
         type: 'error',
         message: res.error || 'Error al actualizar el usuario.',
       });
+    }
+  };
+
+  const handleSendResetLinkToAdmin = async (email: string) => {
+    setPasswordActionLoading(true);
+    setPasswordModalMsg(null);
+    setGeneratedLink(null);
+    try {
+      const res = await fetch('/api/auth/reset-password-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setGeneratedLink(data.actionLink || null);
+        setPasswordModalMsg({
+          type: 'success',
+          text: `¡Enlace generado exitosamente! Se ha enviado una notificación con el enlace a dubroswix@gmail.com.`,
+        });
+      } else {
+        setPasswordModalMsg({
+          type: 'error',
+          text: data.error || 'Error al generar el enlace de restablecimiento.',
+        });
+      }
+    } catch {
+      setPasswordModalMsg({
+        type: 'error',
+        text: 'Error de conexión con el servidor.',
+      });
+    } finally {
+      setPasswordActionLoading(false);
+    }
+  };
+
+  const handleUpdatePasswordDirectly = async (userId: string) => {
+    if (!directNewPassword || directNewPassword.length < 6) {
+      setPasswordModalMsg({
+        type: 'error',
+        text: 'La nueva contraseña debe tener al menos 6 caracteres.',
+      });
+      return;
+    }
+
+    setPasswordActionLoading(true);
+    setPasswordModalMsg(null);
+    try {
+      const res = await fetch('/api/admin/users/update-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, newPassword: directNewPassword }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPasswordModalMsg({
+          type: 'success',
+          text: `¡Contraseña actualizada con éxito para este usuario!`,
+        });
+        setDirectNewPassword('');
+      } else {
+        setPasswordModalMsg({
+          type: 'error',
+          text: data.error || 'Error al actualizar la contraseña.',
+        });
+      }
+    } catch {
+      setPasswordModalMsg({
+        type: 'error',
+        text: 'Error de red al actualizar la contraseña.',
+      });
+    } finally {
+      setPasswordActionLoading(false);
     }
   };
 
@@ -636,6 +717,29 @@ export default function AdminUsersPage() {
                           </button>
                         )}
 
+                        <button
+                          disabled={processingId === user.id}
+                          onClick={() => {
+                            setPasswordModalUser(user);
+                            setGeneratedLink(null);
+                            setCopiedLink(false);
+                            setPasswordModalMsg(null);
+                            setDirectNewPassword('');
+                          }}
+                          className="btn-secondary"
+                          style={{
+                            padding: '0.35rem 0.75rem',
+                            fontSize: '0.75rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            color: '#0F172A',
+                          }}
+                          title="Actualizar contraseña o generar enlace para dubroswix@gmail.com"
+                        >
+                          <KeyRound size={13} color="var(--blue)" /> Contraseña
+                        </button>
+
                         {user.role === 'client' && (
                           <button
                             disabled={processingId === user.id}
@@ -667,6 +771,179 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {/* PASSWORD RESET / UPDATE MODAL */}
+      {passwordModalUser && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '1rem',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              padding: '2rem',
+              maxWidth: '520px',
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--blue)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Seguridad de Acceso
+                </span>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0.25rem 0', color: '#0F172A' }}>
+                  Actualizar Contraseña
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: '#64748B', margin: 0 }}>
+                  Usuario: <strong style={{ color: '#0F172A' }}>{passwordModalUser.email}</strong>
+                </p>
+              </div>
+              <button
+                onClick={() => setPasswordModalUser(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {passwordModalMsg && (
+              <div
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  marginBottom: '1.25rem',
+                  backgroundColor: passwordModalMsg.type === 'success' ? '#ECFDF5' : '#FEF2F2',
+                  color: passwordModalMsg.type === 'success' ? '#065F46' : '#991B1B',
+                  border: `1px solid ${passwordModalMsg.type === 'success' ? '#A7F3D0' : '#FECACA'}`,
+                }}
+              >
+                {passwordModalMsg.text}
+              </div>
+            )}
+
+            {/* OPTION 1: SEND RECOVERY LINK TO DUBROSWIX */}
+            <div
+              style={{
+                border: '1px solid #E2E8F0',
+                borderRadius: '12px',
+                padding: '1.25rem',
+                backgroundColor: '#F8FAFC',
+                marginBottom: '1.25rem',
+              }}
+            >
+              <h4 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.35rem 0', color: '#0F172A' }}>
+                1. Generar Link (Enviar a dubroswix@gmail.com)
+              </h4>
+              <p style={{ fontSize: '0.8rem', color: '#64748B', margin: '0 0 0.85rem 0', lineHeight: 1.4 }}>
+                Crea el enlace de recuperación oficial para <strong>{passwordModalUser.email}</strong> y lo envía directamente a <strong>dubroswix@gmail.com</strong>.
+              </p>
+              <button
+                disabled={passwordActionLoading}
+                onClick={() => handleSendResetLinkToAdmin(passwordModalUser.email)}
+                className="btn-primary"
+                style={{
+                  padding: '0.55rem 1rem',
+                  fontSize: '0.82rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                {passwordActionLoading ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                Generar y Enviar Link a dubroswix@gmail.com
+              </button>
+
+              {generatedLink && (
+                <div style={{ marginTop: '1rem', paddingTop: '0.85rem', borderTop: '1px solid #E2E8F0' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginBottom: '0.35rem' }}>
+                    Enlace de recuperación generado:
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input
+                      type="text"
+                      readOnly
+                      value={generatedLink}
+                      style={{
+                        flex: 1,
+                        fontSize: '0.75rem',
+                        padding: '0.4rem 0.6rem',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '6px',
+                        color: '#64748B',
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedLink);
+                        setCopiedLink(true);
+                        setTimeout(() => setCopiedLink(false), 3000);
+                      }}
+                      className="btn-secondary"
+                      style={{ padding: '0.4rem 0.75rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                    >
+                      {copiedLink ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
+                      {copiedLink ? 'Copiado' : 'Copiar'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* OPTION 2: DIRECT PASSWORD UPDATE */}
+            <div
+              style={{
+                border: '1px solid #E2E8F0',
+                borderRadius: '12px',
+                padding: '1.25rem',
+                backgroundColor: '#FFFFFF',
+              }}
+            >
+              <h4 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.35rem 0', color: '#0F172A' }}>
+                2. Definir Contraseña Inmediata
+              </h4>
+              <p style={{ fontSize: '0.8rem', color: '#64748B', margin: '0 0 0.85rem 0', lineHeight: 1.4 }}>
+                O si prefieres, escribe aquí la nueva contraseña y se actualizará de inmediato en el sistema.
+              </p>
+              <div style={{ display: 'flex', gap: '0.6rem' }}>
+                <input
+                  type="text"
+                  placeholder="Nueva contraseña (mínimo 6 caracteres)"
+                  value={directNewPassword}
+                  onChange={(e) => setDirectNewPassword(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '0.55rem 0.8rem',
+                    borderRadius: '8px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '0.85rem',
+                  }}
+                />
+                <button
+                  disabled={passwordActionLoading || directNewPassword.length < 6}
+                  onClick={() => handleUpdatePasswordDirectly(passwordModalUser.id)}
+                  className="btn-primary"
+                  style={{ padding: '0.55rem 1rem', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+                >
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

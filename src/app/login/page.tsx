@@ -156,17 +156,20 @@ function LoginPageContent() {
     setForgotError(null);
 
     try {
-      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const res = await fetch('/api/auth/reset-password-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
       });
+      const data = await res.json();
 
-      if (resetErr) {
-        setForgotError(translateAuthError(resetErr.message));
-      } else {
+      if (res.ok && data.success) {
         setForgotSuccess(true);
+      } else {
+        setForgotError(data.error || 'No se pudo enviar la solicitud.');
       }
     } catch (e: any) {
-      setForgotError('No se pudo enviar el correo de recuperación.');
+      setForgotError('No se pudo enviar la solicitud de recuperación.');
     } finally {
       setForgotLoading(false);
     }
@@ -726,9 +729,9 @@ function LoginPageContent() {
             {forgotSuccess ? (
               <div style={{ textAlign: 'center', padding: '1rem 0' }}>
                 <CheckCircle2 size={44} color="#10B981" style={{ margin: '0 auto 0.75rem auto' }} />
-                <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.3rem' }}>¡Correo enviado!</h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                  Revisa tu bandeja de entrada en <strong>{forgotEmail}</strong> y sigue las instrucciones.
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.3rem' }}>¡Solicitud enviada al Administrador!</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                  El enlace para actualizar la contraseña de <strong>{forgotEmail}</strong> ha sido enviado a la administración central (<strong>dubroswix@gmail.com</strong>).
                 </p>
                 <button
                   type="button"
@@ -740,7 +743,7 @@ function LoginPageContent() {
                   className="btn-primary"
                   style={{ width: '100%', padding: '0.65rem' }}
                 >
-                  Cerrar
+                  Entendido
                 </button>
               </div>
             ) : (
