@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/mailer';
 
@@ -27,13 +27,45 @@ export async function POST(req: NextRequest) {
     const origin = req.nextUrl.origin || 'https://dubros-app.vercel.app';
 
     // 1. Generate secure password recovery link for targetEmail
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    let { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: targetEmail,
       options: {
         redirectTo: `${origin}/reset-password`,
       },
     });
+
+    if (linkError || !linkData?.properties?.action_link) {
+      console.warn('[ResetPasswordRequest] Initial link generation failed, checking profiles:', linkError?.message);
+      // Check if user exists in public.profiles table
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('id, email')
+        .ilike('email', targetEmail)
+        .maybeSingle();
+
+      if (profile?.email) {
+        // Provision user in auth.users
+        const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
+          id: profile.id,
+          email: profile.email,
+          email_confirm: true,
+        });
+
+        if (!createErr) {
+          // Retry generating recovery link
+          const retry = await supabaseAdmin.auth.admin.generateLink({
+            type: 'recovery',
+            email: profile.email,
+            options: {
+              redirectTo: `${origin}/reset-password`,
+            },
+          });
+          linkData = retry.data;
+          linkError = retry.error;
+        }
+      }
+    }
 
     if (linkError || !linkData?.properties?.action_link) {
       console.error('[ResetPasswordRequest] Supabase link generation error:', linkError);

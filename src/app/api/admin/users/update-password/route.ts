@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 function getSupabaseAdmin() {
@@ -34,7 +34,30 @@ export async function POST(req: NextRequest) {
     });
 
     if (error) {
-      console.error('[AdminUpdatePassword] Error:', error);
+      console.warn('[AdminUpdatePassword] updateUserById error, attempting to create auth user:', error.message);
+      // If user exists in public.profiles but not yet in auth.users, provision them now
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('id, email')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (profile?.email) {
+        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          id: profile.id,
+          email: profile.email,
+          password: newPassword,
+          email_confirm: true,
+        });
+
+        if (!createError && newUser?.user) {
+          return NextResponse.json({
+            success: true,
+            message: `Usuario aprovisionado y contraseña actualizada con éxito para ${profile.email}.`,
+          });
+        }
+      }
+
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
