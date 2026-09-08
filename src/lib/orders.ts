@@ -97,17 +97,24 @@ export async function createOrder({
     }
 
     // 2. Insert order items
-    const itemsToInsert = cartItems.map((item) => ({
-      order_id: orderData.id,
-      product_id: item.product.id,
-      reference: item.product.reference,
-      code: item.product.code,
-      brand: item.product.brand,
-      material: item.product.material,
-      unit_price: item.product.price,
-      quantity: item.quantity,
-      total_price: item.product.price * item.quantity,
-    }));
+    const isValidUUID = (id?: string | null) => 
+      typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+    const itemsToInsert = cartItems.map((item) => {
+      const lineTotal = Number(item.product.price || 0) * Number(item.quantity || 1);
+      return {
+        order_id: orderData.id,
+        product_id: isValidUUID(item.product.id) ? item.product.id : null,
+        reference: item.product.reference || '',
+        code: item.product.code || '',
+        brand: item.product.brand || '',
+        material: item.product.material || '',
+        unit_price: Number(item.product.price || 0),
+        quantity: Number(item.quantity || 1),
+        item_subtotal: lineTotal,
+        total_price: lineTotal,
+      };
+    });
 
     const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
 

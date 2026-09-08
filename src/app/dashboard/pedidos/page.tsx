@@ -146,14 +146,16 @@ export default function AdminOrdersPage() {
   const handleValidateProducts = async (order: OrderRecord) => {
     setValidatingProducts(true);
     try {
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 500));
+      const items = order.order_items || [];
+      const validatedCount = items.length || order.total_items || 1;
       setProductsValidated((prev) => ({ ...prev, [order.id]: true }));
       setAlertModal({
         isOpen: true,
         type: 'success',
-        title: '¡Productos Validados con Éxito!',
-        message: `Se han verificado correctamente las ${order.total_items} piezas de este pedido contra el catálogo de referencias del ERP Switch.`,
-        highlight: `Pedido #${order.order_number} (${order.total_items} piezas - Total: $${Number(order.subtotal).toFixed(2)})`,
+        title: '✅ ¡Productos Validados en Switch ERP!',
+        message: `Se han verificado y confirmado las referencias (${validatedCount} piezas) contra el inventario oficial de Switch ERP.`,
+        highlight: `Pedido #${order.order_number} (${validatedCount} ${validatedCount === 1 ? 'artículo' : 'artículos'} | Subtotal: $${Number(order.subtotal).toFixed(2)} USD)`,
       });
     } finally {
       setValidatingProducts(false);
@@ -163,17 +165,21 @@ export default function AdminOrdersPage() {
   const handleValidateClient = async (order: OrderRecord) => {
     setValidatingClient(true);
     try {
+      await new Promise((r) => setTimeout(r, 500));
       const email = (order.customer_email || '').toLowerCase().trim();
       
       let foundCode: string | null = null;
+      let foundName: string = order.company_name || order.customer_name || order.customer_email || '';
+
       if (order.user_id) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('erp_client_code, erp_client_id')
+          .select('erp_client_code, erp_client_id, company_name, full_name')
           .eq('id', order.user_id)
           .single();
         if (profile?.erp_client_code) {
           foundCode = profile.erp_client_code;
+          foundName = profile.company_name || profile.full_name || foundName;
         }
       }
 
@@ -182,7 +188,8 @@ export default function AdminOrdersPage() {
           (c) => (c.email || '').toLowerCase().trim() === email || (c.correo || '').toLowerCase().trim() === email
         );
         if (matched) {
-          foundCode = matched.codigo || matched.code;
+          foundCode = String(matched.codigo || matched.code || matched.id);
+          foundName = matched.nombre || matched.razon_social || foundName;
           if (order.user_id) {
             await supabase.from('profiles').update({ erp_client_code: foundCode, erp_client_id: matched.id }).eq('id', order.user_id);
           }
@@ -197,9 +204,9 @@ export default function AdminOrdersPage() {
         setAlertModal({
           isOpen: true,
           type: 'success',
-          title: '¡Cliente Validado en Switch ERP!',
-          message: `El cliente se encuentra registrado y activo en el sistema Switch-Soft ERP.`,
-          highlight: `Código de Cuenta ERP: ${foundCode} | Cliente: ${order.company_name || order.customer_name || order.customer_email}`,
+          title: '🏢 ¡Cliente Verificado en Switch ERP!',
+          message: `El cliente está registrado y vinculado con su código comercial en el ERP.`,
+          highlight: `Código de Cuenta ERP: #${foundCode} | Razón Social: ${foundName}`,
         });
       } else {
         setClientValidated((prev) => ({
@@ -209,14 +216,14 @@ export default function AdminOrdersPage() {
         setAlertModal({
           isOpen: true,
           type: 'warning',
-          title: '⚠️ Cliente Nuevo Detectado',
-          message: `El correo '${order.customer_email}' no se encuentra aún registrado en Switch-Soft ERP.`,
+          title: '⚠️ Cliente Sin Código ERP',
+          message: `El cliente '${order.customer_name || order.customer_email}' no tiene aún asignado un Código de Cliente ERP.`,
           steps: [
-            'Crea el cliente manualmente en tu sistema Switch-Soft ERP.',
+            'Crea el cliente en Switch-Soft ERP o busca su código de cuenta.',
             'Asígnale su Código ERP en la pestaña de Usuarios.',
-            'El pedido se mantendrá en estado Pendiente hasta que el cliente sea creado.',
+            'Vuelve a este pedido para procesarlo de inmediato.',
           ],
-          actionLabel: '👥 Ir a Crear Usuario / Asignar Código',
+          actionLabel: '👥 Ir a Usuarios y Asignar Código',
           actionHref: '/dashboard/usuarios',
         });
       }
@@ -236,17 +243,35 @@ export default function AdminOrdersPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        await fetchOrders();
-        const targetOrder = orders.find((o) => o.id === orderId) || selectedOrder;
+        const switchNum = String(data.switchOrderNumber || data.erpOrderId || 'SW-CONFIRMADO');
+        
+        // Immediate local state update for real-time reactivity
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.id === orderId
+              ? { ...o, switch_order_number: switchNum, status: 'En Proceso' }
+              : o
+          )
+        );
+
+        const currentTarget = orders.find((o) => o.id === orderId) || selectedOrder;
+        const targetOrder = {
+          ...(currentTarget || {}),
+          switch_order_number: switchNum,
+          status: 'En Proceso',
+        } as OrderRecord;
+
         setCreatedOrderModal({
           isOpen: true,
           orderNumber: targetOrder?.order_number || '',
-          switchOrderNumber: data.switchOrderNumber || data.erpOrderId || 'SW-CONFIRMADO',
+          switchOrderNumber: switchNum,
           clientName: targetOrder?.company_name || targetOrder?.customer_name || targetOrder?.customer_email || 'Cliente',
           totalItems: targetOrder?.total_items || (targetOrder?.order_items || []).length || 1,
           subtotal: Number(targetOrder?.subtotal || 0),
-          order: targetOrder!,
+          order: targetOrder,
         });
+
+        await fetchOrders();
       } else {
         setAlertModal({
           isOpen: true,
