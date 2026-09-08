@@ -6,6 +6,7 @@ export interface UserProfileRecord {
   email: string;
   role: UserRole;
   name?: string;
+  full_name?: string;
   phone?: string;
   country?: string;
   company_name?: string;
@@ -13,6 +14,9 @@ export interface UserProfileRecord {
   tax_id?: string;
   address?: string;
   created_at?: string;
+  erp_client_id?: number | null;
+  erp_client_code?: string | null;
+  client_code?: string | null;
 }
 
 import bubbleUsers from '@/data/bubble_users.json';
@@ -21,11 +25,14 @@ import { isUserAdmin } from '@/context/AuthContext';
 export const MOCK_ADMIN_USERS: UserProfileRecord[] = (bubbleUsers as any[]).map((u) => ({
   id: u.id,
   email: u.email,
-  name: u.email.split('@')[0],
-  company_name: u.clientCode ? `Cliente ERP #${u.clientCode}` : (u.businessType || 'Óptica / Distribuidor'),
-  country: u.country,
-  business_type: u.businessType || 'Óptica',
+  name: u.full_name || u.email.split('@')[0],
+  company_name: u.company_name || (u.client_code ? `Cliente #${u.client_code}` : 'Óptica / Distribuidor'),
+  country: u.country_code || 'PA',
+  business_type: u.business_type || 'Óptica',
   role: isUserAdmin(u.email) ? 'admin' : 'client',
+  erp_client_id: u.client_code ? Number(u.client_code) : null,
+  erp_client_code: u.client_code || null,
+  client_code: u.client_code || null,
   created_at: '2026-01-15T10:00:00Z',
 }));
 
@@ -45,7 +52,8 @@ export async function fetchAllProfiles(): Promise<UserProfileRecord[]> {
 
     const all = [...dbProfiles, ...missingMocks].map((p) => ({
       ...p,
-      role: isUserAdmin(p.email) ? 'admin' : 'client',
+      name: p.full_name || p.name || p.email.split('@')[0],
+      role: isUserAdmin(p.email) ? 'admin' : (p.role || 'client'),
     }));
 
     return all as UserProfileRecord[];
