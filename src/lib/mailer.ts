@@ -1,9 +1,8 @@
-﻿// =============================================================================
-// Helper: Email Notification Dispatcher (Resend / SendGrid REST API)
 // =============================================================================
-// Works directly using native fetch without requiring additional npm packages.
-// Supports both RESEND_API_KEY and SENDGRID_API_KEY.
+// Helper: Email Notification Dispatcher (Gmail SMTP / Resend / SendGrid)
 // =============================================================================
+
+import nodemailer from 'nodemailer';
 
 export interface SendEmailOptions {
   to: string;
@@ -18,6 +17,35 @@ export async function sendEmail({
   html,
   text,
 }: SendEmailOptions): Promise<{ success: boolean; provider?: string; error?: string }> {
+  // 1. Try Gmail SMTP if configured (using Google App Password)
+  const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
+  const gmailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
+
+  if (gmailUser && gmailPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: gmailUser.trim(),
+          pass: gmailPass.replace(/\s+/g, ''), // Strip spaces from Google 16-char App Password
+        },
+      });
+
+      const info = await transporter.sendMail({
+        from: `"Dubros B2B" <${gmailUser.trim()}>`,
+        to,
+        subject,
+        html,
+        text: text || html.replace(/<[^>]+>/g, ''),
+      });
+
+      console.log('[Mailer] Email sent via Gmail SMTP:', info.messageId);
+      return { success: true, provider: 'gmail' };
+    } catch (err: any) {
+      console.error('[Mailer] Gmail SMTP send failed:', err);
+    }
+  }
+
   const resendApiKey = process.env.RESEND_API_KEY;
   const sendgridApiKey = process.env.SENDGRID_API_KEY;
 
