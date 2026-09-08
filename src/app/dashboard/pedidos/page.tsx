@@ -1149,37 +1149,25 @@ export default function AdminOrdersPage() {
                 onMouseOut={(e) => e.currentTarget.style.boxShadow = 'none'}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'flex-start' }}>
-                    <Package size={36} color={order.switch_order_number ? "#10B981" : "#F59E0B"} />
+                  <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
+                    <Package size={36} color={order.switch_order_number ? "#10B981" : "var(--blue)"} />
                     <div>
-                      <span style={{ 
-                        display: 'inline-block', 
-                        fontSize: '0.8rem', 
-                        fontWeight: 700, 
-                        color: order.switch_order_number ? '#047857' : '#B45309',
-                        backgroundColor: order.switch_order_number ? '#ECFDF5' : '#FFFBEB',
-                        padding: '0.2rem 0.55rem',
-                        borderRadius: '4px',
-                        marginBottom: '0.3rem' 
-                      }}>
-                        {order.switch_order_number ? '✓ Sincronizado en Switch ERP' : '⏳ Pendiente en Switch ERP'}
-                      </span>
                       {order.switch_order_number ? (
-                        <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                          Pedido Switch: <strong style={{ color: 'var(--blue)' }}>#{order.switch_order_number}</strong>
+                        <span style={{ 
+                          display: 'inline-block', 
+                          fontSize: '0.8rem', 
+                          fontWeight: 700, 
+                          color: '#047857',
+                          backgroundColor: '#ECFDF5',
+                          padding: '0.2rem 0.55rem',
+                          borderRadius: '4px',
+                        }}>
+                          ✓ Switch ERP: #{order.switch_order_number}
                         </span>
                       ) : (
-                        <div style={{ marginTop: '0.25rem' }}>
-                          <button
-                            type="button"
-                            onClick={(e) => handleSyncOrderWithERP(order.id, e)}
-                            disabled={syncingOrderId === order.id}
-                            className="btn-primary"
-                            style={{ padding: '0.3rem 0.65rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                          >
-                            {syncingOrderId === order.id ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : '⚡'} Enviar a ERP Switch
-                          </button>
-                        </div>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                          Pedido Dubros
+                        </span>
                       )}
                     </div>
                   </div>
