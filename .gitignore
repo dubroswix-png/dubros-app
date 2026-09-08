@@ -29,9 +29,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# env files (can opt-in for committing if needed)
+# env files (never commit)
 .env*
 scratch/
+
+# scripts, sql migrations and sensitive data
+/scripts/
+*.sql
+*.pdf
+*.log
 
 # vercel
 .vercel
@@ -39,3 +45,4 @@ scratch/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
