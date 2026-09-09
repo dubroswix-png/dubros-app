@@ -1,4 +1,4 @@
-﻿-- ==============================================================================
+-- ==============================================================================
 -- MIGRATION: Add 'manager' (Gerente) role to public.user_role enum
 -- ==============================================================================
 -- Run this query in the Supabase SQL Editor:
@@ -12,7 +12,8 @@ UPDATE public.profiles
 SET role = 'manager'
 WHERE lower(email) IN (
   'yorgelis.t7@hotmail.com',
-  'ventas@dubros.com'
+  'ventas@dubros.com',
+  'ventasfrancisco@dubros.com'
 );
 
 -- 3. Confirm the update
@@ -21,5 +22,6 @@ FROM public.profiles
 WHERE lower(email) IN (
   'yorgelis.t7@hotmail.com',
   'ventas@dubros.com',
+  'ventasfrancisco@dubros.com',
   'dubroswix@gmail.com'
 );

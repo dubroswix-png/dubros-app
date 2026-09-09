@@ -35,7 +35,7 @@ interface AuthContextType {
 }
 
 export const ADMIN_EMAILS = ['dubroswix@gmail.com', 'dfduqu01@gmail.com'];
-export const MANAGER_EMAILS = ['yorgelis.t7@hotmail.com', 'ventas@dubros.com'];
+export const MANAGER_EMAILS = ['yorgelis.t7@hotmail.com', 'ventas@dubros.com', 'ventasfrancisco@dubros.com'];
 
 export const isUserAdmin = (email?: string | null): boolean => {
   if (!email) return false;
