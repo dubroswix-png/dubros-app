@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowLeft, FileSpreadsheet, Printer, Loader2, CheckCircle2, User, Calendar } from 'lucide-react';
+import { ArrowLeft, FileSpreadsheet, Printer, Loader2, CheckCircle2, User, Calendar, Trash2 } from 'lucide-react';
 import { OrderRecord } from '@/lib/orders';
 import { resolveProductImageUrl, handleImageFallback } from '@/lib/images';
 import { formatPrice, formatDateSpanish } from '@/lib/formatters';
@@ -18,6 +18,8 @@ export interface OrderDetailViewProps {
   validatingProducts: boolean;
   validatingClient: boolean;
   syncingOrder: boolean;
+  isAdmin?: boolean;
+  onDelete?: (order: OrderRecord) => void;
   onValidateProducts: () => void;
   onValidateClient: () => void;
   onCreateOrder: () => void;
@@ -32,6 +34,8 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
   validatingProducts,
   validatingClient,
   syncingOrder,
+  isAdmin,
+  onDelete,
   onValidateProducts,
   onValidateClient,
   onCreateOrder,
@@ -76,9 +80,29 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
             <ArrowLeft size={16} /> Volver
           </button>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--navy)', margin: 0 }}>
-              Pedido {order.order_number}
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--navy)', margin: 0 }}>
+                Pedido {order.order_number}
+              </h2>
+              {order.switch_order_number && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 800,
+                    color: '#065F46',
+                    backgroundColor: '#D1FAE5',
+                    border: '1px solid #A7F3D0',
+                    padding: '0.2rem 0.6rem',
+                    borderRadius: '6px',
+                  }}
+                >
+                  ✓ Switch: #{order.switch_order_number}
+                </span>
+              )}
+            </div>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
               Cliente: <strong>{clientName}</strong> ({order.customer_email})
             </div>
@@ -118,6 +142,29 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
           >
             <Printer size={15} /> Imprimir
           </button>
+
+          {isAdmin && onDelete && (
+            <button
+              onClick={() => onDelete(order)}
+              className="btn-secondary"
+              style={{
+                padding: '0.5rem 0.9rem',
+                fontSize: '0.84rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontWeight: 600,
+                color: '#DC2626',
+                backgroundColor: '#FEF2F2',
+                border: '1px solid #FECACA',
+                borderRadius: 'var(--radius-sm)',
+                cursor: 'pointer',
+              }}
+              title="Eliminar este pedido permanentemente (Solo Admin)"
+            >
+              <Trash2 size={15} /> Eliminar Pedido
+            </button>
+          )}
         </div>
       </div>
 
@@ -309,7 +356,7 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
           <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.2rem' }}>
             Estado
           </span>
-          <OrderStatusBadge status={order.status} size="sm" />
+          <OrderStatusBadge status={order.switch_order_number ? 'Procesado' : order.status} size="sm" />
         </div>
 
         {order.switch_order_number && (

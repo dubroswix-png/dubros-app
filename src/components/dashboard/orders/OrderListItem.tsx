@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Package, FileSpreadsheet, Calendar, User, ChevronRight } from 'lucide-react';
+import { Package, FileSpreadsheet, Calendar, User, ChevronRight, Trash2 } from 'lucide-react';
 import { OrderRecord } from '@/lib/orders';
 import { formatPrice, formatDateSpanish } from '@/lib/formatters';
 import { downloadSwitchXLSX } from '@/lib/export-excel';
@@ -10,11 +10,14 @@ import { OrderStatusBadge } from './OrderStatusBadge';
 export interface OrderListItemProps {
   order: OrderRecord;
   onClick: () => void;
+  isAdmin?: boolean;
+  onDelete?: (order: OrderRecord, e: React.MouseEvent) => void;
 }
 
-export const OrderListItem: React.FC<OrderListItemProps> = ({ order, onClick }) => {
+export const OrderListItem: React.FC<OrderListItemProps> = ({ order, onClick, isAdmin, onDelete }) => {
   const totalPieces = order.total_items || (order.order_items || []).reduce((acc, i) => acc + (i.quantity || 1), 0);
   const clientName = order.company_name || order.customer_name || 'Cliente';
+  const effectiveStatus = order.switch_order_number ? 'Procesado' : (order.status === 'En Proceso' ? 'Procesado' : order.status);
 
   return (
     <div
@@ -51,7 +54,7 @@ export const OrderListItem: React.FC<OrderListItemProps> = ({ order, onClick }) 
               flexShrink: 0,
             }}
           >
-            <Package size={22} color={order.switch_order_number ? '#10B981' : 'var(--blue)'} />
+            <Package size={22} color={order.switch_order_number ? '#047857' : 'var(--blue)'} />
           </div>
 
           <div>
@@ -64,13 +67,14 @@ export const OrderListItem: React.FC<OrderListItemProps> = ({ order, onClick }) 
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.25rem',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
+                    gap: '0.3rem',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
                     color: '#065F46',
                     backgroundColor: '#D1FAE5',
-                    padding: '0.15rem 0.55rem',
-                    borderRadius: '9999px',
+                    border: '1px solid #A7F3D0',
+                    padding: '0.2rem 0.6rem',
+                    borderRadius: '6px',
                   }}
                 >
                   ✓ Switch: #{order.switch_order_number}
@@ -84,8 +88,42 @@ export const OrderListItem: React.FC<OrderListItemProps> = ({ order, onClick }) 
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <OrderStatusBadge status={order.status} size="md" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <OrderStatusBadge status={effectiveStatus} size="md" />
+
+          {isAdmin && onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(order, e);
+              }}
+              title="Eliminar pedido permanentemente (Solo Admin)"
+              style={{
+                backgroundColor: '#FEF2F2',
+                border: '1px solid #FECACA',
+                color: '#DC2626',
+                borderRadius: '8px',
+                width: '32px',
+                height: '32px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#FEE2E2';
+                e.currentTarget.style.borderColor = '#F87171';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#FEF2F2';
+                e.currentTarget.style.borderColor = '#FECACA';
+              }}
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
+
           <ChevronRight size={18} color="var(--text-tertiary)" />
         </div>
       </div>

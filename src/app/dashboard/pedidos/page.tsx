@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth, isUserAdmin } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { getAllOrders, OrderRecord } from '@/lib/orders';
 import { supabase } from '@/lib/supabase';
 import erpClients from '@/data/erp_clients.json';
@@ -21,11 +23,20 @@ import { AdminAlertModal, AdminAlertModalProps } from '@/components/dashboard/sh
 
 export default function AdminOrdersPage() {
   const { t } = useLanguage();
+  const { userProfile } = useAuth();
+  const { showToast } = useToast();
+  const isAdmin = isUserAdmin(userProfile?.email) || userProfile?.role === 'admin';
+
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
+
+  // Delete Order State (Admin Only)
+  const [orderToDelete, setOrderToDelete] = useState<OrderRecord | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Filters State
   const [search, setSearch] = useState('');
@@ -305,6 +316,39 @@ export default function AdminOrdersPage() {
     }
   };
 
+  // Actions: Delete Order (Admin Only)
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch('/api/admin/orders/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: orderToDelete.id,
+          requesterEmail: userProfile?.email,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+        showToast(`Pedido ${orderToDelete.order_number} eliminado permanentemente.`, 'success');
+        if (selectedOrderId === orderToDelete.id) {
+          handleSelectOrder(null);
+        }
+        setOrderToDelete(null);
+        setDeleteError(null);
+      } else {
+        setDeleteError(data.error || 'Error al eliminar el pedido.');
+      }
+    } catch {
+      setDeleteError('Error de red al conectar con el servidor.');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -326,6 +370,130 @@ export default function AdminOrdersPage() {
 
   const selectedOrder = orders.find((o) => o.id === selectedOrderId);
 
+  const renderDeleteModal = () => {
+    if (!orderToDelete || !isAdmin) return null;
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          padding: '1rem',
+        }}
+      >
+        <div
+          className="animate-success-pop"
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: '16px',
+            maxWidth: '440px',
+            width: '100%',
+            padding: '1.75rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+            border: '1px solid #FEE2E2',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              backgroundColor: '#FEE2E2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.25rem auto',
+              color: '#DC2626',
+            }}
+          >
+            <Trash2 size={28} />
+          </div>
+
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1E293B', marginBottom: '0.5rem' }}>
+            ¿Eliminar pedido definitivamente?
+          </h3>
+          <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+            Estás a punto de eliminar el pedido <strong style={{ color: '#0F172A' }}>{orderToDelete.order_number}</strong> de <strong style={{ color: '#0F172A' }}>{orderToDelete.company_name || orderToDelete.customer_name || orderToDelete.customer_email}</strong>. Esta acción borrará el pedido permanentemente.
+          </p>
+
+          {deleteError && (
+            <div
+              style={{
+                marginBottom: '1.25rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                backgroundColor: '#FEF2F2',
+                color: '#991B1B',
+                border: '1px solid #FECACA',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                textAlign: 'left',
+              }}
+            >
+              <AlertTriangle size={18} style={{ flexShrink: 0, color: '#DC2626' }} />
+              <span>{deleteError}</span>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+            <button
+              disabled={deleteLoading}
+              onClick={() => {
+                setOrderToDelete(null);
+                setDeleteError(null);
+              }}
+              className="btn-secondary"
+              style={{ flex: 1, padding: '0.65rem 1rem', fontSize: '0.88rem', fontWeight: 600 }}
+            >
+              Cancelar
+            </button>
+            <button
+              disabled={deleteLoading}
+              onClick={handleDeleteOrder}
+              style={{
+                flex: 1,
+                padding: '0.65rem 1rem',
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                backgroundColor: '#DC2626',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                opacity: deleteLoading ? 0.7 : 1,
+              }}
+            >
+              {deleteLoading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <Trash2 size={16} />
+                  Sí, eliminar
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // VIEW 1: DETAIL VIEW
   if (selectedOrder) {
     const isProductsValid = !!productsValidated[selectedOrder.id];
@@ -344,6 +512,11 @@ export default function AdminOrdersPage() {
           validatingProducts={validatingProducts}
           validatingClient={validatingClient}
           syncingOrder={syncingOrderId === selectedOrder.id}
+          isAdmin={isAdmin}
+          onDelete={(o) => {
+            setDeleteError(null);
+            setOrderToDelete(o);
+          }}
           onValidateProducts={() => handleValidateProducts(selectedOrder)}
           onValidateClient={() => handleValidateClient(selectedOrder)}
           onCreateOrder={() => handleSyncOrderWithERP(selectedOrder.id)}
@@ -367,6 +540,8 @@ export default function AdminOrdersPage() {
           {...alertModal}
           onClose={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
         />
+
+        {renderDeleteModal()}
       </>
     );
   }
@@ -409,6 +584,11 @@ export default function AdminOrdersPage() {
               key={order.id}
               order={order}
               onClick={() => handleSelectOrder(order.id)}
+              isAdmin={isAdmin}
+              onDelete={(o) => {
+                setDeleteError(null);
+                setOrderToDelete(o);
+              }}
             />
           ))}
         </div>
@@ -491,6 +671,8 @@ export default function AdminOrdersPage() {
         {...alertModal}
         onClose={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
       />
+
+      {renderDeleteModal()}
     </div>
   );
 }

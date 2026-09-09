@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export type OrderStatusType = 'Pendiente' | 'En Proceso' | 'Completada' | 'Cancelada' | string;
+export type OrderStatusType = 'Pendiente' | 'En Proceso' | 'Completada' | 'Cancelada' | 'Procesado' | string;
 
 export interface OrderStatusBadgeProps {
   status: OrderStatusType;
@@ -14,11 +14,11 @@ export interface OrderStatusBadgeProps {
 export function getStatusTheme(status: OrderStatusType) {
   switch (status) {
     case 'Completada':
-      return { bg: '#DEF7EC', text: '#03543F', border: '#BCF0DA', dot: '#10B981' };
+    case 'Procesado':
+    case 'En Proceso':
+      return { bg: '#DEF7EC', text: '#03543F', border: '#84E1BC', dot: '#10B981' };
     case 'Cancelada':
       return { bg: '#FEE2E2', text: '#991B1B', border: '#F87171', dot: '#EF4444' };
-    case 'En Proceso':
-      return { bg: '#E0F2FE', text: '#0369A1', border: '#BAE6FD', dot: '#0284C7' };
     case 'Pendiente':
     default:
       return { bg: '#FEF9C3', text: '#713F12', border: '#FDE047', dot: '#F59E0B' };
@@ -32,6 +32,9 @@ export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({
   style = {},
 }) => {
   const theme = getStatusTheme(status);
+
+  // Normalize 'En Proceso' to 'Procesado' for clear green visual indicator
+  const displayLabel = status === 'En Proceso' || status === 'Procesado' ? 'Procesado' : (status || 'Pendiente');
 
   const sizeStyles: Record<string, React.CSSProperties> = {
     sm: { padding: '0.2rem 0.6rem', fontSize: '0.72rem' },
@@ -63,7 +66,7 @@ export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({
           backgroundColor: theme.dot,
         }}
       />
-      {status || 'Pendiente'}
+      {displayLabel}
     </span>
   );
 };
