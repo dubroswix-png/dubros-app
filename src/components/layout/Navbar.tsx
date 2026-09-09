@@ -74,7 +74,7 @@ export function Navbar() {
       }}
     >
       <div
-        className="container"
+        className="container navbar-container"
         style={{
           display: 'flex',
           alignItems: 'center',

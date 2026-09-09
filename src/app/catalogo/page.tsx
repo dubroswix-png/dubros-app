@@ -10,7 +10,7 @@ import { useCatalogFilter } from '@/hooks/useCatalogFilter';
 import { FilterSidebar } from '@/components/catalog/FilterSidebar';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
 import { ProductSkeletonGrid } from '@/components/catalog/ProductSkeletonGrid';
-import { Globe, Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Globe, Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 function CatalogContent() {
@@ -45,6 +45,17 @@ function CatalogContent() {
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedCountry, setSelectedCountry] = useState('PA');
   const [selectedPrice, setSelectedPrice] = useState('all');
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  // Active filters count for mobile button
+  const activeFiltersCount = [
+    searchTerm ? 1 : 0,
+    selectedBrand !== 'all' ? 1 : 0,
+    selectedCategory !== 'all' ? 1 : 0,
+    selectedMaterial !== 'all' ? 1 : 0,
+    selectedGender !== 'all' ? 1 : 0,
+    selectedPrice !== 'all' ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
 
   const isAdmin = userProfile?.role === 'admin';
   const userCountryObj = LATAM_COUNTRIES.find(
@@ -189,7 +200,7 @@ function CatalogContent() {
   const rangeEnd = Math.min(currentPage * PAGE_SIZE, totalCount);
 
   return (
-    <div className="container" style={{ padding: '2.5rem 1.5rem 5rem 1.5rem' }}>
+    <div className="container catalog-main-container" style={{ padding: '2.5rem 1.5rem 5rem 1.5rem' }}>
       <div
         style={{
           display: 'flex',
@@ -197,16 +208,16 @@ function CatalogContent() {
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '1rem',
-          marginBottom: '2rem',
-          paddingBottom: '1.5rem',
+          marginBottom: '1.5rem',
+          paddingBottom: '1.25rem',
           borderBottom: '1px solid var(--border-light)',
         }}
       >
         <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+          <h1 className="catalog-title" style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.35rem' }}>
             {isFavOnly ? t('catalog.favorites_title') : t('catalog.title')}
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
+          <p className="catalog-subtitle" style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: 1.4 }}>
             {isFavOnly ? t('catalog.favorites_subtitle') : t('catalog.subtitle')}
           </p>
         </div>
@@ -247,43 +258,88 @@ function CatalogContent() {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '2rem' }}>
-        <FilterSidebar
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedBrand={selectedBrand}
-          setSelectedBrand={setSelectedBrand}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedMaterial={selectedMaterial}
-          setSelectedMaterial={setSelectedMaterial}
-          selectedGender={selectedGender}
-          setSelectedGender={setSelectedGender}
-          selectedSize={selectedSize}
-          setSelectedSize={setSelectedSize}
-          selectedPrice={selectedPrice}
-          setSelectedPrice={setSelectedPrice}
-          resetFilters={resetFilters}
-          brands={brands}
-          categories={categories}
-          materials={materials}
-        />
+      <div className="catalog-layout-grid">
+        <div className="catalog-desktop-sidebar">
+          <FilterSidebar
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedBrand={selectedBrand}
+            setSelectedBrand={setSelectedBrand}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            selectedMaterial={selectedMaterial}
+            setSelectedMaterial={setSelectedMaterial}
+            selectedGender={selectedGender}
+            setSelectedGender={setSelectedGender}
+            selectedSize={selectedSize}
+            setSelectedSize={setSelectedSize}
+            selectedPrice={selectedPrice}
+            setSelectedPrice={setSelectedPrice}
+            resetFilters={resetFilters}
+            brands={brands}
+            categories={categories}
+            materials={materials}
+          />
+        </div>
 
         <div>
+          {/* TOP STATUS AND MOBILE FILTER BAR */}
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '1.5rem',
-              fontSize: '0.9rem',
+              marginBottom: '1.25rem',
+              fontSize: '0.88rem',
               color: 'var(--text-secondary)',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
             }}
           >
             <span>
               Mostrando <strong>{rangeStart}–{rangeEnd}</strong> de <strong>{totalCount.toLocaleString()}</strong> artículos
             </span>
-            <span>Página {currentPage} de {totalPages}</span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button
+                onClick={() => setIsMobileFilterOpen(true)}
+                className="btn-secondary catalog-mobile-filter-btn"
+                style={{
+                  padding: '0.45rem 0.9rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  backgroundColor: activeFiltersCount > 0 ? '#EFF6FF' : 'var(--bg-secondary)',
+                  borderColor: activeFiltersCount > 0 ? 'var(--blue)' : 'var(--border-medium)',
+                  color: activeFiltersCount > 0 ? 'var(--blue)' : 'var(--text-primary)',
+                }}
+              >
+                <SlidersHorizontal size={16} />
+                Filtros
+                {activeFiltersCount > 0 && (
+                  <span
+                    style={{
+                      backgroundColor: 'var(--blue)',
+                      color: '#FFF',
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
+
+              <span style={{ fontSize: '0.85rem' }}>Página {currentPage} de {totalPages}</span>
+            </div>
           </div>
 
           {loading ? (
@@ -301,14 +357,7 @@ function CatalogContent() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  marginTop: '2.5rem',
-                  padding: '1rem 0',
-                }}>
+                <div className="pagination-container">
                   {/* First */}
                   <button
                     onClick={() => handlePageChange(1)}
@@ -356,8 +405,8 @@ function CatalogContent() {
                         key={page}
                         onClick={() => handlePageChange(page)}
                         style={{
-                          minWidth: '36px',
-                          height: '36px',
+                          minWidth: '34px',
+                          height: '34px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -420,6 +469,99 @@ function CatalogContent() {
           )}
         </div>
       </div>
+
+      {/* MOBILE FILTER MODAL DRAWER */}
+      {isMobileFilterOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            justifyContent: 'flex-end',
+          }}
+          onClick={() => setIsMobileFilterOpen(false)}
+        >
+          <div
+            className="animate-toast-in"
+            style={{
+              width: '100%',
+              maxWidth: '340px',
+              height: '100%',
+              backgroundColor: 'var(--bg-primary)',
+              boxShadow: '-4px 0 25px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflowY: 'auto',
+              padding: '1.25rem',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                paddingBottom: '1rem',
+                borderBottom: '1px solid var(--border-light)',
+                marginBottom: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <SlidersHorizontal size={20} color="var(--blue)" />
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Filtros</h3>
+              </div>
+              <button
+                onClick={() => setIsMobileFilterOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.3rem',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <FilterSidebar
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                selectedBrand={selectedBrand}
+                setSelectedBrand={setSelectedBrand}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                selectedMaterial={selectedMaterial}
+                setSelectedMaterial={setSelectedMaterial}
+                selectedGender={selectedGender}
+                setSelectedGender={setSelectedGender}
+                selectedSize={selectedSize}
+                setSelectedSize={setSelectedSize}
+                selectedPrice={selectedPrice}
+                setSelectedPrice={setSelectedPrice}
+                resetFilters={resetFilters}
+                brands={brands}
+                categories={categories}
+                materials={materials}
+              />
+            </div>
+
+            <div style={{ paddingTop: '1rem', marginTop: '1rem', borderTop: '1px solid var(--border-light)' }}>
+              <button
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="btn-primary"
+                style={{ width: '100%', padding: '0.75rem', fontWeight: 700, fontSize: '0.95rem' }}
+              >
+                Ver Resultados ({totalCount.toLocaleString()})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

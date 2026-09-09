@@ -13,6 +13,7 @@ export function WhatsAppWidget() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contactar por WhatsApp"
+      className="whatsapp-mobile-widget"
       style={{
         position: 'fixed',
         bottom: '24px',
