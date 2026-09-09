@@ -511,3 +511,119 @@ button, input, select, textarea {
   animation: cart-shake 0.5s ease-in-out;
 }
 
+/* ==========================================================================
+   VIBECODING ANIMATIONS: SKELETON SHIMMER, TOAST SLIDE, SEARCH PULSE & GLOW
+   ========================================================================== */
+
+/* 1. SKELETON SHIMMER */
+@keyframes shimmer-wave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #F1F5F9 0%,
+    #E2E8F0 35%,
+    #F8FAFC 50%,
+    #E2E8F0 65%,
+    #F1F5F9 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-wave 1.5s infinite ease-in-out;
+}
+
+[data-theme='dark'] .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #1E293B 0%,
+    #334155 35%,
+    #475569 50%,
+    #334155 65%,
+    #1E293B 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-wave 1.5s infinite ease-in-out;
+}
+
+/* 2. TOAST NOTIFICATIONS SLIDE */
+@keyframes toast-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(110%) scale(0.95);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-8px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toast-slide-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%) scale(0.9);
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-toast-in {
+  animation: toast-slide-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast-out {
+  animation: toast-slide-out 0.28s ease-in forwards;
+}
+
+/* 3. SEARCH INPUT ACTIVE PULSE */
+@keyframes search-glow-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(24, 100, 246, 0.4);
+    border-color: var(--blue);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(24, 100, 246, 0.15);
+    border-color: #3B82F6;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(24, 100, 246, 0.4);
+    border-color: var(--blue);
+  }
+}
+
+.animate-search-pulse {
+  animation: search-glow-pulse 1.2s ease-in-out 1;
+}
+
+/* 4. HOVER GLOW ON PRODUCT CARDS */
+.card-product-glow {
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s ease, border-color 0.25s ease;
+}
+
+.card-product-glow:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 32px -8px rgba(24, 100, 246, 0.16), 0 6px 16px -4px rgba(15, 23, 42, 0.08);
+  border-color: rgba(24, 100, 246, 0.35);
+}
+
+

@@ -9,6 +9,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useCatalogFilter } from '@/hooks/useCatalogFilter';
 import { FilterSidebar } from '@/components/catalog/FilterSidebar';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
+import { ProductSkeletonGrid } from '@/components/catalog/ProductSkeletonGrid';
 import { Globe, Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -286,11 +287,7 @@ function CatalogContent() {
           </div>
 
           {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', gap: '1rem' }}>
-              <Loader2 size={40} color="var(--blue)" style={{ animation: 'spin 1s linear infinite' }} />
-              <span style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>Cargando productos...</span>
-              <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-            </div>
+            <ProductSkeletonGrid count={8} />
           ) : error ? (
             <div style={{ textAlign: 'center', padding: '4rem 0' }}>
               <p style={{ color: '#EF4444', fontSize: '1.1rem', marginBottom: '1rem' }}>⚠️ {error}</p>

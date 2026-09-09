@@ -4,12 +4,14 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X, Trash2 } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
 import { UserRole, useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { triggerUserCreatedConfetti, triggerPasswordSuccessSparkle } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
 import { LATAM_COUNTRIES } from '@/data/mock';
 
 export default function AdminUsersPage() {
   const { userProfile } = useAuth();
+  const { showToast } = useToast();
   const isCurrentUserAdmin = userProfile?.role === 'admin';
 
   const [users, setUsers] = useState<UserProfileRecord[]>([]);
@@ -1036,6 +1038,7 @@ export default function AdminUsersPage() {
                       onClick={() => {
                         navigator.clipboard.writeText(generatedLink);
                         setCopiedLink(true);
+                        showToast('¡Enlace de recuperación copiado al portapapeles!', 'success');
                         setTimeout(() => setCopiedLink(false), 3000);
                       }}
                       className="btn-secondary"

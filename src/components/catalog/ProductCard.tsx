@@ -8,6 +8,7 @@ import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useToast } from '@/context/ToastContext';
 
 interface ProductCardProps {
   product: Product;
@@ -18,12 +19,13 @@ export function ProductCard({ product }: ProductCardProps) {
   const { toggleFavorite, isFavorite } = useFavorites();
   const { isLoggedIn, userProfile } = useAuth();
   const { t } = useLanguage();
+  const { showToast } = useToast();
 
   const isFav = isFavorite(product.id);
   const isAdmin = userProfile?.role === 'admin';
 
   return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="card card-product-glow" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div
         style={{
           position: 'relative',
@@ -148,6 +150,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     e.preventDefault();
                     e.stopPropagation();
                     addToCart(product);
+                    showToast(`¡${product.reference} agregado al carrito!`, 'success', 2800);
                   }}
                   className="btn-primary"
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}

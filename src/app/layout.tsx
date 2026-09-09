@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { ToastProvider } from "@/context/ToastContext";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 
 export const metadata: Metadata = {
@@ -24,17 +25,19 @@ export default function RootLayout({
     <html lang="es" data-theme="light">
       <body>
         <LanguageProvider>
-          <AuthProvider>
-            <CartProvider>
-              <FavoritesProvider>
-                <Navbar />
-                <CartDrawer />
-                <main>{children}</main>
-                <WhatsAppWidget />
-                <Footer />
-              </FavoritesProvider>
-            </CartProvider>
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <CartProvider>
+                <FavoritesProvider>
+                  <Navbar />
+                  <CartDrawer />
+                  <main>{children}</main>
+                  <WhatsAppWidget />
+                  <Footer />
+                </FavoritesProvider>
+              </CartProvider>
+            </AuthProvider>
+          </ToastProvider>
         </LanguageProvider>
       </body>
     </html>

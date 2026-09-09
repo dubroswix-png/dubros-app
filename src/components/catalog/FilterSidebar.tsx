@@ -83,6 +83,16 @@ export function FilterSidebar({
     { label: '+$20', value: '20+' },
   ];
 
+  const [isSearchingPulse, setIsSearchingPulse] = React.useState(false);
+
+  React.useEffect(() => {
+    if (searchTerm.trim().length > 1) {
+      setIsSearchingPulse(true);
+      const timer = setTimeout(() => setIsSearchingPulse(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [searchTerm]);
+
   return (
     <aside
       style={{
@@ -139,8 +149,9 @@ export function FilterSidebar({
         label={t('nav.search' as any)}
         placeholder="..."
         value={searchTerm}
+        className={isSearchingPulse ? 'animate-search-pulse' : ''}
         onChange={(e) => setSearchTerm(e.target.value)}
-        icon={<Search size={16} />}
+        icon={<Search size={16} className={isSearchingPulse ? 'text-blue-500' : ''} />}
       />
 
       <Select

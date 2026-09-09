@@ -34,6 +34,7 @@ export function Input({ label, icon, error, style, ...props }: InputProps) {
         )}
         <input
           {...props}
+          className={`${props.className || ''}`}
           style={{
             width: '100%',
             padding: icon ? '0.7rem 0.9rem 0.7rem 2.4rem' : '0.7rem 0.9rem',
