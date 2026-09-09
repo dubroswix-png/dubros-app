@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Tag, Upload, Plus, FileSpreadsheet, CheckCircle2, RefreshCw, AlertCircle, Cloud, Search, Save } from 'lucide-react';
+import { Tag, Upload, Plus, FileSpreadsheet, CheckCircle2, RefreshCw, AlertCircle, Cloud, Search, Save, Download, Edit3, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface SyncResult {
@@ -15,7 +15,7 @@ interface SyncResult {
 }
 
 export default function AdminArticlesPage() {
-  const [activeTab, setActiveTab] = useState<'create' | 'bulk' | 'sync'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'bulk' | 'update-bulk' | 'sync'>('create');
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   // Single Product Create state
@@ -157,6 +157,87 @@ export default function AdminArticlesPage() {
     } finally {
       setImporting(false);
     }
+  };
+
+  // CSV Bulk Update state
+  const [updateCsvFile, setUpdateCsvFile] = useState<File | null>(null);
+  const [updateCsvRows, setUpdateCsvRows] = useState<Record<string, string>[]>([]);
+  const [updatingBulk, setUpdatingBulk] = useState(false);
+  const [updateBulkResult, setUpdateBulkResult] = useState<{
+    success: boolean;
+    updatedCount?: number;
+    notFoundCount?: number;
+    notFoundReferences?: string[];
+    message?: string;
+    error?: string;
+  } | null>(null);
+
+  const handleUpdateFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUpdateCsvFile(file);
+    setUpdateBulkResult(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) {
+        const rows = parseCSV(text);
+        setUpdateCsvRows(rows);
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+
+  const handleBulkUpdate = async () => {
+    if (updateCsvRows.length === 0) {
+      setUpdateBulkResult({ success: false, error: 'Por favor selecciona un archivo CSV válido con filas para actualizar.' });
+      return;
+    }
+
+    setUpdatingBulk(true);
+    setUpdateBulkResult(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/admin/bulk-update-csv', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+        },
+        body: JSON.stringify({ rows: updateCsvRows }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setUpdateBulkResult({ success: false, error: data.error || 'Error en la actualización masiva.' });
+      } else {
+        setUpdateBulkResult({
+          success: true,
+          updatedCount: data.updatedCount,
+          notFoundCount: data.notFoundCount,
+          notFoundReferences: data.notFoundReferences,
+          message: data.message,
+        });
+      }
+    } catch (err) {
+      setUpdateBulkResult({ success: false, error: 'Error de red conectando con el servidor.' });
+    } finally {
+      setUpdatingBulk(false);
+    }
+  };
+
+  const downloadUpdateTemplate = () => {
+    const csvContent = 'Referencia,Precio,Cantidad,Descripcion\n1312D,5.50,15,LENTES DE SOL METAL S-M\n1312GD,6.20,20,AROS OPTICOS PASTA\nDAVISTA251011C3,3.00,10,AROS OPTICOS METAL DAVISTA\n';
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'plantilla_actualizacion_productos.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleSyncERP = async () => {
@@ -371,20 +452,27 @@ export default function AdminArticlesPage() {
         </p>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         <button
           onClick={() => setActiveTab('create')}
           className={activeTab === 'create' ? 'btn-primary' : 'btn-secondary'}
           style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem' }}
         >
-          <Plus size={16} /> Crear / Actualizar Artículo
+          <Plus size={16} /> Crear / Editar Artículo
         </button>
         <button
           onClick={() => setActiveTab('bulk')}
           className={activeTab === 'bulk' ? 'btn-primary' : 'btn-secondary'}
           style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem' }}
         >
-          <FileSpreadsheet size={16} /> Carga Masiva (CSV)
+          <FileSpreadsheet size={16} /> Carga Masiva (Crear Productos)
+        </button>
+        <button
+          onClick={() => setActiveTab('update-bulk')}
+          className={activeTab === 'update-bulk' ? 'btn-primary' : 'btn-secondary'}
+          style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem' }}
+        >
+          <Edit3 size={16} /> Carga Masiva (Actualizar Productos)
         </button>
         <button
           onClick={() => setActiveTab('sync')}
@@ -682,6 +770,132 @@ export default function AdminArticlesPage() {
                   <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 500 }}>
                     Marcas nuevas creadas: <strong>{importResult.brandsCreated || 0}</strong> | Categorías nuevas creadas: <strong>{importResult.categoriesCreated || 0}</strong>
                   </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : activeTab === 'update-bulk' ? (
+        <div className="card" style={{ padding: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Edit3 size={24} color="var(--blue)" /> Carga Masiva para Actualizar Productos
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: '0.25rem 0 0 0' }}>
+                Actualiza datos de productos existentes (Precios, Stock, Descripción, etc.) haciendo match con la Referencia.
+              </p>
+            </div>
+            <button
+              onClick={downloadUpdateTemplate}
+              className="btn-secondary"
+              style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <FileSpreadsheet size={16} /> Descargar Plantilla CSV
+            </button>
+          </div>
+
+          <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: '0.88rem' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--blue)' }}>Instrucciones de Actualización Masiva:</h3>
+            <ul style={{ listStylePosition: 'inside', lineHeight: '1.7', color: 'var(--text-secondary)' }}>
+              <li>La columna <strong>Referencia</strong> (o Codigo) es <strong>obligatoria</strong> para identificar cada producto en el catálogo.</li>
+              <li><strong>Solo incluye las columnas que deseas cambiar</strong> (ej. <code>Referencia, Precio, Cantidad</code>). Las columnas que no incluyas permanecerán intactas.</li>
+              <li><strong>Tus imágenes, enlaces y fechas se preservan intactas:</strong> no se borrará ninguna foto ni dato que no esté en el CSV.</li>
+              <li>Columnas opcionales que puedes actualizar: <code>Precio, Cantidad (Stock), Descripcion, Marca, Categoria, Material, Genero, Tipo de Venta, Talla Ocular</code>.</li>
+            </ul>
+          </div>
+
+          <label
+            style={{
+              border: '2px dashed var(--border-medium)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '3rem 2rem',
+              textAlign: 'center',
+              marginBottom: '1.5rem',
+              cursor: 'pointer',
+              display: 'block',
+              backgroundColor: updateCsvFile ? '#F0FDF4' : 'transparent',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleUpdateFileChange}
+              style={{ display: 'none' }}
+            />
+            <Edit3 size={48} color={updateCsvFile ? '#16A34A' : 'var(--blue)'} style={{ marginBottom: '1rem', marginInline: 'auto' }} />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: updateCsvFile ? '#16A34A' : 'var(--blue)' }}>
+              {updateCsvFile ? `📄 ${updateCsvFile.name} (${updateCsvRows.length} productos listos para actualizar)` : 'Haz clic para seleccionar el archivo CSV de actualización'}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
+              {updateCsvFile ? 'Haz clic aquí si deseas seleccionar un archivo diferente' : 'Soporta archivos .csv con codificación UTF-8'}
+            </p>
+          </label>
+
+          <button
+            onClick={handleBulkUpdate}
+            disabled={updatingBulk || updateCsvRows.length === 0}
+            className="btn-primary"
+            style={{
+              padding: '0.9rem 2rem',
+              width: '100%',
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              backgroundColor: '#16A34A',
+              borderColor: '#16A34A',
+              opacity: (updatingBulk || updateCsvRows.length === 0) ? 0.6 : 1,
+            }}
+          >
+            {updatingBulk ? (
+              <>
+                <RefreshCw size={18} className="spin" /> Actualizando {updateCsvRows.length} productos...
+              </>
+            ) : (
+              <>
+                <Save size={18} /> Aplicar Actualización Masiva {updateCsvRows.length > 0 ? `(${updateCsvRows.length} productos)` : ''}
+              </>
+            )}
+          </button>
+
+          {updateBulkResult && (
+            <div
+              style={{
+                marginTop: '1.5rem',
+                padding: '1.25rem',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: updateBulkResult.success ? '#DCFCE7' : '#FEE2E2',
+                color: updateBulkResult.success ? '#15803D' : '#9B1C1C',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+              }}
+            >
+              {updateBulkResult.success ? <CheckCircle2 size={22} style={{ flexShrink: 0 }} /> : <AlertCircle size={22} style={{ flexShrink: 0 }} />}
+              <div style={{ width: '100%' }}>
+                <p style={{ margin: '0 0 0.3rem 0', fontWeight: 700 }}>
+                  {updateBulkResult.success ? updateBulkResult.message : updateBulkResult.error}
+                </p>
+                {updateBulkResult.success && (
+                  <>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.84rem', fontWeight: 500 }}>
+                      Productos actualizados con éxito: <strong>{updateBulkResult.updatedCount}</strong>
+                      {updateBulkResult.notFoundCount ? (
+                        <> | Referencias no encontradas en catálogo: <strong>{updateBulkResult.notFoundCount}</strong></>
+                      ) : null}
+                    </p>
+                    {updateBulkResult.notFoundReferences && updateBulkResult.notFoundReferences.length > 0 && (
+                      <div style={{ marginTop: '0.5rem', padding: '0.6rem', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', maxHeight: '120px', overflowY: 'auto' }}>
+                        <span style={{ fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>Referencias no halladas:</span>
+                        <code>{updateBulkResult.notFoundReferences.join(', ')}</code>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
