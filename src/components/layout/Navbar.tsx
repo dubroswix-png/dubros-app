@@ -33,6 +33,16 @@ export function Navbar() {
   const { favorites } = useFavorites();
   const { isLoggedIn, userProfile, logout } = useAuth();
   const { t } = useLanguage();
+  const [isCartBouncing, setIsCartBouncing] = useState(false);
+
+  // Trigger bounce animation when totalArticles changes
+  useEffect(() => {
+    if (totalArticles > 0) {
+      setIsCartBouncing(true);
+      const timer = setTimeout(() => setIsCartBouncing(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [totalArticles]);
 
   // Close mobile menu when pathname changes
   useEffect(() => {
@@ -181,6 +191,7 @@ export function Navbar() {
             <button
               onClick={openCart}
               aria-label="Carrito"
+              className={isCartBouncing ? 'animate-cart-shake' : ''}
               style={{
                 padding: '0.5rem',
                 color: 'var(--text-primary)',
@@ -190,11 +201,13 @@ export function Navbar() {
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
+                transition: 'transform 0.2s',
               }}
             >
               <ShoppingCart size={20} />
               {totalArticles > 0 && (
                 <span
+                  className={isCartBouncing ? 'animate-success-pop' : ''}
                   style={{
                     position: 'absolute',
                     top: '2px',
