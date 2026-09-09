@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X, Trash2, Download } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
-import { UserRole, useAuth, hasAdminAccess } from '@/context/AuthContext';
+import { UserRole, useAuth, hasAdminAccess, isUserAdmin, isUserManager } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { triggerUserCreatedConfetti, triggerPasswordSuccessSparkle } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
@@ -12,7 +12,9 @@ import { LATAM_COUNTRIES } from '@/data/mock';
 export default function AdminUsersPage() {
   const { userProfile } = useAuth();
   const { showToast } = useToast();
-  const isCurrentUserAdmin = userProfile?.role === 'admin' || userProfile?.role === 'manager' || hasAdminAccess(userProfile?.role, userProfile?.email);
+  const isAdmin = isUserAdmin(userProfile?.email) || userProfile?.role === 'admin';
+  const isManager = !isAdmin && (isUserManager(userProfile?.email) || userProfile?.role === 'manager');
+  const isCurrentUserAdmin = isAdmin || isManager || hasAdminAccess(userProfile?.role, userProfile?.email);
 
   const [users, setUsers] = useState<UserProfileRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -300,17 +302,26 @@ export default function AdminUsersPage() {
   };
 
   const counts = useMemo(() => {
+    const visibleUsers = isManager
+      ? users.filter((u) => u.role !== 'admin' && u.role !== 'manager')
+      : users;
+
     return {
-      all: users.length,
+      all: visibleUsers.length,
       pending: users.filter((u) => u.role === 'pending').length,
       client: users.filter((u) => u.role === 'client').length,
       manager: users.filter((u) => u.role === 'manager').length,
       admin: users.filter((u) => u.role === 'admin').length,
     };
-  }, [users]);
+  }, [users, isManager]);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
+      // If manager, hide admin and manager staff accounts from list
+      if (isManager && (user.role === 'admin' || user.role === 'manager')) {
+        return false;
+      }
+
       if (activeTab !== 'all' && user.role !== activeTab) {
         return false;
       }
@@ -331,7 +342,7 @@ export default function AdminUsersPage() {
 
       return true;
     });
-  }, [users, activeTab, searchTerm]);
+  }, [users, activeTab, searchTerm, isManager]);
 
   if (isCreatingUser) {
     return (
@@ -519,8 +530,12 @@ export default function AdminUsersPage() {
                   >
                     <option value="client">Cliente B2B (Aprobado)</option>
                     <option value="pending">Pendiente de Aprobación</option>
-                    <option value="manager">👔 Gerente (Permisos de Gestión)</option>
-                    <option value="admin">🛡️ Administrador del Sistema</option>
+                    {isAdmin && (
+                      <>
+                        <option value="manager">👔 Gerente (Permisos de Gestión)</option>
+                        <option value="admin">🛡️ Administrador del Sistema</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -578,7 +593,7 @@ export default function AdminUsersPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          {isCurrentUserAdmin && (
+          {isAdmin && (
             <button
               onClick={handleExportUsers}
               className="btn-secondary"
@@ -695,56 +710,61 @@ export default function AdminUsersPage() {
           <Clock size={16} /> Pendientes de Aprobación ({counts.pending})
         </button>
 
-        <button
-          onClick={() => setActiveTab('client')}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '0.5rem 1rem',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            borderRadius: 'var(--radius-md)',
-            color: activeTab === 'client' ? '#03543F' : 'var(--text-secondary)',
-            backgroundColor: activeTab === 'client' ? '#DEF7EC' : 'transparent',
-          }}
-        >
-          Clientes Aprobados ({counts.client})
-        </button>
+        {/* Solo el Administrador principal ve las pestañas de Clientes Aprobados, Gerentes y Administradores */}
+        {isAdmin && (
+          <>
+            <button
+              onClick={() => setActiveTab('client')}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                borderRadius: 'var(--radius-md)',
+                color: activeTab === 'client' ? '#03543F' : 'var(--text-secondary)',
+                backgroundColor: activeTab === 'client' ? '#DEF7EC' : 'transparent',
+              }}
+            >
+              Clientes Aprobados ({counts.client})
+            </button>
 
-        <button
-          onClick={() => setActiveTab('manager')}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '0.5rem 1rem',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            borderRadius: 'var(--radius-md)',
-            color: activeTab === 'manager' ? '#1D4ED8' : 'var(--text-secondary)',
-            backgroundColor: activeTab === 'manager' ? '#EFF6FF' : 'transparent',
-          }}
-        >
-          👔 Gerentes ({counts.manager})
-        </button>
+            <button
+              onClick={() => setActiveTab('manager')}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                borderRadius: 'var(--radius-md)',
+                color: activeTab === 'manager' ? '#1D4ED8' : 'var(--text-secondary)',
+                backgroundColor: activeTab === 'manager' ? '#EFF6FF' : 'transparent',
+              }}
+            >
+              👔 Gerentes ({counts.manager})
+            </button>
 
-        <button
-          onClick={() => setActiveTab('admin')}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '0.5rem 1rem',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            borderRadius: 'var(--radius-md)',
-            color: activeTab === 'admin' ? '#991B1B' : 'var(--text-secondary)',
-            backgroundColor: activeTab === 'admin' ? '#FEE2E2' : 'transparent',
-          }}
-        >
-          🛡️ Administradores ({counts.admin})
-        </button>
+            <button
+              onClick={() => setActiveTab('admin')}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                borderRadius: 'var(--radius-md)',
+                color: activeTab === 'admin' ? '#991B1B' : 'var(--text-secondary)',
+                backgroundColor: activeTab === 'admin' ? '#FEE2E2' : 'transparent',
+              }}
+            >
+              🛡️ Administradores ({counts.admin})
+            </button>
+          </>
+        )}
       </div>
 
       {/* SEARCH AND FILTER INPUT */}
@@ -946,7 +966,7 @@ export default function AdminUsersPage() {
                           </button>
                         )}
 
-                        {user.role === 'admin' && user.email !== 'dubroswix@gmail.com' && (
+                        {isAdmin && user.role === 'admin' && user.email !== 'dubroswix@gmail.com' && (
                           <button
                             disabled={processingId === user.id}
                             onClick={() => handleRoleChange(user.id, 'client', user.email)}
@@ -957,7 +977,7 @@ export default function AdminUsersPage() {
                           </button>
                         )}
 
-                        {isCurrentUserAdmin && user.email !== 'dubroswix@gmail.com' && user.email !== 'dfduqu01@gmail.com' && (
+                        {((isAdmin && user.email !== 'dubroswix@gmail.com' && user.email !== 'dfduqu01@gmail.com') || (isManager && user.role !== 'admin' && user.role !== 'manager')) && (
                           <button
                             disabled={processingId === user.id}
                             onClick={() => {
