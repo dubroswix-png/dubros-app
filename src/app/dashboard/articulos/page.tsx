@@ -229,7 +229,7 @@ export default function AdminArticlesPage() {
   };
 
   const downloadUpdateTemplate = () => {
-    const csvContent = 'Referencia,Precio,Cantidad,Descripcion\n1312D,5.50,15,LENTES DE SOL METAL S-M\n1312GD,6.20,20,AROS OPTICOS PASTA\nDAVISTA251011C3,3.00,10,AROS OPTICOS METAL DAVISTA\n';
+    const csvContent = 'Referencia,Precio,Cantidad,Talla Ocular,Categoria,Genero,Flex,Tipo de Venta,Material,Descripcion\n1312D,5.50,15,52,Aros Ópticos,Hombre,SI,PIEZA,Metal,LENTES DE SOL METAL S-M\n1312GD,6.20,20,54,Aros Ópticos,Mujer,NO,PIEZA,Pasta,AROS OPTICOS PASTA\nDAVISTA251011C3,3.00,10,50,Lentes de Sol,Unisex,SI,PIEZA,Metal,AROS OPTICOS METAL DAVISTA\n';
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -799,9 +799,9 @@ export default function AdminArticlesPage() {
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--blue)' }}>Instrucciones de Actualización Masiva:</h3>
             <ul style={{ listStylePosition: 'inside', lineHeight: '1.7', color: 'var(--text-secondary)' }}>
               <li>La columna <strong>Referencia</strong> (o Codigo) es <strong>obligatoria</strong> para identificar cada producto en el catálogo.</li>
-              <li><strong>Solo incluye las columnas que deseas cambiar</strong> (ej. <code>Referencia, Precio, Cantidad</code>). Las columnas que no incluyas permanecerán intactas.</li>
+              <li><strong>Solo incluye las columnas que deseas cambiar.</strong> Las columnas no presentes en el archivo permanecerán con su valor actual.</li>
               <li><strong>Tus imágenes, enlaces y fechas se preservan intactas:</strong> no se borrará ninguna foto ni dato que no esté en el CSV.</li>
-              <li>Columnas opcionales que puedes actualizar: <code>Precio, Cantidad (Stock), Descripcion, Marca, Categoria, Material, Genero, Tipo de Venta, Talla Ocular</code>.</li>
+              <li>Campos que puedes actualizar masivamente: <code>Talla Ocular</code>, <code>Categoria</code>, <code>Genero</code> (Hombre, Mujer, Unisex, Niños), <code>Flex</code> (SI o NO), <code>Tipo de Venta</code> (PIEZA, DOCENA, etc.), <code>Precio</code>, <code>Cantidad (Stock)</code>, <code>Material</code>, <code>Marca</code> y <code>Descripcion</code>.</li>
             </ul>
           </div>
 

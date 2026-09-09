@@ -20,6 +20,8 @@ export interface SupabaseProduct {
   price: number;
   material: string;
   gender?: string | null;
+  eye_size?: number | null;
+  flex?: boolean | null;
   quantity: number;
   sale_type: string;
   thumbnail_url: string;
@@ -203,14 +205,14 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
     code: code,
     description: desc,
     price: finalPrice,
-    eyeSize: 0, // Not stored in Supabase currently
+    eyeSize: row.eye_size || 0,
     brand: brand,
     material: row.material && row.material !== 'N/A' ? row.material : 'ACETATO / METAL',
     gender: gender as any,
     saleType: row.sale_type || 'PIEZA',
     category: category,
     quantity: quantity,
-    flex: true,
+    flex: row.flex !== undefined && row.flex !== null ? Boolean(row.flex) : true,
     thumbnailUrl: fixUrl(row.thumbnail_url, ref),
     largeImageUrl: fixUrl(row.large_image_url || row.thumbnail_url, ref),
   };

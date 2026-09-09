@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
       gender?: string;
       sale_type?: string;
       eye_size?: number;
+      flex?: boolean;
       brandName?: string;
       categoryName?: string;
       imageUrl?: string;
@@ -156,10 +157,20 @@ export async function POST(request: NextRequest) {
       const saleVal = getRowValue(row, ['Tipo de Venta', 'tipoventa', 'SaleType', 'Unidad']);
       if (saleVal !== undefined) changes.sale_type = saleVal;
 
-      const eyeVal = getRowValue(row, ['Talla', 'talla', 'Talla Ocular', 'tallaocular', 'EyeSize']);
+      const eyeVal = getRowValue(row, ['Talla', 'talla', 'Talla Ocular', 'tallaocular', 'EyeSize', 'talla_ocular']);
       if (eyeVal !== undefined) {
         const e = parseInt(eyeVal.replace(/[^0-9]/g, ''), 10);
         if (!isNaN(e)) changes.eye_size = e;
+      }
+
+      const flexVal = getRowValue(row, ['Flex', 'flex', 'Flex o no Flex', 'flex_o_no_flex', 'EsFlex', 'is_flex']);
+      if (flexVal !== undefined) {
+        const normalizedFlex = flexVal.toLowerCase().trim();
+        if (['true', 'si', 'sí', '1', 'yes', 'flex'].includes(normalizedFlex)) {
+          changes.flex = true;
+        } else if (['false', 'no', '0', 'noflex', 'no flex'].includes(normalizedFlex)) {
+          changes.flex = false;
+        }
       }
 
       const brandVal = getRowValue(row, ['Marca', 'brand', 'marca']);
@@ -289,6 +300,7 @@ export async function POST(request: NextRequest) {
         if (change.gender !== undefined) updated.gender = change.gender;
         if (change.sale_type !== undefined) updated.sale_type = change.sale_type;
         if (change.eye_size !== undefined) updated.eye_size = change.eye_size;
+        if (change.flex !== undefined) updated.flex = change.flex;
 
         if (change.brandName) {
           const bSlug = change.brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
