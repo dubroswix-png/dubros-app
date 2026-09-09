@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X, Trash2 } from 'lucide-react';
+import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X, Trash2, Download } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
 import { UserRole, useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -144,6 +144,61 @@ export default function AdminUsersPage() {
     } finally {
       setDeleteLoading(false);
     }
+  };
+
+  const handleExportUsers = () => {
+    if (!users || users.length === 0) {
+      showToast('No hay usuarios disponibles para descargar.', 'error');
+      return;
+    }
+
+    // CSV Headers
+    const headers = [
+      'ID',
+      'Correo Electrónico',
+      'Nombre Completo',
+      'Empresa / Razón Social',
+      'País',
+      'Teléfono / WhatsApp',
+      'Rol',
+      'Código ERP',
+      'Tipo de Negocio',
+      'Fecha Creación'
+    ];
+
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = users.map((u) => [
+      escapeCsv(u.id),
+      escapeCsv(u.email),
+      escapeCsv(u.full_name || u.name || ''),
+      escapeCsv(u.company_name || ''),
+      escapeCsv(u.country || ''),
+      escapeCsv(u.phone || ''),
+      escapeCsv(u.role === 'admin' ? 'Administrador' : u.role === 'manager' ? 'Gerente' : u.role === 'client' ? 'Cliente' : 'Pendiente'),
+      escapeCsv(u.erp_client_code || u.client_code || u.erp_client_id || ''),
+      escapeCsv(u.business_type || ''),
+      escapeCsv(u.created_at || '')
+    ]);
+
+    // Build CSV with UTF-8 BOM so Excel opens accents and special characters properly
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const today = new Date().toISOString().split('T')[0];
+    link.setAttribute('href', url);
+    link.setAttribute('download', `usuarios_dubros_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast(`¡Base de datos exportada con éxito (${users.length} usuarios)!`, 'success');
   };
 
   const handleRoleChange = async (userId: string, newRole: UserRole, userEmail: string) => {
@@ -528,7 +583,28 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {isCurrentUserAdmin && (
+            <button
+              onClick={handleExportUsers}
+              className="btn-secondary"
+              title="Descargar base de datos completa de usuarios en formato Excel / CSV"
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                color: '#059669',
+                borderColor: '#A7F3D0',
+                backgroundColor: '#ECFDF5',
+                fontWeight: 700,
+              }}
+            >
+              <Download size={16} /> Descargar CSV
+            </button>
+          )}
+
           <button
             onClick={() => setIsCreatingUser(true)}
             className="btn-primary"
