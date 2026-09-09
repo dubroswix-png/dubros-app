@@ -144,9 +144,9 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
               flex: '1 1 180px',
               padding: '0.65rem 1rem',
               borderRadius: 'var(--radius-md)',
-              border: isProductsValid ? '1px solid #10B981' : '1px solid #1864F6',
-              backgroundColor: isProductsValid ? '#ECFDF5' : '#1864F6',
-              color: isProductsValid ? '#065F46' : '#FFFFFF',
+              border: isProductsValid ? '1px solid #047857' : '1px solid #1864F6',
+              backgroundColor: isProductsValid ? '#047857' : '#1864F6',
+              color: '#FFFFFF',
               fontSize: '0.86rem',
               fontWeight: 700,
               cursor: isProductsValid ? 'default' : 'pointer',
@@ -154,13 +154,15 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.4rem',
+              boxShadow: isProductsValid ? '0 2px 6px rgba(4, 120, 87, 0.3)' : 'none',
+              transition: 'all 0.2s ease',
             }}
           >
             {validatingProducts ? (
               <Loader2 size={16} className="animate-spin" />
             ) : isProductsValid ? (
               <>
-                <CheckCircle2 size={16} color="#10B981" /> 1. Productos Validados
+                <CheckCircle2 size={16} color="#FFFFFF" /> 1. Productos Validados
               </>
             ) : (
               '1. Validar Productos'
@@ -175,9 +177,9 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
                 flex: '1 1 180px',
                 padding: '0.65rem 1rem',
                 borderRadius: 'var(--radius-md)',
-                border: '1px solid #10B981',
-                backgroundColor: '#ECFDF5',
-                color: '#065F46',
+                border: '1px solid #047857',
+                backgroundColor: '#047857',
+                color: '#FFFFFF',
                 fontSize: '0.86rem',
                 fontWeight: 700,
                 cursor: 'default',
@@ -185,9 +187,11 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.4rem',
+                boxShadow: '0 2px 6px rgba(4, 120, 87, 0.3)',
+                transition: 'all 0.2s ease',
               }}
             >
-              <CheckCircle2 size={16} color="#10B981" /> 2. Cliente Validado
+              <CheckCircle2 size={16} color="#FFFFFF" /> 2. Cliente Validado
             </button>
           ) : (
             <button
@@ -207,6 +211,7 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.4rem',
+                transition: 'all 0.2s ease',
               }}
             >
               {validatingClient ? <Loader2 size={16} className="animate-spin" /> : '2. Validar Cliente'}

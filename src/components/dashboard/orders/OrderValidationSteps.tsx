@@ -47,17 +47,21 @@ export const OrderValidationSteps: React.FC<OrderValidationStepsProps> = ({
           <button
             disabled
             style={{
-              backgroundColor: '#DEF7EC',
-              color: '#03543F',
+              backgroundColor: '#047857',
+              color: '#FFFFFF',
               border: 'none',
               borderRadius: '6px',
               padding: '0.65rem 1.15rem',
               fontSize: '0.9rem',
               fontWeight: 700,
               cursor: 'default',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              boxShadow: '0 2px 6px rgba(4, 120, 87, 0.3)',
             }}
           >
-            Producto validado
+            ✓ Producto validado
           </button>
         ) : (
           <button
@@ -86,17 +90,21 @@ export const OrderValidationSteps: React.FC<OrderValidationStepsProps> = ({
           <button
             disabled
             style={{
-              backgroundColor: '#DEF7EC',
-              color: '#03543F',
+              backgroundColor: '#047857',
+              color: '#FFFFFF',
               border: 'none',
               borderRadius: '6px',
               padding: '0.65rem 1.15rem',
               fontSize: '0.9rem',
               fontWeight: 700,
               cursor: 'default',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              boxShadow: '0 2px 6px rgba(4, 120, 87, 0.3)',
             }}
           >
-            Cliente validado
+            ✓ Cliente validado
           </button>
         ) : (
           <button
