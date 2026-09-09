@@ -18,20 +18,27 @@ function getSupabaseAdmin() {
   return createClient(url, serviceKey);
 }
 
+function normalizeKey(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s_\-]+/g, '');
+}
+
 // Helper to find column value across case-insensitive/similar header names
 function getRowValue(row: Record<string, any>, possibleKeys: string[]): string {
   const rowKeys = Object.keys(row);
   for (const key of possibleKeys) {
-    // Exact match
     if (row[key] !== undefined && row[key] !== null) {
-      return String(row[key]).trim();
+      const val = String(row[key]).trim();
+      if (val !== '') return val;
     }
-    // Case-insensitive match
-    const foundKey = rowKeys.find(
-      (k) => k.toLowerCase().replace(/\s+/g, '') === key.toLowerCase().replace(/\s+/g, '')
-    );
+    const normSearch = normalizeKey(key);
+    const foundKey = rowKeys.find((k) => normalizeKey(k) === normSearch);
     if (foundKey && row[foundKey] !== undefined && row[foundKey] !== null) {
-      return String(row[foundKey]).trim();
+      const val = String(row[foundKey]).trim();
+      if (val !== '') return val;
     }
   }
   return '';
@@ -101,11 +108,27 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
+    // Unpack rows if they arrived with semicolon/tab delimited keys
+    const sanitizedRows = rows.map((rawRow: any) => {
+      const keys = Object.keys(rawRow);
+      if (keys.length === 1 && (keys[0].includes(';') || keys[0].includes('\t'))) {
+        const delim = keys[0].includes(';') ? ';' : '\t';
+        const headerParts = keys[0].split(delim).map((k: string) => k.trim().replace(/^["']|["']$/g, ''));
+        const valParts = String(rawRow[keys[0]]).split(delim).map((v: string) => v.trim().replace(/^["']|["']$/g, ''));
+        const unpacked: Record<string, string> = {};
+        headerParts.forEach((h: string, idx: number) => {
+          if (h) unpacked[h] = valParts[idx] !== undefined ? valParts[idx] : '';
+        });
+        return unpacked;
+      }
+      return rawRow;
+    });
+
     // 1. Extract unique Brands and Categories from rows
     const uniqueBrands = new Set<string>();
     const uniqueCategories = new Set<string>();
 
-    rows.forEach((row) => {
+    sanitizedRows.forEach((row: any) => {
       const brand = getRowValue(row, ['Marca', 'Brand', 'marca', 'brand']);
       const cat = getRowValue(row, ['Categoria', 'Category', 'categoria', 'category', 'Rubro']);
 
@@ -162,7 +185,7 @@ export async function POST(request: NextRequest) {
     // 5. Build products array for batch upsert
     const productsToUpsert: any[] = [];
 
-    rows.forEach((row, idx) => {
+    sanitizedRows.forEach((row: any, idx: number) => {
       const codigo = getRowValue(row, ['Codigo', 'codigo', 'Code', 'SKU', 'sku']);
       const ref = getRowValue(row, ['Referencia', 'referencia', 'Reference', 'ref']) || codigo || `CSV-${idx + 1}`;
       const code = codigo || ref || `CSV-${idx + 1}`;
@@ -176,6 +199,26 @@ export async function POST(request: NextRequest) {
       const brandName = getRowValue(row, ['Marca', 'Brand', 'marca', 'brand']).toUpperCase();
       const catName = getRowValue(row, ['Categoria', 'Category', 'categoria', 'category', 'Rubro']).toUpperCase();
 
+      const genVal = getRowValue(row, ['Genero', 'genero', 'Género', 'gender']);
+      let resolvedGender = 'Unisex';
+      if (genVal) {
+        const cleanG = genVal.trim().toUpperCase();
+        if (cleanG === 'MASCULINO' || cleanG === 'HOMBRE') resolvedGender = 'Hombre';
+        else if (cleanG === 'FEMENINO' || cleanG === 'MUJER') resolvedGender = 'Mujer';
+        else if (cleanG.includes('NIÑ') || cleanG.includes('KID')) resolvedGender = 'Niños';
+        else resolvedGender = genVal;
+      }
+
+      const eyeVal = getRowValue(row, ['Talla Ocular', 'talla_ocular', 'Talla', 'talla', 'EyeSize', 'Calibre']);
+      const eyeSize = eyeVal ? parseInt(eyeVal.replace(/[^0-9]/g, ''), 10) || null : null;
+
+      const flexVal = getRowValue(row, ['Flex', 'flex', 'EsFlex']);
+      let resolvedFlex = true;
+      if (flexVal) {
+        const n = flexVal.toLowerCase().trim();
+        if (['false', 'no', '0', 'noflex', 'n'].includes(n)) resolvedFlex = false;
+      }
+
       productsToUpsert.push({
         reference: ref,
         code: code,
@@ -184,6 +227,9 @@ export async function POST(request: NextRequest) {
         material: material,
         quantity: quantity,
         sale_type: saleType,
+        gender: resolvedGender,
+        eye_size: eyeSize,
+        flex: resolvedFlex,
         thumbnail_url: '/images/product-placeholder.png',
         large_image_url: '/images/product-placeholder.png',
         brand_id: brandMap.get(brandName) || null,

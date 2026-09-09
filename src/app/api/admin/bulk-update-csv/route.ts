@@ -53,6 +53,14 @@ async function isAuthorized(request: NextRequest): Promise<boolean> {
   return profile?.role === 'admin' || profile?.role === 'gerente' || profile?.role === 'manager';
 }
 
+function normalizeKey(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s_\-]+/g, '');
+}
+
 function getRowValue(row: Record<string, any>, possibleKeys: string[]): string | undefined {
   const rowKeys = Object.keys(row);
   for (const key of possibleKeys) {
@@ -60,9 +68,8 @@ function getRowValue(row: Record<string, any>, possibleKeys: string[]): string |
       const val = String(row[key]).trim();
       if (val !== '') return val;
     }
-    const foundKey = rowKeys.find(
-      (k) => k.toLowerCase().replace(/[\s_-]+/g, '') === key.toLowerCase().replace(/[\s_-]+/g, '')
-    );
+    const normSearch = normalizeKey(key);
+    const foundKey = rowKeys.find((k) => normalizeKey(k) === normSearch);
     if (foundKey && row[foundKey] !== undefined && row[foundKey] !== null) {
       const val = String(row[foundKey]).trim();
       if (val !== '') return val;
@@ -121,7 +128,23 @@ export async function POST(request: NextRequest) {
     const uniqueBrandNames = new Set<string>();
     const uniqueCategoryNames = new Set<string>();
 
-    rows.forEach((row) => {
+    // Unpack rows if they arrived with semicolon/tab delimited keys
+    const sanitizedRows = rows.map((rawRow: any) => {
+      const keys = Object.keys(rawRow);
+      if (keys.length === 1 && (keys[0].includes(';') || keys[0].includes('\t'))) {
+        const delim = keys[0].includes(';') ? ';' : '\t';
+        const headerParts = keys[0].split(delim).map((k: string) => k.trim().replace(/^["']|["']$/g, ''));
+        const valParts = String(rawRow[keys[0]]).split(delim).map((v: string) => v.trim().replace(/^["']|["']$/g, ''));
+        const unpacked: Record<string, string> = {};
+        headerParts.forEach((h: string, idx: number) => {
+          if (h) unpacked[h] = valParts[idx] !== undefined ? valParts[idx] : '';
+        });
+        return unpacked;
+      }
+      return rawRow;
+    });
+
+    sanitizedRows.forEach((row: any) => {
       const ref = getRowValue(row, ['Referencia', 'referencia', 'Reference', 'ref', 'Codigo', 'codigo', 'Code', 'SKU', 'sku']);
       if (!ref) return;
 
@@ -130,34 +153,68 @@ export async function POST(request: NextRequest) {
 
       const changes: ProductChanges = {};
 
-      const priceVal = getRowValue(row, ['Precio', 'precio', 'Price', 'price', 'PVP']);
+      const priceVal = getRowValue(row, ['Precio', 'precio', 'Price', 'price', 'PVP', 'pvp']);
       if (priceVal !== undefined) {
         const p = parseFloat(priceVal.replace(/[^0-9.]/g, ''));
         if (!isNaN(p)) changes.price = p;
       }
 
-      const qtyVal = getRowValue(row, ['Cantidad', 'cantidad', 'Stock', 'stock', 'Qty', 'Quantity']);
+      const qtyVal = getRowValue(row, ['Cantidad', 'cantidad', 'Stock', 'stock', 'Qty', 'Quantity', 'quantity']);
       if (qtyVal !== undefined) {
         const q = parseInt(qtyVal.replace(/[^0-9]/g, ''), 10);
         if (!isNaN(q)) changes.quantity = q;
       }
 
-      const descVal = getRowValue(row, ['Descripcion', 'descripcion', 'Description', 'nombre', 'name']);
+      const descVal = getRowValue(row, ['Descripcion', 'descripcion', 'Descripción', 'descripción', 'Description', 'description', 'nombre', 'name', 'Nombre']);
       if (descVal !== undefined) changes.description = descVal;
 
-      const codeVal = getRowValue(row, ['Codigo', 'codigo', 'Code', 'code', 'SKU']);
+      const codeVal = getRowValue(row, ['Codigo', 'codigo', 'Código', 'código', 'Code', 'code', 'SKU', 'sku']);
       if (codeVal !== undefined) changes.code = codeVal;
 
-      const matVal = getRowValue(row, ['Material', 'material', 'Subrubro']);
+      const matVal = getRowValue(row, ['Material', 'material', 'Subrubro', 'subrubro']);
       if (matVal !== undefined) changes.material = matVal;
 
-      const genVal = getRowValue(row, ['Genero', 'genero', 'Gender']);
-      if (genVal !== undefined) changes.gender = genVal;
+      const genVal = getRowValue(row, ['Genero', 'genero', 'Género', 'género', 'Gender', 'gender']);
+      if (genVal !== undefined) {
+        const cleanG = genVal.trim().toUpperCase();
+        if (cleanG === 'MASCULINO' || cleanG === 'HOMBRE' || cleanG === 'MAN' || cleanG === 'MEN') {
+          changes.gender = 'Hombre';
+        } else if (cleanG === 'FEMENINO' || cleanG === 'MUJER' || cleanG === 'WOMAN' || cleanG === 'WOMEN') {
+          changes.gender = 'Mujer';
+        } else if (cleanG === 'UNISEX') {
+          changes.gender = 'Unisex';
+        } else if (cleanG.includes('NIÑ') || cleanG.includes('KID') || cleanG.includes('INFANTIL')) {
+          changes.gender = 'Niños';
+        } else {
+          changes.gender = genVal;
+        }
+      }
 
-      const saleVal = getRowValue(row, ['Tipo de Venta', 'tipoventa', 'SaleType', 'Unidad']);
-      if (saleVal !== undefined) changes.sale_type = saleVal;
+      const saleVal = getRowValue(row, [
+        'Tipo Venta',
+        'Tipo de Venta',
+        'tipoventa',
+        'tipo_venta',
+        'tipodeventa',
+        'SaleType',
+        'sale_type',
+        'Unidad',
+        'unidad'
+      ]);
+      if (saleVal !== undefined) changes.sale_type = saleVal.toUpperCase();
 
-      const eyeVal = getRowValue(row, ['Talla', 'talla', 'Talla Ocular', 'tallaocular', 'EyeSize', 'talla_ocular']);
+      const eyeVal = getRowValue(row, [
+        'Talla Ocular',
+        'talla ocular',
+        'talla_ocular',
+        'tallaocular',
+        'Talla',
+        'talla',
+        'EyeSize',
+        'eye_size',
+        'Calibre',
+        'calibre'
+      ]);
       if (eyeVal !== undefined) {
         const e = parseInt(eyeVal.replace(/[^0-9]/g, ''), 10);
         if (!isNaN(e)) changes.eye_size = e;
@@ -166,20 +223,20 @@ export async function POST(request: NextRequest) {
       const flexVal = getRowValue(row, ['Flex', 'flex', 'Flex o no Flex', 'flex_o_no_flex', 'EsFlex', 'is_flex']);
       if (flexVal !== undefined) {
         const normalizedFlex = flexVal.toLowerCase().trim();
-        if (['true', 'si', 'sí', '1', 'yes', 'flex'].includes(normalizedFlex)) {
+        if (['true', 'si', 'sí', '1', 'yes', 'flex', 's'].includes(normalizedFlex)) {
           changes.flex = true;
-        } else if (['false', 'no', '0', 'noflex', 'no flex'].includes(normalizedFlex)) {
+        } else if (['false', 'no', '0', 'noflex', 'no flex', 'n'].includes(normalizedFlex)) {
           changes.flex = false;
         }
       }
 
-      const brandVal = getRowValue(row, ['Marca', 'brand', 'marca']);
+      const brandVal = getRowValue(row, ['Marca', 'brand', 'marca', 'Brand']);
       if (brandVal !== undefined) {
         changes.brandName = brandVal.toUpperCase();
         uniqueBrandNames.add(brandVal.toUpperCase());
       }
 
-      const catVal = getRowValue(row, ['Categoria', 'category', 'categoria', 'Rubro']);
+      const catVal = getRowValue(row, ['Categoria', 'category', 'categoria', 'categoría', 'Category', 'Rubro', 'rubro']);
       if (catVal !== undefined) {
         changes.categoryName = catVal;
         uniqueCategoryNames.add(catVal);

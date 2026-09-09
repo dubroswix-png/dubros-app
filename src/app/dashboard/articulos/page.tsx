@@ -61,22 +61,40 @@ export default function AdminArticlesPage() {
   } | null>(null);
 
   const parseCSV = (text: string): Record<string, string>[] => {
-    const lines = text
+    const cleanText = text.replace(/^\uFEFF/, '');
+    const lines = cleanText
       .split(/\r\n|\n/)
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
 
     if (lines.length < 2) return [];
 
-    const splitCSVLine = (str: string): string[] => {
+    // Auto-detect delimiter from the header line (; or , or \t)
+    const firstLine = lines[0];
+    const countSemi = (firstLine.match(/;/g) || []).length;
+    const countComma = (firstLine.match(/,/g) || []).length;
+    const countTab = (firstLine.match(/\t/g) || []).length;
+    let delimiter = ',';
+    if (countSemi > countComma && countSemi > countTab) {
+      delimiter = ';';
+    } else if (countTab > countComma && countTab > countSemi) {
+      delimiter = '\t';
+    }
+
+    const splitCSVLine = (str: string, delim: string): string[] => {
       const result: string[] = [];
       let current = '';
       let inQuotes = false;
       for (let i = 0; i < str.length; i++) {
         const char = str[i];
         if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
+          if (inQuotes && str[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === delim && !inQuotes) {
           result.push(current.trim().replace(/^"|"$/g, ''));
           current = '';
         } else {
@@ -87,15 +105,17 @@ export default function AdminArticlesPage() {
       return result;
     };
 
-    const headers = splitCSVLine(lines[0]);
+    const headers = splitCSVLine(lines[0], delimiter).map((h) => h.trim().replace(/^["']|["']$/g, ''));
     const rows: Record<string, string>[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-      const values = splitCSVLine(lines[i]);
+      const values = splitCSVLine(lines[i], delimiter);
       if (values.length === 0 || (values.length === 1 && !values[0])) continue;
       const row: Record<string, string> = {};
       headers.forEach((header, idx) => {
-        row[header] = values[idx] || '';
+        if (header) {
+          row[header] = (values[idx] !== undefined ? values[idx] : '').trim();
+        }
       });
       rows.push(row);
     }
