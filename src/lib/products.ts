@@ -282,10 +282,10 @@ export async function getProducts({
       query = query.or(`reference.ilike.%${s}%,code.ilike.%${s}%,description.ilike.%${s}%`);
     }
 
-    // FIFO order: First In First Out (ordered by oldest arrival/created_at first)
+    // LIFO order: Last In First Out (ordered by newest arrival/created_at first)
     query = query
-      .order('created_at', { ascending: true })
-      .order('reference', { ascending: true })
+      .order('created_at', { ascending: false })
+      .order('reference', { ascending: false })
       .range(from, to);
 
     const { data, count, error } = await query;
@@ -315,8 +315,8 @@ export async function getProducts({
     const gUpper = gender && gender !== 'all' ? gender.toUpperCase() : null;
     const sUpper = search && search.trim() ? search.trim().toUpperCase() : null;
 
-    // FIFO order for fallback as well (Object.keys in insertion order without reverse)
-    const allRefs = Object.keys(metaMap);
+    // LIFO order for fallback as well (Object.keys in reverse order)
+    const allRefs = Object.keys(metaMap).reverse();
 
     const matchedRefs = allRefs.filter((ref) => {
       const item = metaMap[ref];
