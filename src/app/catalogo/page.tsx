@@ -35,17 +35,27 @@ function CatalogContent() {
   const [totalPages, setTotalPages] = useState(1);
   const PAGE_SIZE = 24;
 
+  const initialMaterial = searchParams.get('material') || 'all';
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedMaterial, setSelectedMaterial] = useState('all');
+  const [selectedMaterial, setSelectedMaterial] = useState(initialMaterial);
   const [selectedGender, setSelectedGender] = useState('all');
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedCountry, setSelectedCountry] = useState('PA');
   const [selectedPrice, setSelectedPrice] = useState('all');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  // Sync selectedMaterial if URL search param changes
+  useEffect(() => {
+    const mat = searchParams.get('material');
+    if (mat) {
+      setSelectedMaterial(mat);
+    }
+  }, [searchParams]);
 
   // Active filters count for mobile button
   const activeFiltersCount = [

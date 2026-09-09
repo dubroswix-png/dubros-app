@@ -236,17 +236,87 @@ export async function getProducts({
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    const isBrandFilter = brandName && brandName !== 'all';
-    const isCategoryFilter = categoryName && categoryName !== 'all';
-    const isMaterialFilter = material && material !== 'all';
-    const isGenderFilter = gender && gender !== 'all';
+    const isBrand = Boolean(brandName && brandName !== 'all');
+    const isCategory = Boolean(categoryName && categoryName !== 'all');
 
-    const bUpper = isBrandFilter ? brandName.toUpperCase() : null;
-    const cUpper = isCategoryFilter ? categoryName.toUpperCase() : null;
-    const mUpper = isMaterialFilter ? material.toUpperCase() : null;
-    const gUpper = isGenderFilter ? gender.toUpperCase() : null;
+    const brandSelect = isBrand ? 'brands!inner(id, name)' : 'brands(id, name)';
+    const catSelect = isCategory ? 'categories!inner(id, name)' : 'categories(id, name)';
+
+    let query = supabase
+      .from('products')
+      .select(`*, ${brandSelect}, ${catSelect}`, { count: 'exact' });
+
+    if (collectionId) {
+      query = query.eq('collection_id', collectionId);
+    }
+
+    if (material && material !== 'all') {
+      query = query.ilike('material', `%${material}%`);
+    }
+
+    if (isBrand) {
+      query = query.ilike('brands.name', `%${brandName}%`);
+    }
+
+    if (isCategory) {
+      query = query.ilike('categories.name', `%${categoryName}%`);
+    }
+
+    if (gender && gender !== 'all') {
+      if (gender.toUpperCase().includes('NIÑ') || gender.toUpperCase().includes('KID')) {
+        query = query.or('gender.ilike.%Niño%,gender.ilike.%Kids%,description.ilike.%KIDS%,description.ilike.%NIÑO%');
+      } else {
+        query = query.ilike('gender', `%${gender}%`);
+      }
+    }
+
+    if (minPrice !== undefined) {
+      query = query.gte('price', minPrice);
+    }
+    if (maxPrice !== undefined) {
+      query = query.lte('price', maxPrice);
+    }
+
+    if (search && search.trim()) {
+      const s = search.trim();
+      query = query.or(`reference.ilike.%${s}%,code.ilike.%${s}%,description.ilike.%${s}%`);
+    }
+
+    // FIFO order: First In First Out (ordered by oldest arrival/created_at first)
+    query = query
+      .order('created_at', { ascending: true })
+      .order('reference', { ascending: true })
+      .range(from, to);
+
+    const { data, count, error } = await query;
+
+    if (!error && data) {
+      const totalCount = count !== null && count !== undefined ? count : data.length;
+      const totalPages = Math.ceil(totalCount / pageSize) || 1;
+      const products = data.map(mapSupabaseToProduct);
+
+      return { products, totalCount, page, pageSize, totalPages };
+    }
+
+    if (error) {
+      console.warn('[getProducts] Supabase direct query failed, falling back to metaMap:', error);
+    }
+  } catch (e) {
+    console.error('[getProducts] Unexpected error querying Supabase:', e);
+  }
+
+  // Fallback to metaMap if offline or unexpected error
+  try {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    const bUpper = brandName && brandName !== 'all' ? brandName.toUpperCase() : null;
+    const cUpper = categoryName && categoryName !== 'all' ? categoryName.toUpperCase() : null;
+    const mUpper = material && material !== 'all' ? material.toUpperCase() : null;
+    const gUpper = gender && gender !== 'all' ? gender.toUpperCase() : null;
     const sUpper = search && search.trim() ? search.trim().toUpperCase() : null;
-    const allRefs = Object.keys(metaMap).reverse();
+
+    // FIFO order for fallback as well (Object.keys in insertion order without reverse)
+    const allRefs = Object.keys(metaMap);
 
     const matchedRefs = allRefs.filter((ref) => {
       const item = metaMap[ref];
@@ -269,82 +339,33 @@ export async function getProducts({
 
     const totalCount = matchedRefs.length;
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
-
-    if (totalCount === 0) {
-      return { products: [], totalCount: 0, page, pageSize, totalPages: 0 };
-    }
-
     const pageRefs = matchedRefs.slice(from, to + 1);
 
-    let query = supabase
-      .from('products')
-      .select('*, brands(id, name), categories(id, name)')
-      .in('reference', pageRefs);
-
-    if (collectionId) {
-      query = query.eq('collection_id', collectionId);
-    }
-
-    const { data, error } = await query;
-    let productsList: Product[] = [];
-
-    if (!error && data && data.length > 0) {
-      const mapById = new Map<string, Product>();
-      data.forEach((row) => {
-        const p = mapSupabaseToProduct(row);
-        mapById.set(p.reference.toUpperCase(), p);
-      });
-
-      productsList = pageRefs.map((ref) => {
-        const found = mapById.get(ref.toUpperCase());
-        if (found) return found;
-        const meta = metaMap[ref];
-        const imgUrl = `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(ref)}.jpg`;
-        return {
-          id: ref,
-          reference: ref,
-          code: ref,
-          description: `Montura oftálmica de alta calidad, referencia ${ref}.`,
-          price: meta?.p || 0,
-          eyeSize: 0,
-          brand: meta?.b || (brandName || 'Dubros'),
-          material: meta?.m || 'ACETATO / METAL',
-          gender: (meta?.g as any) || 'Unisex',
-          saleType: 'PIEZA',
-          category: meta?.c || (categoryName || 'Aros Ópticos'),
-          quantity: meta?.q || 0,
-          flex: true,
-          thumbnailUrl: imgUrl,
-          largeImageUrl: imgUrl,
-        };
-      });
-    } else {
-      productsList = pageRefs.map((ref) => {
-        const meta = metaMap[ref];
-        const imgUrl = `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(ref)}.jpg`;
-        return {
-          id: ref,
-          reference: ref,
-          code: ref,
-          description: `Montura oftálmica de alta calidad, referencia ${ref}.`,
-          price: meta?.p || 0,
-          eyeSize: 0,
-          brand: meta?.b || (brandName || 'Dubros'),
-          material: meta?.m || 'ACETATO / METAL',
-          gender: (meta?.g as any) || 'Unisex',
-          saleType: 'PIEZA',
-          category: meta?.c || (categoryName || 'Aros Ópticos'),
-          quantity: meta?.q || 0,
-          flex: true,
-          thumbnailUrl: imgUrl,
-          largeImageUrl: imgUrl,
-        };
-      });
-    }
+    const productsList = pageRefs.map((ref) => {
+      const meta = metaMap[ref];
+      const imgUrl = `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(ref)}.jpg`;
+      return {
+        id: ref,
+        reference: ref,
+        code: ref,
+        description: `Montura oftálmica de alta calidad, referencia ${ref}.`,
+        price: meta?.p || 0,
+        eyeSize: 0,
+        brand: meta?.b || (brandName || 'Dubros'),
+        material: meta?.m || 'ACETATO / METAL',
+        gender: (meta?.g as any) || 'Unisex',
+        saleType: 'PIEZA',
+        category: meta?.c || (categoryName || 'Aros Ópticos'),
+        quantity: meta?.q || 0,
+        flex: true,
+        thumbnailUrl: imgUrl,
+        largeImageUrl: imgUrl,
+      };
+    });
 
     return { products: productsList, totalCount, page, pageSize, totalPages };
-  } catch (e) {
-    console.error('[getProducts] Unexpected error:', e);
+  } catch (err) {
+    console.error('[getProducts] Fallback failed:', err);
     return { products: [], totalCount: 0, page: 1, pageSize, totalPages: 0 };
   }
 }
@@ -603,23 +624,23 @@ export async function getCategories(): Promise<SupabaseCategory[]> {
 // Fetch unique materials from products
 // ---------------------------------------------------------------------------
 
+const CORE_MATERIALS = ['PASTA', 'METAL', 'ACETATO', 'TR90', 'TITANIO', 'SILICONA'];
+
 export async function getMaterials(): Promise<string[]> {
   try {
     const { data, error } = await supabase
       .from('products')
       .select('material')
       .not('material', 'is', null)
-      .not('material', 'eq', 'N/A');
+      .not('material', 'eq', 'N/A')
+      .limit(2000);
 
-    if (error || !data || data.length === 0) {
-      return FALLBACK_MATERIALS;
-    }
-
-    const unique = [...new Set((data || []).map((d) => d.material).filter(Boolean))].sort();
-    return unique.length > 0 ? unique : FALLBACK_MATERIALS;
+    const dbMaterials = (data || []).map((d) => d.material?.trim().toUpperCase()).filter(Boolean);
+    const combined = new Set([...CORE_MATERIALS, ...dbMaterials]);
+    return Array.from(combined);
   } catch (e) {
     console.error('[getMaterials] Unexpected error:', e);
-    return FALLBACK_MATERIALS;
+    return CORE_MATERIALS;
   }
 }
 

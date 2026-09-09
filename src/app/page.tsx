@@ -54,6 +54,31 @@ export default function HomePage() {
     { id: 'b5', name: 'Dubros' },
   ];
 
+  // Material collections requested by user: Pasta, Metal, Acetato
+  const materialCollections = [
+    {
+      id: 'pasta',
+      name: 'Pasta',
+      materialParam: 'PASTA',
+      description: 'Monturas de pasta ultra resistentes, ligeras y con gran variedad de estilos contemporáneos.',
+      imageUrl: 'https://dubros-image-repository.s3.amazonaws.com/1312GD.jpg',
+    },
+    {
+      id: 'metal',
+      name: 'Metal',
+      materialParam: 'METAL',
+      description: 'Diseños estructurados en metal de alta precisión, máxima durabilidad y estilo refinado.',
+      imageUrl: 'https://dubros-image-repository.s3.amazonaws.com/1312D.jpg',
+    },
+    {
+      id: 'acetato',
+      name: 'Acetato',
+      materialParam: 'ACETATO',
+      description: 'Diseños contemporáneos en acetato pulido a mano con acabados de alta gama y brillo duradero.',
+      imageUrl: 'https://dubros-image-repository.s3.amazonaws.com/1317-3.jpg',
+    },
+  ];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '5rem', paddingBottom: '5rem' }}>
       
@@ -198,7 +223,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. FEATURED COLLECTIONS */}
+      {/* 4. FEATURED COLLECTIONS / MATERIALES */}
       <section className="container">
         <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
           <span className="badge badge-blue" style={{ marginBottom: '0.5rem' }}>Colecciones</span>
@@ -212,52 +237,49 @@ export default function HomePage() {
             gap: '2rem',
           }}
         >
-          {loadingCollections ? (
-            Array(3).fill(0).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  height: '350px',
-                  backgroundColor: 'var(--bg-secondary)',
-                  borderRadius: 'var(--radius-xl)',
-                  animation: 'pulse 1.5s infinite ease-in-out',
-                }}
-              />
-            ))
-          ) : (
-            collections.map((collection) => (
-              <div
-                key={collection.id}
-                className="card"
-                style={{
-                  padding: 0,
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
+          {materialCollections.map((col) => (
+            <div
+              key={col.id}
+              className="card group hover:shadow-lg transition-all"
+              style={{
+                padding: 0,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--border-light)',
+              }}
+            >
+              <Link
+                href={`/catalogo?material=${col.materialParam}`}
+                style={{ height: '220px', width: '100%', overflow: 'hidden', backgroundColor: '#F3F4F6', display: 'block' }}
               >
-                <div style={{ height: '200px', width: '100%', overflow: 'hidden', backgroundColor: '#F3F4F6' }}>
-                  <img
-                    src={collection.imageUrl}
-                    alt={collection.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
-                    onError={(e) => { (e.target as HTMLImageElement).src = '/images/product-placeholder.png'; }}
-                  />
+                <img
+                  src={col.imageUrl}
+                  alt={col.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/collection-titanium.jpg'; }}
+                />
+              </Link>
+              <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--navy)' }}>
+                    {col.name}
+                  </h3>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+                    {col.description}
+                  </p>
                 </div>
-                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem' }}>{collection.name}</h3>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
-                      {collection.description}
-                    </p>
-                  </div>
-                  <Link href={`/catalogo?collection=${collection.id}`} className="btn-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.9rem', width: 'fit-content' }}>
-                    {t('home.collections.btn' as any)}
-                  </Link>
-                </div>
+                <Link
+                  href={`/catalogo?material=${col.materialParam}`}
+                  className="btn-primary"
+                  style={{ padding: '0.6rem 1.5rem', fontSize: '0.9rem', width: 'fit-content', textDecoration: 'none' }}
+                >
+                  Explorar {col.name}
+                </Link>
               </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
       </section>
 

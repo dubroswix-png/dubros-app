@@ -20,10 +20,10 @@ function getSupabaseAdmin() {
   return createClient(url, serviceKey);
 }
 
-const ADMIN_EMAILS = ['dubroswix@gmail.com', 'dfduqu01@gmail.com'];
+const ADMIN_EMAILS = ['dubroswix@gmail.com', 'dfduqu01@gmail.com', 'ventasfrancisco@dubros.com'];
 const isUserAdmin = (email?: string | null) => Boolean(email && ADMIN_EMAILS.includes(email.toLowerCase().trim()));
 
-// Simple admin check — validates the requesting user is an admin
+// Simple admin check — validates the requesting user is an admin or manager
 async function isAdmin(request: NextRequest): Promise<boolean> {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) return false;
@@ -51,7 +51,7 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
       .eq('id', user.id)
       .single();
 
-    return profile?.role === 'admin';
+    return profile?.role === 'admin' || profile?.role === 'gerente';
   } catch {
     return isUserAdmin(user.email);
   }
@@ -100,37 +100,45 @@ export async function POST(request: NextRequest) {
     // 3. Map ERP articles to Supabase format
     const mappedProducts = erpArticles.map(mapArticleToProduct);
 
-    // 4. Ensure brands exist for this page
+    // 4. Ensure brands exist for this page (conflict target: slug)
     const uniqueBrands = [...new Set(mappedProducts.map(p => p.brand).filter(Boolean))];
     for (const brandName of uniqueBrands) {
+      const slug = brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       await supabase
         .from('brands')
         .upsert(
-          { name: brandName, slug: brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-'), active: true },
-          { onConflict: 'name' }
+          { name: brandName, slug, active: true },
+          { onConflict: 'slug' }
         );
     }
 
-    // 5. Ensure categories exist for this page
+    // 5. Ensure categories exist for this page (conflict target: slug)
     const uniqueCategories = [...new Set(mappedProducts.map(p => p.category).filter(Boolean))];
     for (const catName of uniqueCategories) {
+      const slug = catName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       await supabase
         .from('categories')
         .upsert(
-          { name: catName, slug: catName.toLowerCase().replace(/[^a-z0-9]+/g, '-') },
-          { onConflict: 'name' }
+          { name: catName, slug },
+          { onConflict: 'slug' }
         );
     }
 
     // 6. Fetch brand & category ID maps from Supabase
-    const { data: brands } = await supabase.from('brands').select('id, name');
-    const { data: categories } = await supabase.from('categories').select('id, name');
+    const { data: brands } = await supabase.from('brands').select('id, name, slug');
+    const { data: categories } = await supabase.from('categories').select('id, name, slug');
 
     const brandMap = new Map<string, string>();
-    brands?.forEach(b => brandMap.set(b.name, b.id));
+    brands?.forEach(b => {
+      brandMap.set(b.name.toUpperCase(), b.id);
+      if (b.slug) brandMap.set(b.slug.toLowerCase(), b.id);
+    });
 
     const categoryMap = new Map<string, string>();
-    categories?.forEach(c => categoryMap.set(c.name, c.id));
+    categories?.forEach(c => {
+      categoryMap.set(c.name.toUpperCase(), c.id);
+      if (c.slug) categoryMap.set(c.slug.toLowerCase(), c.id);
+    });
 
     function detectGender(name: string = '', cat: string = '', mat: string = ''): string {
       const text = `${name} ${cat} ${mat}`.toUpperCase();
@@ -147,20 +155,24 @@ export async function POST(request: NextRequest) {
     }
 
     // 7. Prepare products for upsert
-    const productsToUpsert = mappedProducts.map(p => ({
-      reference: p.sku,
-      code: p.sku,
-      description: p.name,
-      price: p.price,
-      material: p.material,
-      gender: detectGender(p.name, p.category, p.material),
-      quantity: p.stock,
-      sale_type: p.unit,
-      thumbnail_url: p.image_url,
-      large_image_url: p.image_url,
-      brand_id: brandMap.get(p.brand) || null,
-      category_id: categoryMap.get(p.category) || null,
-    }));
+    const productsToUpsert = mappedProducts.map(p => {
+      const bSlug = p.brand ? p.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
+      const cSlug = p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
+      return {
+        reference: p.sku,
+        code: p.sku,
+        description: p.name,
+        price: p.price,
+        material: p.material,
+        gender: detectGender(p.name, p.category, p.material),
+        quantity: p.stock,
+        sale_type: p.unit,
+        thumbnail_url: p.image_url,
+        large_image_url: p.image_url,
+        brand_id: brandMap.get(p.brand.toUpperCase()) || brandMap.get(bSlug) || null,
+        category_id: categoryMap.get(p.category.toUpperCase()) || categoryMap.get(cSlug) || null,
+      };
+    });
 
     // 8. Upsert in batches of 500
     const BATCH_SIZE = 500;

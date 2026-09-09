@@ -93,6 +93,12 @@ export function FilterSidebar({
     }
   }, [searchTerm]);
 
+  const normalizedSelectedMaterial = React.useMemo(() => {
+    if (!selectedMaterial || selectedMaterial === 'all') return 'all';
+    const found = materialOptions.find((o) => o.value.toUpperCase() === selectedMaterial.toUpperCase());
+    return found ? found.value : selectedMaterial;
+  }, [selectedMaterial, materialOptions]);
+
   return (
     <aside
       style={{
@@ -171,7 +177,7 @@ export function FilterSidebar({
       <Select
         label={t('catalog.filter.material' as any)}
         options={materialOptions}
-        value={selectedMaterial}
+        value={normalizedSelectedMaterial}
         onChange={(e) => setSelectedMaterial(e.target.value)}
       />
 
