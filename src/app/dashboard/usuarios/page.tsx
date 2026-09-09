@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X, Trash2, Download } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
-import { UserRole, useAuth } from '@/context/AuthContext';
+import { UserRole, useAuth, hasAdminAccess } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { triggerUserCreatedConfetti, triggerPasswordSuccessSparkle } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
@@ -12,7 +12,7 @@ import { LATAM_COUNTRIES } from '@/data/mock';
 export default function AdminUsersPage() {
   const { userProfile } = useAuth();
   const { showToast } = useToast();
-  const isCurrentUserAdmin = userProfile?.role === 'admin';
+  const isCurrentUserAdmin = userProfile?.role === 'admin' || userProfile?.role === 'manager' || hasAdminAccess(userProfile?.role, userProfile?.email);
 
   const [users, setUsers] = useState<UserProfileRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,9 +21,10 @@ export default function AdminUsersPage() {
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  // User Deletion Modal State (Admin Only)
+  // User Deletion Modal State (Admin & Manager)
   const [userToDelete, setUserToDelete] = useState<UserProfileRecord | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteModalError, setDeleteModalError] = useState<string | null>(null);
 
   // Password Reset / Update Modal State
   const [passwordModalUser, setPasswordModalUser] = useState<UserProfileRecord | null>(null);
@@ -112,6 +113,7 @@ export default function AdminUsersPage() {
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
     setDeleteLoading(true);
+    setDeleteModalError(null);
     try {
       const res = await fetch('/api/admin/users/delete', {
         method: 'POST',
@@ -123,24 +125,16 @@ export default function AdminUsersPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        const deletedEmail = userToDelete.email;
         setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
-        setNotification({
-          type: 'success',
-          message: `Usuario ${userToDelete.email} eliminado con éxito.`,
-        });
         setUserToDelete(null);
-        setTimeout(() => setNotification(null), 4000);
+        setDeleteModalError(null);
+        showToast(`Usuario ${deletedEmail} eliminado con éxito.`, 'success');
       } else {
-        setNotification({
-          type: 'error',
-          message: data.error || 'Error al eliminar el usuario.',
-        });
+        setDeleteModalError(data.error || 'Error al eliminar el usuario.');
       }
     } catch {
-      setNotification({
-        type: 'error',
-        message: 'Error de conexión al eliminar usuario.',
-      });
+      setDeleteModalError('Error de conexión con el servidor al eliminar usuario.');
     } finally {
       setDeleteLoading(false);
     }
@@ -963,10 +957,13 @@ export default function AdminUsersPage() {
                           </button>
                         )}
 
-                        {isCurrentUserAdmin && user.email !== 'dubroswix@gmail.com' && (
+                        {isCurrentUserAdmin && user.email !== 'dubroswix@gmail.com' && user.email !== 'dfduqu01@gmail.com' && (
                           <button
                             disabled={processingId === user.id}
-                            onClick={() => setUserToDelete(user)}
+                            onClick={() => {
+                              setDeleteModalError(null);
+                              setUserToDelete(user);
+                            }}
                             className="btn-secondary"
                             style={{
                               padding: '0.35rem 0.6rem',
@@ -1218,15 +1215,40 @@ export default function AdminUsersPage() {
             <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1E293B', marginBottom: '0.5rem' }}>
               ¿Eliminar usuario definitivamente?
             </h3>
-            <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+            <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.5, marginBottom: '1.25rem' }}>
               Estás a punto de eliminar a <strong style={{ color: '#0F172A' }}>{userToDelete.full_name || userToDelete.email}</strong> (<span style={{ color: '#DC2626', fontWeight: 600 }}>{userToDelete.email}</span>). 
               Esta acción borrará su perfil y cuenta de acceso permanentemente.
             </p>
 
+            {deleteModalError && (
+              <div
+                style={{
+                  marginBottom: '1.25rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  backgroundColor: '#FEF2F2',
+                  color: '#991B1B',
+                  border: '1px solid #FECACA',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  textAlign: 'left',
+                }}
+              >
+                <AlertCircle size={18} style={{ flexShrink: 0, color: '#DC2626' }} />
+                <span>{deleteModalError}</span>
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
               <button
                 disabled={deleteLoading}
-                onClick={() => setUserToDelete(null)}
+                onClick={() => {
+                  setUserToDelete(null);
+                  setDeleteModalError(null);
+                }}
                 className="btn-secondary"
                 style={{ flex: 1, padding: '0.65rem 1rem', fontSize: '0.88rem', fontWeight: 600 }}
               >
