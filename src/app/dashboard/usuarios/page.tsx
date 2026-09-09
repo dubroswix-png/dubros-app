@@ -1,19 +1,27 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X } from 'lucide-react';
+import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X, Trash2 } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
-import { UserRole } from '@/context/AuthContext';
+import { UserRole, useAuth } from '@/context/AuthContext';
+import { triggerUserCreatedConfetti, triggerPasswordSuccessSparkle } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
 import { LATAM_COUNTRIES } from '@/data/mock';
 
 export default function AdminUsersPage() {
+  const { userProfile } = useAuth();
+  const isCurrentUserAdmin = userProfile?.role === 'admin';
+
   const [users, setUsers] = useState<UserProfileRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'client' | 'admin'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'client' | 'manager' | 'admin'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  // User Deletion Modal State (Admin Only)
+  const [userToDelete, setUserToDelete] = useState<UserProfileRecord | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Password Reset / Update Modal State
   const [passwordModalUser, setPasswordModalUser] = useState<UserProfileRecord | null>(null);
@@ -76,6 +84,7 @@ export default function AdminUsersPage() {
       if (!res.ok) {
         setCreateError(data.error || 'Error al crear el usuario.');
       } else {
+        triggerUserCreatedConfetti();
         setNotification({
           type: 'success',
           message: `¡Usuario ${newUserEmail} creado con éxito! Ya puede iniciar sesión.`,
@@ -98,6 +107,43 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch('/api/admin/users/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userToDelete.id,
+          requesterEmail: userProfile?.email,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+        setNotification({
+          type: 'success',
+          message: `Usuario ${userToDelete.email} eliminado con éxito.`,
+        });
+        setUserToDelete(null);
+        setTimeout(() => setNotification(null), 4000);
+      } else {
+        setNotification({
+          type: 'error',
+          message: data.error || 'Error al eliminar el usuario.',
+        });
+      }
+    } catch {
+      setNotification({
+        type: 'error',
+        message: 'Error de conexión al eliminar usuario.',
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const handleRoleChange = async (userId: string, newRole: UserRole, userEmail: string) => {
     setProcessingId(userId);
     setNotification(null);
@@ -112,39 +158,43 @@ export default function AdminUsersPage() {
       );
       setNotification({
         type: 'success',
-        message: `Rol de ${userEmail} actualizado a "${newRole === 'client' ? 'Cliente Aprobado' : newRole === 'admin' ? 'Administrador' : 'Pendiente'}".`,
+        message: `Rol de ${userEmail} actualizado a "${newRole === 'client' ? 'Cliente Aprobado' : newRole === 'manager' ? 'Gerente' : newRole === 'admin' ? 'Administrador' : 'Pendiente'}".`,
       });
 
       setTimeout(() => setNotification(null), 4000);
     } else {
       setNotification({
         type: 'error',
-        message: res.error || 'Error al actualizar el usuario.',
+        message: res.error || 'No se pudo actualizar el rol.',
       });
     }
   };
 
-  const handleSendResetLinkToAdmin = async (email: string) => {
+  const handleGenerateRecoveryLink = async (targetEmail: string) => {
     setPasswordActionLoading(true);
-    setPasswordModalMsg(null);
     setGeneratedLink(null);
+    setCopiedLink(false);
+    setPasswordModalMsg(null);
+
     try {
       const res = await fetch('/api/auth/reset-password-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: targetEmail }),
       });
+
       const data = await res.json();
-      if (res.ok && data.success) {
-        setGeneratedLink(data.actionLink || null);
+
+      if (res.ok && data.success && data.actionLink) {
+        setGeneratedLink(data.actionLink);
         setPasswordModalMsg({
           type: 'success',
-          text: `¡Enlace generado exitosamente! Se ha enviado una notificación con el enlace a dubroswix@gmail.com.`,
+          text: `Enlace generado y enviado a dubroswix@gmail.com con éxito.`,
         });
       } else {
         setPasswordModalMsg({
           type: 'error',
-          text: data.error || 'Error al generar el enlace de restablecimiento.',
+          text: data.error || 'No se pudo generar el enlace.',
         });
       }
     } catch {
@@ -176,6 +226,7 @@ export default function AdminUsersPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        triggerPasswordSuccessSparkle();
         setPasswordModalMsg({
           type: 'success',
           text: `¡Contraseña actualizada con éxito para este usuario!`,
@@ -202,6 +253,7 @@ export default function AdminUsersPage() {
       all: users.length,
       pending: users.filter((u) => u.role === 'pending').length,
       client: users.filter((u) => u.role === 'client').length,
+      manager: users.filter((u) => u.role === 'manager').length,
       admin: users.filter((u) => u.role === 'admin').length,
     };
   }, [users]);
@@ -416,7 +468,8 @@ export default function AdminUsersPage() {
                   >
                     <option value="client">Cliente B2B (Aprobado)</option>
                     <option value="pending">Pendiente de Aprobación</option>
-                    <option value="admin">Administrador del Sistema</option>
+                    <option value="manager">👔 Gerente (Permisos de Gestión)</option>
+                    <option value="admin">🛡️ Administrador del Sistema</option>
                   </select>
                 </div>
 
@@ -588,6 +641,23 @@ export default function AdminUsersPage() {
         </button>
 
         <button
+          onClick={() => setActiveTab('manager')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+            borderRadius: 'var(--radius-md)',
+            color: activeTab === 'manager' ? '#1D4ED8' : 'var(--text-secondary)',
+            backgroundColor: activeTab === 'manager' ? '#EFF6FF' : 'transparent',
+          }}
+        >
+          👔 Gerentes ({counts.manager})
+        </button>
+
+        <button
           onClick={() => setActiveTab('admin')}
           style={{
             background: 'none',
@@ -601,7 +671,7 @@ export default function AdminUsersPage() {
             backgroundColor: activeTab === 'admin' ? '#FEE2E2' : 'transparent',
           }}
         >
-          Administradores ({counts.admin})
+          🛡️ Administradores ({counts.admin})
         </button>
       </div>
 
@@ -724,18 +794,29 @@ export default function AdminUsersPage() {
                           backgroundColor:
                             user.role === 'admin'
                               ? '#FEE2E2'
+                              : user.role === 'manager'
+                              ? '#EFF6FF'
                               : user.role === 'client'
                               ? '#DEF7EC'
                               : '#FEF08A',
                           color:
                             user.role === 'admin'
                               ? '#DC2626'
+                              : user.role === 'manager'
+                              ? '#1D4ED8'
                               : user.role === 'client'
                               ? '#03543F'
                               : '#854D0E',
+                          border: user.role === 'manager' ? '1px solid #BFDBFE' : 'none',
                         }}
                       >
-                        {user.role === 'admin' ? '🛡️ Administrador' : user.role === 'client' ? '✅ Cliente Aprobado' : '⏳ Pendiente'}
+                        {user.role === 'admin'
+                          ? '🛡️ Administrador'
+                          : user.role === 'manager'
+                          ? '👔 Gerente'
+                          : user.role === 'client'
+                          ? '✅ Cliente Aprobado'
+                          : '⏳ Pendiente'}
                       </span>
                     </td>
 
@@ -801,6 +882,30 @@ export default function AdminUsersPage() {
                             style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
                           >
                             Cambiar a Cliente
+                          </button>
+                        )}
+
+                        {isCurrentUserAdmin && user.email !== 'dubroswix@gmail.com' && (
+                          <button
+                            disabled={processingId === user.id}
+                            onClick={() => setUserToDelete(user)}
+                            className="btn-secondary"
+                            style={{
+                              padding: '0.35rem 0.6rem',
+                              fontSize: '0.75rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#DC2626',
+                              backgroundColor: '#FEF2F2',
+                              border: '1px solid #FECACA',
+                              borderRadius: 'var(--radius-sm)',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                            }}
+                            title={`Eliminar permanentemente a ${user.email}`}
+                          >
+                            <Trash2 size={13} />
                           </button>
                         )}
                       </div>
@@ -982,6 +1087,104 @@ export default function AdminUsersPage() {
                   Guardar
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM DELETE USER MODAL (Admin Only) */}
+      {userToDelete && isCurrentUserAdmin && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1rem',
+          }}
+        >
+          <div
+            className="animate-success-pop"
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              maxWidth: '440px',
+              width: '100%',
+              padding: '1.75rem',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              border: '1px solid #FEE2E2',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                backgroundColor: '#FEE2E2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.25rem auto',
+                color: '#DC2626',
+              }}
+            >
+              <Trash2 size={28} />
+            </div>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1E293B', marginBottom: '0.5rem' }}>
+              ¿Eliminar usuario definitivamente?
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+              Estás a punto de eliminar a <strong style={{ color: '#0F172A' }}>{userToDelete.full_name || userToDelete.email}</strong> (<span style={{ color: '#DC2626', fontWeight: 600 }}>{userToDelete.email}</span>). 
+              Esta acción borrará su perfil y cuenta de acceso permanentemente.
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button
+                disabled={deleteLoading}
+                onClick={() => setUserToDelete(null)}
+                className="btn-secondary"
+                style={{ flex: 1, padding: '0.65rem 1rem', fontSize: '0.88rem', fontWeight: 600 }}
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={deleteLoading}
+                onClick={handleDeleteUser}
+                style={{
+                  flex: 1,
+                  padding: '0.65rem 1rem',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  backgroundColor: '#DC2626',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                  opacity: deleteLoading ? 0.7 : 1,
+                }}
+              >
+                {deleteLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Eliminando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    Sí, eliminar
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

@@ -221,7 +221,7 @@ export function Navbar() {
           <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {isLoggedIn ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {userProfile?.role === 'admin' && (
+                {(userProfile?.role === 'admin' || userProfile?.role === 'manager') && (
                   <Link
                     href="/dashboard"
                     className="btn-secondary"
@@ -442,7 +442,7 @@ export function Navbar() {
               </Link>
             )}
 
-            {isLoggedIn && userProfile?.role === 'admin' && (
+            {isLoggedIn && (userProfile?.role === 'admin' || userProfile?.role === 'manager') && (
               <Link
                 href="/dashboard"
                 onClick={() => setIsMobileMenuOpen(false)}

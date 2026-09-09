@@ -9,6 +9,7 @@ import { useCart } from '@/context/CartContext';
 import { createOrder } from '@/lib/orders';
 import { formatPrice } from '@/lib/formatters';
 import { resolveProductImageUrl, handleImageFallback } from '@/lib/images';
+import { triggerOrderSuccessConfetti } from '@/lib/confetti';
 
 export default function CartPage() {
   const router = useRouter();
@@ -60,6 +61,7 @@ export default function CartPage() {
     setLoading(false);
 
     if (result.success && result.orderNumber) {
+      triggerOrderSuccessConfetti();
       setCreatedOrder({
         orderNumber: result.orderNumber,
         whatsappUrl: result.whatsappUrl,
@@ -80,8 +82,12 @@ export default function CartPage() {
       </div>
 
       {createdOrder ? (
-        <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem', maxWidth: '640px', margin: '0 auto' }}>
-          <CheckCircle2 size={64} color="var(--green)" style={{ marginBottom: '1.25rem', marginInline: 'auto' }} />
+        <div className="card animate-success-pop" style={{ textAlign: 'center', padding: '4rem 2rem', maxWidth: '640px', margin: '0 auto' }}>
+          <div style={{ position: 'relative', display: 'inline-block', marginBottom: '1.25rem' }}>
+            <div className="animate-pulse-ring" style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+              <CheckCircle2 size={56} color="var(--green)" />
+            </div>
+          </div>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.5rem' }}>¡Pedido Enviado Exitosamente!</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
             Tu pedido <strong style={{ color: 'var(--blue)' }}>#{createdOrder.orderNumber}</strong> ha sido registrado. Nuestro sistema notificará al equipo comercial para la preparación del despacho.

@@ -20,7 +20,7 @@ export interface UserProfileRecord {
 }
 
 import bubbleUsers from '@/data/bubble_users.json';
-import { isUserAdmin } from '@/context/AuthContext';
+import { isUserAdmin, isUserManager } from '@/context/AuthContext';
 
 export const MOCK_ADMIN_USERS: UserProfileRecord[] = (bubbleUsers as any[]).map((u) => ({
   id: u.id,
@@ -29,7 +29,7 @@ export const MOCK_ADMIN_USERS: UserProfileRecord[] = (bubbleUsers as any[]).map(
   company_name: u.company_name || (u.client_code ? `Cliente #${u.client_code}` : 'Óptica / Distribuidor'),
   country: u.country_code || 'PA',
   business_type: u.business_type || 'Óptica',
-  role: isUserAdmin(u.email) ? 'admin' : 'client',
+  role: isUserAdmin(u.email) ? 'admin' : isUserManager(u.email) ? 'manager' : 'client',
   erp_client_id: u.client_code ? Number(u.client_code) : null,
   erp_client_code: u.client_code || null,
   client_code: u.client_code || null,
@@ -53,7 +53,7 @@ export async function fetchAllProfiles(): Promise<UserProfileRecord[]> {
     const all = [...dbProfiles, ...missingMocks].map((p) => ({
       ...p,
       name: p.full_name || p.name || p.email.split('@')[0],
-      role: isUserAdmin(p.email) ? 'admin' : (p.role || 'client'),
+      role: isUserAdmin(p.email) ? 'admin' : isUserManager(p.email) ? 'manager' : (p.role || 'client'),
     }));
 
     return all as UserProfileRecord[];

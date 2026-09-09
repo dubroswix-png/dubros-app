@@ -141,6 +141,7 @@ export const OrderBubbleModals: React.FC<OrderBubbleModalsProps> = ({
           onClick={onCloseOrderCreated}
         >
           <div
+            className="animate-success-pop"
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: '10px',

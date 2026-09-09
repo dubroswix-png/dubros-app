@@ -21,7 +21,7 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react';
-import { useAuth, isUserAdmin, translateAuthError } from '@/context/AuthContext';
+import { useAuth, isUserAdmin, isUserManager, translateAuthError } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Logo } from '@/components/layout/Logo';
 
@@ -79,7 +79,7 @@ function LoginPageContent() {
     if (!isLoading && isLoggedIn) {
       if (redirectParam && redirectParam.startsWith('/')) {
         router.push(redirectParam);
-      } else if (userProfile?.role === 'admin') {
+      } else if (userProfile?.role === 'admin' || userProfile?.role === 'manager') {
         router.push('/dashboard');
       } else {
         router.push('/catalogo');
@@ -100,7 +100,7 @@ function LoginPageContent() {
       } else {
         if (redirectParam && redirectParam.startsWith('/')) {
           router.push(redirectParam);
-        } else if (isUserAdmin(email)) {
+        } else if (isUserAdmin(email) || isUserManager(email)) {
           router.push('/dashboard');
         } else {
           router.push('/catalogo');

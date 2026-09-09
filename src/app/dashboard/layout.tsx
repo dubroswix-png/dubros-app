@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     if (!isLoggedIn) {
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
-    } else if (userProfile?.role !== 'admin') {
+    } else if (userProfile?.role !== 'admin' && userProfile?.role !== 'manager') {
       router.push('/catalogo');
     }
   }, [isLoggedIn, isLoading, userProfile, pathname, router]);
@@ -43,12 +43,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', gap: '0.75rem' }}>
         <Loader2 size={32} color="var(--blue)" className="animate-spin" />
-        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Verificando acceso administrativo...</span>
+        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Verificando permisos de acceso...</span>
       </div>
     );
   }
 
-  if (!isLoggedIn || userProfile?.role !== 'admin') {
+  if (!isLoggedIn || (userProfile?.role !== 'admin' && userProfile?.role !== 'manager')) {
     return null; // Don't render dashboard while redirecting
   }
 
@@ -87,10 +87,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div>
           <div style={{ padding: '0.5rem 0.75rem', marginBottom: '1.5rem' }}>
             <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--blue)' }}>
-              Panel de Administración
+              {userProfile?.role === 'manager' ? 'Panel de Gerencia' : 'Panel de Administración'}
             </span>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <ShieldAlert size={14} color="#EF4444" /> {userProfile?.email}
+              <ShieldAlert size={14} color={userProfile?.role === 'manager' ? '#3B82F6' : '#EF4444'} /> {userProfile?.email}
             </div>
           </div>
 

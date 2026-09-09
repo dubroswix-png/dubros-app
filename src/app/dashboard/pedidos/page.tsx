@@ -6,6 +6,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getAllOrders, OrderRecord } from '@/lib/orders';
 import { supabase } from '@/lib/supabase';
 import erpClients from '@/data/erp_clients.json';
+import { triggerOrderSuccessConfetti } from '@/lib/confetti';
 
 // Modular Dashboard Components
 import { OrderFilters } from '@/components/dashboard/orders/OrderFilters';
@@ -268,6 +269,8 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       if (res.ok) {
         const switchNum = String(data.switchOrderNumber || data.erpOrderId || '16-000003549');
+
+        triggerOrderSuccessConfetti();
 
         setOrders((prev) =>
           prev.map((o) =>
