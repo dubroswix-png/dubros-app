@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         .ilike('email', cleanRequester)
         .maybeSingle();
 
-      if (profile && (profile.role === 'admin' || profile.role === 'manager')) {
+      if (profile && (profile.role === 'admin' || profile.role === 'manager' || profile.role === 'gerente')) {
         isAuthorized = true;
       }
     }

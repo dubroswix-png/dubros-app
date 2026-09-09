@@ -13,7 +13,7 @@ export default function AdminUsersPage() {
   const { userProfile } = useAuth();
   const { showToast } = useToast();
   const isAdmin = isUserAdmin(userProfile?.email) || userProfile?.role === 'admin';
-  const isManager = !isAdmin && (isUserManager(userProfile?.email) || userProfile?.role === 'manager');
+  const isManager = !isAdmin && (isUserManager(userProfile?.email) || userProfile?.role === 'manager' || userProfile?.role === 'gerente');
   const isCurrentUserAdmin = isAdmin || isManager || hasAdminAccess(userProfile?.role, userProfile?.email);
 
   const [users, setUsers] = useState<UserProfileRecord[]>([]);
