@@ -59,25 +59,25 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="container" style={{ padding: '3rem 1.5rem 5rem 1.5rem' }}>
+    <div className="container contact-main-container" style={{ padding: '3rem 1.5rem 5rem 1.5rem' }}>
       
       {/* Header */}
-      <div style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto 3.5rem auto' }}>
+      <div className="contact-header" style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto 3.5rem auto' }}>
         <span className="badge badge-blue" style={{ marginBottom: '0.5rem' }}>Atención Comercial</span>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.75rem' }}>
+        <h1 className="contact-title" style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.75rem' }}>
           Contáctanos Directamente
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem' }}>
+        <p className="contact-subtitle" style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: 1.5 }}>
           Completa el siguiente formulario con la información de tu óptica o empresa distribuidora y nos pondremos en contacto contigo a la brevedad.
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '3rem' }}>
+      <div className="contact-layout-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '3rem' }}>
         
         {/* CONTACT INFO PANEL */}
         <div>
           <div
-            className="card"
+            className="card contact-card-pad"
             style={{
               backgroundColor: 'var(--navy)',
               color: '#FFFFFF',
@@ -98,53 +98,130 @@ export default function ContactPage() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                  <MapPin size={22} color="#60A5FA" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <MapPin size={20} color="#93C5FD" />
+                  </div>
                   <div>
-                    <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>Dirección Principal</strong>
-                    <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.75)', lineHeight: '1.4', display: 'block' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '0.2rem' }}>
+                      Dirección Principal
+                    </h3>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.9rem', lineHeight: '1.5' }}>
                       Zona Libre de Interplaza Piso 4- Local 514, Colón, Panamá
-                    </span>
+                    </p>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                  <Phone size={22} color="#60A5FA" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Phone size={20} color="#93C5FD" />
+                  </div>
                   <div>
-                    <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>Teléfono Fijo</strong>
-                    <a href="tel:+5074414731" style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.9)', textDecoration: 'none' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '0.2rem' }}>
+                      Teléfono Fijo
+                    </h3>
+                    <a
+                      href="tel:+5074414731"
+                      style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.9rem', textDecoration: 'none' }}
+                    >
                       +507 4414731
                     </a>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                  <Mail size={22} color="#60A5FA" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Mail size={20} color="#93C5FD" />
+                  </div>
                   <div>
-                    <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>Correo Electrónico</strong>
-                    <a href="mailto:ventas@dubros.com" style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.9)', textDecoration: 'none' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '0.2rem' }}>
+                      Correo Electrónico
+                    </h3>
+                    <a
+                      href="mailto:ventas@dubros.com"
+                      style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.9rem', textDecoration: 'none' }}
+                    >
                       ventas@dubros.com
                     </a>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                  <Phone size={22} color="#10B981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(37, 211, 102, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <MessageSquare size={20} color="#25D366" />
+                  </div>
                   <div>
-                    <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '0.2rem' }}>WhatsApp Comercial</strong>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.2rem' }}>
-                      <a href="https://wa.me/50762926554" target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#6EE7B7', textDecoration: 'none', fontWeight: 600 }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '0.2rem' }}>
+                      WhatsApp Comercial
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                      <a
+                        href="https://wa.me/50762926554"
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: '#25D366', fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none' }}
+                      >
                         (+507) 6292-6554
                       </a>
-                      <a href="https://wa.me/50762912194" target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#6EE7B7', textDecoration: 'none', fontWeight: 600 }}>
+                      <a
+                        href="https://wa.me/50762912194"
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: '#25D366', fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none' }}
+                      >
                         (+507) 6291-2194
                       </a>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                {/* Social Networks */}
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                   <a
-                    href="https://www.tiktok.com/@dubrosinternational"
+                    href="https://www.tiktok.com/@dubrosinternational?_r=1&_d=secCgYIASAHKAESPgo86X8"
                     target="_blank"
                     rel="noreferrer"
                     style={{
@@ -163,7 +240,7 @@ export default function ContactPage() {
                     TikTok
                   </a>
                   <a
-                    href="https://www.instagram.com/dubrosinternational/?hl=es"
+                    href="https://www.instagram.com/dubrosinternational?igsh=MWF5ZXhhNDQzbmY0ag=="
                     target="_blank"
                     rel="noreferrer"
                     style={{
@@ -211,7 +288,7 @@ export default function ContactPage() {
         </div>
 
         {/* FORM */}
-        <div className="card" style={{ padding: '2.5rem' }}>
+        <div className="card contact-card-pad" style={{ padding: '2.5rem' }}>
           {submitted ? (
             <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
               <CheckCircle2 size={54} color="var(--green)" style={{ marginBottom: '1rem' }} />
@@ -226,7 +303,7 @@ export default function ContactPage() {
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'block' }}>
                     Nombre *
@@ -293,7 +370,7 @@ export default function ContactPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'block' }}>
                     Compañía / Óptica *

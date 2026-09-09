@@ -261,6 +261,26 @@ button, input, select, textarea {
     width: 48px !important;
     height: 48px !important;
   }
+  .contact-main-container {
+    padding: 1.5rem 1rem 4rem 1rem !important;
+  }
+  .contact-title {
+    font-size: 1.75rem !important;
+  }
+  .contact-subtitle {
+    font-size: 0.95rem !important;
+  }
+  .contact-header {
+    margin-bottom: 2rem !important;
+  }
+  .contact-card-pad {
+    padding: 1.5rem !important;
+  }
+  .form-grid-2col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.25rem !important;
+  }
 }
 
 /* ==========================================================================
@@ -295,6 +315,12 @@ button, input, select, textarea {
 
   .catalog-mobile-filter-btn {
     display: inline-flex !important;
+  }
+
+  .contact-layout-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2rem !important;
   }
 }
 
