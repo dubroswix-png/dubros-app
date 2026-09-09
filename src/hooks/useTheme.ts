@@ -9,9 +9,9 @@ export function useTheme() {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('dubros-theme') as Theme | null;
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    const initialTheme: Theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+    // Default is always 'light' unless the user previously explicitly chose their preference
+    const initialTheme: Theme = (savedTheme === 'dark' || savedTheme === 'light') ? savedTheme : 'light';
     setTheme(initialTheme);
     document.documentElement.setAttribute('data-theme', initialTheme);
   }, []);
