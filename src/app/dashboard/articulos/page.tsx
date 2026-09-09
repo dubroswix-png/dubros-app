@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Tag, Upload, Plus, FileSpreadsheet, CheckCircle2, RefreshCw, AlertCircle, Cloud } from 'lucide-react';
+import { Tag, Upload, Plus, FileSpreadsheet, CheckCircle2, RefreshCw, AlertCircle, Cloud, Search, Save } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface SyncResult {
@@ -241,6 +241,58 @@ export default function AdminArticlesPage() {
     }
   };
 
+  const [searchingProduct, setSearchingProduct] = useState(false);
+
+  const handleSearchExistingProduct = async () => {
+    if (!formData.reference.trim()) {
+      setFormResult({ success: false, message: 'Ingresa una referencia para buscar.' });
+      return;
+    }
+
+    setSearchingProduct(true);
+    setFormResult(null);
+
+    try {
+      const ref = formData.reference.trim().toUpperCase();
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, brands(name), categories(name)')
+        .or(`reference.ilike.${ref},code.ilike.${ref}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) {
+        setFormResult({
+          success: false,
+          message: `No se encontró ningún artículo existente con la referencia "${ref}". Puedes crearlo completando el formulario.`,
+        });
+      } else {
+        setFormData({
+          reference: data.reference || ref,
+          code: data.code || ref,
+          description: data.description || '',
+          price: String(data.price || ''),
+          eyeSize: data.eye_size ? String(data.eye_size) : '',
+          brand: data.brands?.name || 'LCT',
+          material: data.material || 'Acetato',
+          gender: data.gender || 'Unisex',
+          saleType: data.sale_type || 'PIEZA',
+          category: data.categories?.name || 'Aros Ópticos',
+          quantity: String(data.quantity ?? '100'),
+          imageUrl: data.thumbnail_url || '/images/product-placeholder.png',
+        });
+        setFormResult({
+          success: true,
+          message: `Artículo "${data.reference}" cargado. Modifica los campos que desees y haz clic en "Guardar / Actualizar Artículo".`,
+        });
+      }
+    } catch (err: any) {
+      setFormResult({ success: false, message: err?.message || 'Error al buscar artículo.' });
+    } finally {
+      setSearchingProduct(false);
+    }
+  };
+
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.reference || !formData.price || !formData.description) {
@@ -252,34 +304,36 @@ export default function AdminArticlesPage() {
     setFormResult(null);
 
     try {
-      // 1. Upsert Brand
+      // 1. Upsert Brand (using slug for unique conflict)
       let brandId: string | null = null;
       if (formData.brand) {
+        const brandSlug = formData.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const { data: brandData } = await supabase
           .from('brands')
-          .upsert({ name: formData.brand.toUpperCase(), active: true }, { onConflict: 'name' })
+          .upsert({ name: formData.brand.toUpperCase(), slug: brandSlug, active: true }, { onConflict: 'slug' })
           .select('id')
           .single();
         brandId = brandData?.id || null;
       }
 
-      // 2. Upsert Category
+      // 2. Upsert Category (using slug for unique conflict)
       let categoryId: string | null = null;
       if (formData.category) {
+        const catSlug = formData.category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const { data: catData } = await supabase
           .from('categories')
-          .upsert({ name: formData.category, slug: formData.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') }, { onConflict: 'name' })
+          .upsert({ name: formData.category, slug: catSlug }, { onConflict: 'slug' })
           .select('id')
           .single();
         categoryId = catData?.id || null;
       }
 
-      // 3. Upsert Product
+      // 3. Upsert Product (create if new, update if exists)
       const { error } = await supabase.from('products').upsert(
         {
-          reference: formData.reference,
-          code: formData.code || formData.reference,
-          description: formData.description,
+          reference: formData.reference.trim(),
+          code: (formData.code || formData.reference).trim(),
+          description: formData.description.trim(),
           price: parseFloat(formData.price) || 0,
           eye_size: parseInt(formData.eyeSize, 10) || null,
           material: formData.material,
@@ -295,23 +349,9 @@ export default function AdminArticlesPage() {
       );
 
       if (error) {
-        setFormResult({ success: false, message: `Error guardando producto: ${error.message}` });
+        setFormResult({ success: false, message: `Error guardando/actualizando producto: ${error.message}` });
       } else {
-        setFormResult({ success: true, message: `¡Producto "${formData.reference}" guardado exitosamente!` });
-        setFormData({
-          reference: '',
-          code: '',
-          description: '',
-          price: '',
-          eyeSize: '',
-          brand: 'LCT',
-          material: 'Titanio',
-          gender: 'Unisex',
-          saleType: 'PIEZA',
-          category: 'Aros Ópticos',
-          quantity: '100',
-          imageUrl: '/images/product-placeholder.png',
-        });
+        setFormResult({ success: true, message: `¡Artículo "${formData.reference}" guardado/actualizado exitosamente en el catálogo!` });
       }
     } catch (err: any) {
       setFormResult({ success: false, message: err?.message || 'Error inesperado al guardar producto.' });
@@ -327,7 +367,7 @@ export default function AdminArticlesPage() {
           <Tag size={28} color="var(--blue)" /> Gestión de Artículos y Productos
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-          Creación individual de monturas y carga masiva mediante archivo CSV.
+          Creación y actualización individual de monturas, importación masiva por CSV y sincronización con el ERP.
         </p>
       </div>
 
@@ -337,7 +377,7 @@ export default function AdminArticlesPage() {
           className={activeTab === 'create' ? 'btn-primary' : 'btn-secondary'}
           style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem' }}
         >
-          <Plus size={16} /> Crear Producto Individual
+          <Plus size={16} /> Crear / Actualizar Artículo
         </button>
         <button
           onClick={() => setActiveTab('bulk')}
@@ -357,7 +397,12 @@ export default function AdminArticlesPage() {
 
       {activeTab === 'create' ? (
         <div className="card" style={{ padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1.5rem' }}>Formulario de Producto</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0 }}>Crear o Modificar Artículo</h2>
+            <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+              Ingresa una referencia existente y pulsa &quot;Cargar Datos&quot; para editarlo, o escribe una nueva para crearlo.
+            </span>
+          </div>
           
           {formResult && (
             <div
@@ -384,14 +429,27 @@ export default function AdminArticlesPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Referencia *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej: Koroit012345E"
-                    value={formData.reference}
-                    onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
-                  />
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej: Koroit012345E o DAVISTA251011C3"
+                      value={formData.reference}
+                      onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
+                      style={{ flex: 1, padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSearchExistingProduct}
+                      disabled={searchingProduct || !formData.reference.trim()}
+                      className="btn-secondary"
+                      style={{ padding: '0.6rem 0.9rem', fontSize: '0.8rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                      title="Buscar y cargar datos de este artículo si ya existe en la base de datos"
+                    >
+                      {searchingProduct ? <RefreshCw size={14} className="spin" /> : <Search size={14} />}
+                      Cargar Datos
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Código *</label>
@@ -527,7 +585,7 @@ export default function AdminArticlesPage() {
                     </>
                   ) : (
                     <>
-                      <Plus size={18} /> Guardar Producto
+                      <Save size={18} /> Guardar / Actualizar Artículo
                     </>
                   )}
                 </button>

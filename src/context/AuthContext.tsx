@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '@/lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
 
-export type UserRole = 'admin' | 'manager' | 'client' | 'pending';
+export type UserRole = 'admin' | 'manager' | 'gerente' | 'client' | 'pending';
 
 export interface UserProfile {
   email: string;
@@ -47,9 +47,9 @@ export const isUserManager = (email?: string | null): boolean => {
   return MANAGER_EMAILS.includes(email.toLowerCase().trim());
 };
 
-export const hasAdminAccess = (role?: UserRole | null, email?: string | null): boolean => {
+export const hasAdminAccess = (role?: UserRole | string | null, email?: string | null): boolean => {
   if (isUserAdmin(email) || isUserManager(email)) return true;
-  return role === 'admin' || role === 'manager';
+  return role === 'admin' || role === 'manager' || role === 'gerente';
 };
 
 export function translateAuthError(errorMsg?: any): string {
@@ -125,8 +125,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const userEmail = data?.email || user.email || '';
       const isAdmin = isUserAdmin(userEmail) || data?.role === 'admin';
-      const isManager = isUserManager(userEmail) || data?.role === 'manager';
-      const resolvedRole: UserRole = isAdmin ? 'admin' : isManager ? 'manager' : (data?.role as UserRole) || 'client';
+      const isManager = isUserManager(userEmail) || data?.role === 'manager' || data?.role === 'gerente';
+      const resolvedRole: UserRole = isAdmin ? 'admin' : isManager ? 'gerente' : (data?.role as UserRole) || 'client';
 
       if (data && !error) {
         const profile: UserProfile = {

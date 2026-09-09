@@ -20,10 +20,16 @@ function getSupabaseAdmin() {
   return createClient(url, serviceKey);
 }
 
-const ADMIN_EMAILS = ['dubroswix@gmail.com', 'dfduqu01@gmail.com', 'ventasfrancisco@dubros.com'];
-const isUserAdmin = (email?: string | null) => Boolean(email && ADMIN_EMAILS.includes(email.toLowerCase().trim()));
+const AUTHORIZED_EMAILS = [
+  'dubroswix@gmail.com',
+  'dfduqu01@gmail.com',
+  'ventasfrancisco@dubros.com',
+  'ventas@dubros.com',
+  'yorgelis.t7@hotmail.com',
+];
+const isUserAuthorized = (email?: string | null) => Boolean(email && AUTHORIZED_EMAILS.includes(email.toLowerCase().trim()));
 
-// Simple admin check — validates the requesting user is an admin or manager
+// Simple authorization check — validates the requesting user is an admin or manager
 async function isAdmin(request: NextRequest): Promise<boolean> {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) return false;
@@ -41,7 +47,7 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) return false;
 
-  if (isUserAdmin(user.email)) return true;
+  if (isUserAuthorized(user.email)) return true;
 
   try {
     const adminSupabase = getSupabaseAdmin();
@@ -51,9 +57,9 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
       .eq('id', user.id)
       .single();
 
-    return profile?.role === 'admin' || profile?.role === 'gerente';
+    return profile?.role === 'admin' || profile?.role === 'gerente' || profile?.role === 'manager';
   } catch {
-    return isUserAdmin(user.email);
+    return isUserAuthorized(user.email);
   }
 }
 

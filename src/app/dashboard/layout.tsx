@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     if (!isLoggedIn) {
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
-    } else if (userProfile?.role !== 'admin' && userProfile?.role !== 'manager') {
+    } else if (userProfile?.role !== 'admin' && userProfile?.role !== 'manager' && userProfile?.role !== 'gerente') {
       router.push('/catalogo');
     }
   }, [isLoggedIn, isLoading, userProfile, pathname, router]);
@@ -48,18 +48,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!isLoggedIn || (userProfile?.role !== 'admin' && userProfile?.role !== 'manager')) {
+  if (!isLoggedIn || (userProfile?.role !== 'admin' && userProfile?.role !== 'manager' && userProfile?.role !== 'gerente')) {
     return null; // Don't render dashboard while redirecting
   }
 
+  const isManager = userProfile?.role === 'manager' || userProfile?.role === 'gerente';
+
   const navItems = [
     { label: 'Inicio', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Colecciones', href: '/dashboard/colecciones', icon: Layers },
-    { label: 'Usuarios', href: '/dashboard/usuarios', icon: Users },
+    { label: 'Artículos', href: '/dashboard/articulos', icon: Tag },
     { label: 'Pedidos', href: '/dashboard/pedidos', icon: PackageCheck },
+    { label: 'Colecciones', href: '/dashboard/colecciones', icon: Layers },
+    ...(!isManager ? [{ label: 'Usuarios', href: '/dashboard/usuarios', icon: Users }] : []),
     { label: 'Blog', href: '/dashboard/blog', icon: FileText },
     { label: 'Imágenes', href: '/dashboard/imagenes', icon: Image },
-    { label: 'Artículos', href: '/dashboard/articulos', icon: Tag },
     { label: 'Duplicados', href: '/dashboard/duplicados', icon: Copy },
     { label: 'Promociones', href: '/dashboard/promociones', icon: BadgePercent },
     { label: 'Campañas', href: '/dashboard/campanas', icon: Mail },
@@ -87,10 +89,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div>
           <div style={{ padding: '0.5rem 0.75rem', marginBottom: '1.5rem' }}>
             <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--blue)' }}>
-              {userProfile?.role === 'manager' ? 'Panel de Gerencia' : 'Panel de Administración'}
+              {isManager ? 'Panel de Gerencia' : 'Panel de Administración'}
             </span>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <ShieldAlert size={14} color={userProfile?.role === 'manager' ? '#3B82F6' : '#EF4444'} /> {userProfile?.email}
+              <ShieldAlert size={14} color={isManager ? '#3B82F6' : '#EF4444'} /> {userProfile?.email}
             </div>
           </div>
 

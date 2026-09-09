@@ -37,8 +37,16 @@ function getRowValue(row: Record<string, any>, possibleKeys: string[]): string {
   return '';
 }
 
-// Verify admin authorization
-async function isAdmin(request: NextRequest): Promise<boolean> {
+const ADMIN_OR_MANAGER_EMAILS = [
+  'dubroswix@gmail.com',
+  'dfduqu01@gmail.com',
+  'ventasfrancisco@dubros.com',
+  'ventas@dubros.com',
+  'yorgelis.t7@hotmail.com',
+];
+
+// Verify admin or manager authorization
+async function isAuthorized(request: NextRequest): Promise<boolean> {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) return false;
 
@@ -50,6 +58,10 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) return false;
 
+  if (user.email && ADMIN_OR_MANAGER_EMAILS.includes(user.email.toLowerCase().trim())) {
+    return true;
+  }
+
   const adminSupabase = getSupabaseAdmin();
   const { data: profile } = await adminSupabase
     .from('profiles')
@@ -57,15 +69,15 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
     .eq('id', user.id)
     .single();
 
-  return profile?.role === 'admin';
+  return profile?.role === 'admin' || profile?.role === 'gerente' || profile?.role === 'manager';
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = await isAdmin(request);
-    if (!admin) {
+    const authorized = await isAuthorized(request);
+    if (!authorized) {
       return NextResponse.json(
-        { error: 'No autorizado. Solo administradores pueden importar datos.' },
+        { error: 'No autorizado. Solo administradores y gerentes pueden importar datos.' },
         { status: 403 }
       );
     }
