@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 7. Update local Supabase order with real Switch-Soft data
-    await supabase
+    const { error: updateError } = await supabase
       .from('orders')
       .update({
         switch_order_number: numeroInterno,
@@ -233,8 +233,13 @@ export async function POST(request: NextRequest) {
         payment_url: urlswitchpay,
         switch_synced: true,
         status: 'En Proceso',
+        updated_at: new Date().toISOString(),
       })
       .eq('id', orderId);
+
+    if (updateError) {
+      console.error('[ERP Order Checkout] Error updating local Supabase order:', updateError);
+    }
 
     return NextResponse.json({
       success: true,
