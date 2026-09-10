@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   Tag, Users, PackageCheck, Image as ImageIcon, ArrowUpRight, TrendingUp, 
   Loader2, Warehouse, Search, Download, AlertTriangle, CheckCircle2, 
-  Filter, FileSpreadsheet, Layers, HelpCircle, Eye
+  Filter, FileSpreadsheet, Layers, HelpCircle, Eye, RefreshCw
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabase';
@@ -19,6 +19,7 @@ interface AuditProduct {
   code: string;
   description: string;
   price: number;
+  quantity?: number;
   brand: string;
   category: string;
   material: string;
@@ -32,8 +33,38 @@ interface AuditProduct {
   missingFields: string[];
 }
 
+function getMissingBadgeStyle(f: string) {
+  switch (f) {
+    case 'Foto Grande':
+      return { backgroundColor: '#FEE2E2', color: '#991B1B' };
+    case 'Precio':
+      return { backgroundColor: '#FFE4E6', color: '#9F1239' };
+    case 'Stock':
+      return { backgroundColor: '#F1F5F9', color: '#475569' };
+    case 'Descripción':
+      return { backgroundColor: '#EDE9FE', color: '#5B21B6' };
+    case 'Talla Ocular':
+      return { backgroundColor: '#E0F2FE', color: '#0369A1' };
+    case 'Género':
+      return { backgroundColor: '#E0E7FF', color: '#3730A3' };
+    case 'Flex':
+      return { backgroundColor: '#FEF3C7', color: '#92400E' };
+    case 'Material':
+      return { backgroundColor: '#FFEDD5', color: '#9A3412' };
+    case 'Marca':
+      return { backgroundColor: '#FEF9C3', color: '#854D0E' };
+    case 'Categoría':
+      return { backgroundColor: '#F3E8FF', color: '#6B21A8' };
+    case 'Tipo Venta':
+      return { backgroundColor: '#CCFBF1', color: '#115E59' };
+    default:
+      return { backgroundColor: '#F3F4F6', color: '#374151' };
+  }
+}
+
 export default function DashboardHomePage() {
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [stats, setStats] = useState({
     products: erpInventory.length,
     brands: 151,
@@ -63,108 +94,136 @@ export default function DashboardHomePage() {
     noMaterial: false,
     noBrand: false,
     noCategory: false,
+    noPrice: false,
+    noStock: false,
+    noDescription: false,
   });
 
-  // Categories list
-  const categories = useMemo(() => {
+  // Categories list (dynamic from API or fallback)
+  const [categories, setCategories] = useState<string[]>(() => {
     const set = new Set<string>();
     (erpInventory as any[]).forEach((item) => {
       if (item.category) set.add(item.category.trim());
     });
     return Array.from(set).sort();
-  }, []);
+  });
+
+  const loadDashboardStatsAndAudit = async (refresh = false) => {
+    if (refresh) setIsRefreshing(true);
+    else setLoading(true);
+
+    try {
+      // 1. Try to fetch live Supabase data from /api/admin/audit-products
+      const res = await fetch(`/api/admin/audit-products${refresh ? '?refresh=true' : ''}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.products && Array.isArray(data.products)) {
+          setStats(data.stats);
+          if (data.categories && Array.isArray(data.categories)) {
+            setCategories(data.categories);
+          }
+          setAuditList(data.products);
+          return;
+        }
+      }
+      throw new Error('API returned invalid format, falling back to local data');
+    } catch (err) {
+      console.warn('Falling back to local static inventory:', err);
+      // Fallback to static erp_inventory.json if API fails
+      const metaMap = productMetaMap as Record<string, { b?: string; c?: string; q?: number; p?: number; g?: string; m?: string; f?: string; s?: string }>;
+      const erpProductsCount = erpInventory.length;
+      const uniqueBrands = new Set((erpInventory as any[]).map((e) => e.brand).filter(Boolean)).size;
+      const totalStockUnits = (erpInventory as any[]).reduce((sum, item) => sum + (item.quantity || 0), 0);
+
+      let withImageCount = 0;
+      let withoutImageCount = 0;
+
+      const processed: AuditProduct[] = (erpInventory as any[]).map((item) => {
+        const ref = (item.reference || item.code || '').trim();
+        const meta = metaMap[ref] || {};
+
+        const brand = (meta.b || item.brand || '').trim();
+        const category = (meta.c || item.category || '').trim();
+        const material = (meta.m || item.material || '').trim();
+        const gender = (meta.g || item.gender || '').trim();
+        const eyeSize = (meta.s || item.eye_size || item.talla_ocular || '').trim();
+        const flex = (meta.f || item.flex || '').trim();
+        const saleType = (item.sale_type || item.tipo_venta || '').trim();
+        const price = Number(item.price || 0);
+        const quantity = item.quantity !== null && item.quantity !== undefined ? Number(item.quantity) : null;
+        const description = (item.description || '').trim();
+
+        const hasLargeImage = Boolean(
+          item.large_image_url && 
+          !item.large_image_url.includes('placeholder') &&
+          !item.large_image_url.includes('no-image')
+        );
+
+        if (hasLargeImage) withImageCount++;
+        else withoutImageCount++;
+
+        const missing: string[] = [];
+        if (!hasLargeImage) missing.push('Foto Grande');
+        if (!gender || gender === 'all') missing.push('Género');
+        if (!flex) missing.push('Flex');
+        if (!material || material === 'N/A') missing.push('Material');
+        if (!eyeSize || eyeSize === '0') missing.push('Talla Ocular');
+        if (!saleType || saleType === '1' || saleType === 'N/A') missing.push('Tipo Venta');
+        if (!brand || brand === 'SM' || brand === 'GENERAL') missing.push('Marca');
+        if (!category) missing.push('Categoría');
+        if (price <= 0) missing.push('Precio');
+        if (quantity === null || quantity <= 0) missing.push('Stock');
+        if (!description || description === 'Producto importado') missing.push('Descripción');
+
+        return {
+          erp_id: item.erp_id,
+          reference: ref,
+          code: item.code || ref,
+          description,
+          price,
+          quantity: quantity ?? 0,
+          brand,
+          category,
+          material,
+          gender,
+          eyeSize,
+          flex,
+          saleType,
+          hasLargeImage,
+          thumbnail_url: item.thumbnail_url || '',
+          large_image_url: item.large_image_url || '',
+          missingFields: missing,
+        };
+      });
+
+      const [
+        { count: userCount },
+        { count: orderCount },
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('*', { count: 'exact', head: true }),
+      ]);
+
+      const finalUsers = Math.max(userCount || 0, bubbleUsers.length);
+
+      setStats({
+        products: erpProductsCount,
+        brands: uniqueBrands || 151,
+        totalStock: totalStockUnits || 455550,
+        users: finalUsers,
+        orders: orderCount || 0,
+        withImage: withImageCount,
+        withoutImage: withoutImageCount,
+      });
+
+      setAuditList(processed);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadDashboardStatsAndAudit() {
-      setLoading(true);
-      try {
-        const metaMap = productMetaMap as Record<string, { b?: string; c?: string; q?: number; p?: number; g?: string; m?: string; f?: string; s?: string }>;
-        const erpProductsCount = erpInventory.length;
-        const uniqueBrands = new Set((erpInventory as any[]).map((e) => e.brand).filter(Boolean)).size;
-        const totalStockUnits = (erpInventory as any[]).reduce((sum, item) => sum + (item.quantity || 0), 0);
-
-        let withImageCount = 0;
-        let withoutImageCount = 0;
-
-        const processed: AuditProduct[] = (erpInventory as any[]).map((item) => {
-          const ref = (item.reference || item.code || '').trim();
-          const meta = metaMap[ref] || {};
-
-          const brand = (meta.b || item.brand || '').trim();
-          const category = (meta.c || item.category || '').trim();
-          const material = (meta.m || item.material || '').trim();
-          const gender = (meta.g || item.gender || '').trim();
-          const eyeSize = (meta.s || item.eye_size || item.talla_ocular || '').trim();
-          const flex = (meta.f || item.flex || '').trim();
-          const saleType = (item.sale_type || item.tipo_venta || '').trim();
-
-          const hasLargeImage = Boolean(
-            item.large_image_url && 
-            !item.large_image_url.includes('placeholder') &&
-            !item.large_image_url.includes('no-image')
-          );
-
-          if (hasLargeImage) withImageCount++;
-          else withoutImageCount++;
-
-          const missing: string[] = [];
-          if (!hasLargeImage) missing.push('Foto Grande');
-          if (!gender || gender === 'all') missing.push('Género');
-          if (!material) missing.push('Material');
-          if (!flex) missing.push('Flex');
-          if (!eyeSize) missing.push('Talla Ocular');
-          if (!saleType) missing.push('Tipo Venta');
-          if (!brand || brand === 'SM' || brand === 'GENERAL') missing.push('Marca');
-          if (!category) missing.push('Categoría');
-
-          return {
-            erp_id: item.erp_id,
-            reference: ref,
-            code: item.code || ref,
-            description: item.description || '',
-            price: Number(item.price || 0),
-            brand,
-            category,
-            material,
-            gender,
-            eyeSize,
-            flex,
-            saleType,
-            hasLargeImage,
-            thumbnail_url: item.thumbnail_url || '',
-            large_image_url: item.large_image_url || '',
-            missingFields: missing,
-          };
-        });
-
-        const [
-          { count: userCount },
-          { count: orderCount },
-        ] = await Promise.all([
-          supabase.from('profiles').select('*', { count: 'exact', head: true }),
-          supabase.from('orders').select('*', { count: 'exact', head: true }),
-        ]);
-
-        const finalUsers = Math.max(userCount || 0, bubbleUsers.length);
-
-        setStats({
-          products: erpProductsCount,
-          brands: uniqueBrands || 151,
-          totalStock: totalStockUnits || 455550,
-          users: finalUsers,
-          orders: orderCount || 0,
-          withImage: withImageCount,
-          withoutImage: withoutImageCount,
-        });
-
-        setAuditList(processed);
-      } catch (err) {
-        console.error('Error loading dashboard stats:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     loadDashboardStatsAndAudit();
   }, []);
 
@@ -189,13 +248,16 @@ export default function DashboardHomePage() {
 
       // Missing Checkboxes
       if (filterMissing.noImage && p.hasLargeImage) return false;
-      if (filterMissing.noSaleType && p.saleType) return false;
-      if (filterMissing.noEyeSize && p.eyeSize) return false;
+      if (filterMissing.noSaleType && p.saleType && p.saleType !== '1' && p.saleType !== 'N/A') return false;
+      if (filterMissing.noEyeSize && p.eyeSize && p.eyeSize !== '0') return false;
       if (filterMissing.noGender && (p.gender && p.gender !== 'all')) return false;
       if (filterMissing.noFlex && p.flex) return false;
-      if (filterMissing.noMaterial && p.material) return false;
-      if (filterMissing.noBrand && (p.brand && p.brand !== 'SM' && p.brand !== 'GENERAL')) return false;
-      if (filterMissing.noCategory && p.category) return false;
+      if (filterMissing.noMaterial && p.material && p.material !== 'N/A' && p.material !== '-') return false;
+      if (filterMissing.noBrand && (p.brand && p.brand !== 'SM' && p.brand !== 'GENERAL' && p.brand !== 'Sin marca')) return false;
+      if (filterMissing.noCategory && (p.category && p.category !== 'GENERAL' && p.category !== 'Sin categoría')) return false;
+      if (filterMissing.noPrice && p.price > 0) return false;
+      if (filterMissing.noStock && p.quantity && p.quantity > 0) return false;
+      if (filterMissing.noDescription && p.description && p.description !== 'Producto importado') return false;
 
       return true;
     });
@@ -217,7 +279,7 @@ export default function DashboardHomePage() {
     const headers = [
       'Referencia', 'Codigo', 'Marca', 'Categoria', 'Material', 
       'Genero', 'Flex', 'Talla Ocular', 'Tipo Venta', 'Precio', 
-      'Tiene Imagen Grande', 'Campos Faltantes', 'Descripcion'
+      'Stock (Cantidad)', 'Tiene Imagen Grande', 'Campos Faltantes', 'Descripcion'
     ];
 
     const rows = filteredProducts.map((p) => [
@@ -231,6 +293,7 @@ export default function DashboardHomePage() {
       `"${p.eyeSize}"`,
       `"${p.saleType}"`,
       `"${p.price.toFixed(2)}"`,
+      `"${p.quantity || 0}"`,
       `"${p.hasLargeImage ? 'SI' : 'NO'}"`,
       `"${p.missingFields.join(', ')}"`,
       `"${p.description.replace(/"/g, '""')}"`,
@@ -398,7 +461,24 @@ export default function DashboardHomePage() {
             </select>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => loadDashboardStatsAndAudit(true)}
+              disabled={isRefreshing || loading}
+              className="btn-secondary"
+              style={{
+                padding: '0.65rem 1.15rem',
+                fontSize: '0.85rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontWeight: 600,
+              }}
+              title="Recargar datos actualizados desde la base de datos Supabase"
+            >
+              <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+              {isRefreshing ? 'Actualizando...' : 'Refrescar'}
+            </button>
             <button
               onClick={() => {
                 setSearchTerm('');
@@ -412,11 +492,14 @@ export default function DashboardHomePage() {
                   noMaterial: false,
                   noBrand: false,
                   noCategory: false,
+                  noPrice: false,
+                  noStock: false,
+                  noDescription: false,
                 });
                 setCurrentPage(1);
               }}
               className="btn-secondary"
-              style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem' }}
+              style={{ padding: '0.65rem 1.15rem', fontSize: '0.85rem' }}
             >
               Limpiar Filtros
             </button>
@@ -454,7 +537,7 @@ export default function DashboardHomePage() {
               🖼️ Sin foto grande
             </label>
 
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noGender ? '#4F46E5' : 'var(--text-primary)' }}>
               <input
                 type="checkbox"
                 checked={filterMissing.noGender}
@@ -463,7 +546,7 @@ export default function DashboardHomePage() {
               👤 Género
             </label>
 
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noFlex ? '#D97706' : 'var(--text-primary)' }}>
               <input
                 type="checkbox"
                 checked={filterMissing.noFlex}
@@ -472,7 +555,7 @@ export default function DashboardHomePage() {
               ⚡ Flex
             </label>
 
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noMaterial ? '#EA580C' : 'var(--text-primary)' }}>
               <input
                 type="checkbox"
                 checked={filterMissing.noMaterial}
@@ -481,7 +564,7 @@ export default function DashboardHomePage() {
               🧱 Material
             </label>
 
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noEyeSize ? '#0284C7' : 'var(--text-primary)' }}>
               <input
                 type="checkbox"
                 checked={filterMissing.noEyeSize}
@@ -490,7 +573,7 @@ export default function DashboardHomePage() {
               📐 Talla ocular
             </label>
 
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noBrand ? '#CA8A04' : 'var(--text-primary)' }}>
               <input
                 type="checkbox"
                 checked={filterMissing.noBrand}
@@ -499,7 +582,7 @@ export default function DashboardHomePage() {
               🏷️ Marca
             </label>
 
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noCategory ? '#9333EA' : 'var(--text-primary)' }}>
               <input
                 type="checkbox"
                 checked={filterMissing.noCategory}
@@ -508,13 +591,40 @@ export default function DashboardHomePage() {
               📂 Categoría
             </label>
 
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noSaleType ? '#0D9488' : 'var(--text-primary)' }}>
               <input
                 type="checkbox"
                 checked={filterMissing.noSaleType}
                 onChange={() => handleCheckboxChange('noSaleType')}
               />
               📦 Tipo de venta
+            </label>
+
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noPrice ? '#E11D48' : 'var(--text-primary)' }}>
+              <input
+                type="checkbox"
+                checked={filterMissing.noPrice}
+                onChange={() => handleCheckboxChange('noPrice')}
+              />
+              💵 Sin precio
+            </label>
+
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noStock ? '#64748B' : 'var(--text-primary)' }}>
+              <input
+                type="checkbox"
+                checked={filterMissing.noStock}
+                onChange={() => handleCheckboxChange('noStock')}
+              />
+              📊 Sin stock
+            </label>
+
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: filterMissing.noDescription ? '#7C3AED' : 'var(--text-primary)' }}>
+              <input
+                type="checkbox"
+                checked={filterMissing.noDescription}
+                onChange={() => handleCheckboxChange('noDescription')}
+              />
+              📝 Sin descripción
             </label>
           </div>
         </div>
@@ -528,6 +638,7 @@ export default function DashboardHomePage() {
                 <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Marca</th>
                 <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Material</th>
                 <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Precio</th>
+                <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Stock</th>
                 <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Descripción</th>
                 <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Faltantes</th>
               </tr>
@@ -535,14 +646,14 @@ export default function DashboardHomePage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
                     <Loader2 size={30} className="animate-spin" style={{ margin: '0 auto 0.5rem auto' }} />
                     Analizando artículos...
                   </td>
                 </tr>
               ) : paginatedProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
                     ✓ No se encontraron artículos con los criterios de filtro seleccionados.
                   </td>
                 </tr>
@@ -578,8 +689,13 @@ export default function DashboardHomePage() {
                     </td>
 
                     {/* Precio */}
-                    <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: p.price > 0 ? 'var(--text-primary)' : '#DC2626' }}>
                       ${p.price.toFixed(2)}
+                    </td>
+
+                    {/* Stock */}
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: (p.quantity ?? 0) > 0 ? 'var(--text-primary)' : '#DC2626' }}>
+                      {p.quantity !== undefined && p.quantity !== null ? `${p.quantity.toLocaleString()} uds` : '0 uds'}
                     </td>
 
                     {/* Descripción */}
@@ -595,21 +711,24 @@ export default function DashboardHomePage() {
                         </span>
                       ) : (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
-                          {p.missingFields.map((f, i) => (
-                            <span
-                              key={i}
-                              style={{
-                                fontSize: '0.7rem',
-                                backgroundColor: f === 'Foto Grande' ? '#FEE2E2' : '#FEF3C7',
-                                color: f === 'Foto Grande' ? '#991B1B' : '#92400E',
-                                padding: '0.15rem 0.45rem',
-                                borderRadius: 'var(--radius-sm)',
-                                fontWeight: 700,
-                              }}
-                            >
-                              {f}
-                            </span>
-                          ))}
+                          {p.missingFields.map((f, i) => {
+                            const badgeStyle = getMissingBadgeStyle(f);
+                            return (
+                              <span
+                                key={i}
+                                style={{
+                                  fontSize: '0.7rem',
+                                  backgroundColor: badgeStyle.backgroundColor,
+                                  color: badgeStyle.color,
+                                  padding: '0.15rem 0.45rem',
+                                  borderRadius: 'var(--radius-sm)',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {f}
+                              </span>
+                            );
+                          })}
                         </div>
                       )}
                     </td>
