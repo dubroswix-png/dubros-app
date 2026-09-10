@@ -11,7 +11,7 @@ import { FilterSidebar } from '@/components/catalog/FilterSidebar';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
 import { ProductSkeletonGrid } from '@/components/catalog/ProductSkeletonGrid';
 import { Globe, Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal, X } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, hasAdminAccess } from '@/context/AuthContext';
 
 function CatalogContent() {
   const searchParams = useSearchParams();
@@ -47,6 +47,7 @@ function CatalogContent() {
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedCountry, setSelectedCountry] = useState('PA');
   const [selectedPrice, setSelectedPrice] = useState('all');
+  const [selectedStock, setSelectedStock] = useState('all');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Sync selectedMaterial if URL search param changes
@@ -57,6 +58,8 @@ function CatalogContent() {
     }
   }, [searchParams]);
 
+  const isAdmin = hasAdminAccess(userProfile?.role, userProfile?.email);
+
   // Active filters count for mobile button
   const activeFiltersCount = [
     searchTerm ? 1 : 0,
@@ -65,9 +68,8 @@ function CatalogContent() {
     selectedMaterial !== 'all' ? 1 : 0,
     selectedGender !== 'all' ? 1 : 0,
     selectedPrice !== 'all' ? 1 : 0,
+    isAdmin && selectedStock !== 'all' ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
-
-  const isAdmin = userProfile?.role === 'admin';
   const userCountryObj = LATAM_COUNTRIES.find(
     (c) => c.name === userProfile?.country || c.code === userProfile?.country
   );
@@ -99,7 +101,7 @@ function CatalogContent() {
   // Reset page to 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedPrice]);
+  }, [debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedPrice, selectedStock]);
 
   // Load products when page changes or filters change
   const loadProducts = useCallback(async (page: number) => {
@@ -123,6 +125,14 @@ function CatalogContent() {
         maxPrice = 99999;
       }
 
+      let minStock: number | undefined;
+      if (isAdmin && selectedStock !== 'all') {
+        if (selectedStock === '5+') minStock = 5;
+        else if (selectedStock === '10+') minStock = 10;
+        else if (selectedStock === '20+') minStock = 20;
+        else if (selectedStock === '1+') minStock = 1;
+      }
+
       const result = await getProducts({
         page,
         pageSize: PAGE_SIZE,
@@ -134,6 +144,7 @@ function CatalogContent() {
         gender: selectedGender !== 'all' ? selectedGender : undefined,
         minPrice,
         maxPrice,
+        minStock,
       });
       setAllProducts(result.products);
       setTotalCount(result.totalCount);
@@ -145,7 +156,7 @@ function CatalogContent() {
     } finally {
       setLoading(false);
     }
-  }, [collectionId, debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedPrice]);
+  }, [collectionId, debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedPrice, selectedStock, isAdmin]);
 
   useEffect(() => {
     loadProducts(currentPage);
@@ -160,6 +171,7 @@ function CatalogContent() {
     setSelectedGender('all');
     setSelectedSize('all');
     setSelectedPrice('all');
+    setSelectedStock('all');
     setCurrentPage(1);
   }, []);
 
@@ -285,6 +297,9 @@ function CatalogContent() {
             setSelectedSize={setSelectedSize}
             selectedPrice={selectedPrice}
             setSelectedPrice={setSelectedPrice}
+            selectedStock={selectedStock}
+            setSelectedStock={setSelectedStock}
+            isAdmin={isAdmin}
             resetFilters={resetFilters}
             brands={brands}
             categories={categories}
@@ -553,6 +568,9 @@ function CatalogContent() {
                 setSelectedSize={setSelectedSize}
                 selectedPrice={selectedPrice}
                 setSelectedPrice={setSelectedPrice}
+                selectedStock={selectedStock}
+                setSelectedStock={setSelectedStock}
+                isAdmin={isAdmin}
                 resetFilters={resetFilters}
                 brands={brands}
                 categories={categories}

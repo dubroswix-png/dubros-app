@@ -6,7 +6,7 @@ import { Product } from '@/data/mock';
 import { Heart, ShoppingBag, Eye } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, hasAdminAccess } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 
@@ -22,7 +22,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const { showToast } = useToast();
 
   const isFav = isFavorite(product.id);
-  const isAdmin = userProfile?.role === 'admin';
+  const isAdmin = hasAdminAccess(userProfile?.role, userProfile?.email);
 
   return (
     <div className="card card-product-glow" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

@@ -5,7 +5,7 @@ import { Filter, RotateCcw, Search } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useLanguage } from '@/context/LanguageContext';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, hasAdminAccess } from '@/context/AuthContext';
 
 interface FilterSidebarProps {
   searchTerm: string;
@@ -22,6 +22,9 @@ interface FilterSidebarProps {
   setSelectedSize: (v: string) => void;
   selectedPrice: string;
   setSelectedPrice: (v: string) => void;
+  selectedStock?: string;
+  setSelectedStock?: (v: string) => void;
+  isAdmin?: boolean;
   resetFilters: () => void;
   // Dynamic data from Supabase
   brands?: { id: string; name: string }[];
@@ -44,13 +47,17 @@ export function FilterSidebar({
   setSelectedSize,
   selectedPrice,
   setSelectedPrice,
+  selectedStock,
+  setSelectedStock,
+  isAdmin,
   resetFilters,
   brands = [],
   categories = [],
   materials = [],
 }: FilterSidebarProps) {
   const { t } = useLanguage();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, userProfile } = useAuth();
+  const isUserAnAdmin = isAdmin ?? hasAdminAccess(userProfile?.role, userProfile?.email);
 
   const brandOptions = [
     { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
@@ -81,6 +88,14 @@ export function FilterSidebar({
     { label: '$5 - $10', value: '5-10' },
     { label: '$10 - $20', value: '10-20' },
     { label: '+$20', value: '20+' },
+  ];
+
+  const stockOptions = [
+    { label: 'Todos los niveles de stock', value: 'all' },
+    { label: '≥ 5 piezas (5 en adelante)', value: '5+' },
+    { label: '≥ 10 piezas (10 en adelante)', value: '10+' },
+    { label: '≥ 20 piezas (20 en adelante)', value: '20+' },
+    { label: '≥ 1 pieza (En stock)', value: '1+' },
   ];
 
   const [isSearchingPulse, setIsSearchingPulse] = React.useState(false);
@@ -195,6 +210,35 @@ export function FilterSidebar({
           value={selectedPrice}
           onChange={(e) => setSelectedPrice(e.target.value)}
         />
+      )}
+
+      {isUserAnAdmin && setSelectedStock && (
+        <div
+          style={{
+            backgroundColor: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            padding: '0.85rem',
+            borderRadius: 'var(--radius-md)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.45rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1E40AF', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              📦 Filtro Stock (Admin)
+            </span>
+            <span style={{ fontSize: '0.62rem', backgroundColor: '#DBEAFE', color: '#1D4ED8', padding: '0.12rem 0.4rem', borderRadius: '4px', fontWeight: 800 }}>
+              SOLO ADMIN
+            </span>
+          </div>
+          <Select
+            label=""
+            options={stockOptions}
+            value={selectedStock || 'all'}
+            onChange={(e) => setSelectedStock(e.target.value)}
+          />
+        </div>
       )}
     </aside>
   );

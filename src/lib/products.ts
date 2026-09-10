@@ -56,6 +56,7 @@ export interface GetProductsParams {
   collectionId?: string;
   minPrice?: number;
   maxPrice?: number;
+  minStock?: number;
 }
 
 export interface GetProductsResult {
@@ -233,6 +234,7 @@ export async function getProducts({
   collectionId,
   minPrice,
   maxPrice,
+  minStock,
 }: GetProductsParams = {}): Promise<GetProductsResult> {
   try {
     const from = (page - 1) * pageSize;
@@ -279,15 +281,20 @@ export async function getProducts({
       query = query.lte('price', maxPrice);
     }
 
+    if (minStock !== undefined && minStock > 0) {
+      query = query.gte('quantity', minStock);
+    }
+
     if (search && search.trim()) {
       const s = search.trim();
       query = query.or(`reference.ilike.%${s}%,code.ilike.%${s}%,description.ilike.%${s}%`);
     }
 
-    // LIFO order: Last In First Out (ordered by newest arrival/created_at first)
+    // Chronological order from today backwards: newest activity/update first, then created_at, then reference
     query = query
-      .order('created_at', { ascending: false })
-      .order('reference', { ascending: false })
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false })
+      .order('reference', { ascending: true })
       .range(from, to);
 
     const { data, count, error } = await query;
@@ -335,6 +342,7 @@ export async function getProducts({
       }
       if (minPrice !== undefined && item.p < minPrice) return false;
       if (maxPrice !== undefined && item.p > maxPrice) return false;
+      if (minStock !== undefined && (item.q || 0) < minStock) return false;
       if (sUpper && !ref.includes(sUpper) && !item.b.toUpperCase().includes(sUpper)) return false;
       return true;
     });
