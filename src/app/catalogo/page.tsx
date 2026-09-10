@@ -10,8 +10,10 @@ import { useCatalogFilter } from '@/hooks/useCatalogFilter';
 import { FilterSidebar } from '@/components/catalog/FilterSidebar';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
 import { ProductSkeletonGrid } from '@/components/catalog/ProductSkeletonGrid';
-import { Globe, Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal, X } from 'lucide-react';
+import { Globe, Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal, X, Download } from 'lucide-react';
 import { useAuth, hasAdminAccess } from '@/context/AuthContext';
+import { ExportCatalogModal } from '@/components/catalog/ExportCatalogModal';
+import { exportProductsToExcel, openPrintableCatalog } from '@/lib/catalogExport';
 
 function CatalogContent() {
   const searchParams = useSearchParams();
@@ -20,6 +22,9 @@ function CatalogContent() {
   const { favorites } = useFavorites();
   const { t } = useLanguage();
   const { userProfile } = useAuth();
+
+  // Export modal state (Admin & Gerente)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Data states
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -192,6 +197,83 @@ function CatalogContent() {
     }
   };
 
+  // Export catalog handler for Admin & Gerente
+  const handleExportCatalog = async (
+    format: 'excel' | 'pdf',
+    options: { includePrice: boolean; scope: 'all' | 'page' }
+  ) => {
+    let productsToExport: Product[] = [];
+
+    if (options.scope === 'page') {
+      productsToExport = displayedProducts;
+    } else {
+      let minPrice: number | undefined;
+      let maxPrice: number | undefined;
+      if (selectedPrice === '1-5') { minPrice = 1; maxPrice = 5; }
+      else if (selectedPrice === '5-10') { minPrice = 5; maxPrice = 10; }
+      else if (selectedPrice === '10-20') { minPrice = 10; maxPrice = 20; }
+      else if (selectedPrice === '20+') { minPrice = 20; maxPrice = 99999; }
+
+      let minStock: number | undefined;
+      if (isAdmin && selectedStock !== 'all') {
+        if (selectedStock === '5+') minStock = 5;
+        else if (selectedStock === '10+') minStock = 10;
+        else if (selectedStock === '20+') minStock = 20;
+        else if (selectedStock === '1+') minStock = 1;
+      }
+
+      const fetchSize = 1000;
+      let pageToFetch = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const res = await getProducts({
+          page: pageToFetch,
+          pageSize: fetchSize,
+          collectionId,
+          search: debouncedSearch,
+          brandName: selectedBrand,
+          categoryName: selectedCategory,
+          material: selectedMaterial,
+          gender: selectedGender !== 'all' ? selectedGender : undefined,
+          minPrice,
+          maxPrice,
+          minStock,
+        });
+
+        productsToExport.push(...res.products);
+        if (productsToExport.length >= res.totalCount || res.products.length === 0 || pageToFetch >= res.totalPages) {
+          hasMore = false;
+        } else {
+          pageToFetch++;
+        }
+      }
+    }
+
+    // Build filter summary
+    const summaryParts: string[] = [];
+    if (selectedMaterial && selectedMaterial !== 'all') summaryParts.push(`Material: ${selectedMaterial}`);
+    if (selectedGender && selectedGender !== 'all') summaryParts.push(`Género: ${selectedGender}`);
+    if (selectedBrand && selectedBrand !== 'all') summaryParts.push(`Marca: ${selectedBrand}`);
+    if (selectedCategory && selectedCategory !== 'all') summaryParts.push(`Categoría: ${selectedCategory}`);
+    if (selectedStock && selectedStock !== 'all') summaryParts.push(`Stock: ≥ ${selectedStock.replace('+', '')} pcs`);
+    if (debouncedSearch) summaryParts.push(`Búsqueda: "${debouncedSearch}"`);
+
+    const filterSummary = summaryParts.length > 0 ? summaryParts.join(' • ') : 'Catálogo Completo';
+
+    if (format === 'excel') {
+      exportProductsToExcel(productsToExport, {
+        includePrice: options.includePrice,
+        filterSummary,
+      });
+    } else {
+      openPrintableCatalog(productsToExport, {
+        includePrice: options.includePrice,
+        filterSummary,
+      });
+    }
+  };
+
   // Calculate visible page numbers
   const getVisiblePages = () => {
     const pages: number[] = [];
@@ -330,7 +412,45 @@ function CatalogContent() {
               Mostrando <strong>{rangeStart}–{rangeEnd}</strong> de <strong>{totalCount.toLocaleString()}</strong> artículos
             </span>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setIsExportModalOpen(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    backgroundColor: '#1E40AF',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.45rem 0.85rem',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(30, 64, 175, 0.25)',
+                    transition: 'all 0.2s ease',
+                  }}
+                  title="Exportar catálogo a Excel o Lookbook PDF (Admin y Gerente)"
+                >
+                  <Download size={15} />
+                  Exportar Catálogo
+                  <span
+                    style={{
+                      backgroundColor: '#3B82F6',
+                      color: '#FFFFFF',
+                      fontSize: '0.62rem',
+                      padding: '0.1rem 0.35rem',
+                      borderRadius: '4px',
+                      fontWeight: 800,
+                    }}
+                  >
+                    ADMIN
+                  </span>
+                </button>
+              )}
+
               <button
                 onClick={() => setIsMobileFilterOpen(true)}
                 className="btn-secondary catalog-mobile-filter-btn"
@@ -594,6 +714,25 @@ function CatalogContent() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* EXPORT CATALOG MODAL (Admin & Gerente) */}
+      {isAdmin && (
+        <ExportCatalogModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          totalCount={totalCount}
+          currentPageCount={displayedProducts.length}
+          activeFilters={{
+            brand: selectedBrand,
+            category: selectedCategory,
+            material: selectedMaterial,
+            gender: selectedGender,
+            stock: selectedStock,
+            search: debouncedSearch,
+          }}
+          onExport={handleExportCatalog}
+        />
       )}
     </div>
   );
