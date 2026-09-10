@@ -36,6 +36,7 @@ function CatalogContent() {
   const PAGE_SIZE = 24;
 
   const initialMaterial = searchParams.get('material') || 'all';
+  const initialGender = searchParams.get('gender') || 'all';
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,18 +44,22 @@ function CatalogContent() {
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedMaterial, setSelectedMaterial] = useState(initialMaterial);
-  const [selectedGender, setSelectedGender] = useState('all');
+  const [selectedGender, setSelectedGender] = useState(initialGender);
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedCountry, setSelectedCountry] = useState('PA');
   const [selectedPrice, setSelectedPrice] = useState('all');
   const [selectedStock, setSelectedStock] = useState('all');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Sync selectedMaterial if URL search param changes
+  // Sync selectedMaterial & selectedGender if URL search param changes
   useEffect(() => {
     const mat = searchParams.get('material');
     if (mat) {
       setSelectedMaterial(mat);
+    }
+    const gen = searchParams.get('gender');
+    if (gen) {
+      setSelectedGender(gen);
     }
   }, [searchParams]);
 

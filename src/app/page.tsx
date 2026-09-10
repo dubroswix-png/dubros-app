@@ -54,28 +54,28 @@ export default function HomePage() {
     { id: 'b5', name: 'Dubros' },
   ];
 
-  // Material collections requested by user: Pasta, Metal, Acetato
-  const materialCollections = [
+  // Gender collections requested by user: Hombre, Mujer, Niños
+  const genderCollections = [
     {
-      id: 'pasta',
-      name: 'Pasta',
-      materialParam: 'PASTA',
-      description: 'Monturas de pasta ultra resistentes, ligeras y con gran variedad de estilos contemporáneos.',
-      imageUrl: 'https://dubros-image-repository.s3.amazonaws.com/1312GD.jpg',
+      id: 'hombre',
+      name: 'Hombre',
+      genderParam: 'Hombre',
+      description: 'Monturas estructuradas, diseño masculino contemporáneo y máxima durabilidad para el día a día.',
+      imageUrl: '/images/gender/hombre.jpg',
     },
     {
-      id: 'metal',
-      name: 'Metal',
-      materialParam: 'METAL',
-      description: 'Diseños estructurados en metal de alta precisión, máxima durabilidad y estilo refinado.',
-      imageUrl: 'https://dubros-image-repository.s3.amazonaws.com/1312D.jpg',
+      id: 'mujer',
+      name: 'Mujer',
+      genderParam: 'Mujer',
+      description: 'Diseños sofisticados, siluetas estilizadas y acabados elegantes a la vanguardia de la moda óptica.',
+      imageUrl: '/images/gender/mujer.jpg',
     },
     {
-      id: 'acetato',
-      name: 'Acetato',
-      materialParam: 'ACETATO',
-      description: 'Diseños contemporáneos en acetato pulido a mano con acabados de alta gama y brillo duradero.',
-      imageUrl: 'https://dubros-image-repository.s3.amazonaws.com/1317-3.jpg',
+      id: 'ninos',
+      name: 'Niños',
+      genderParam: 'Niños',
+      description: 'Monturas ergonómicas, flexibles y ultrarresistentes en divertidos colores para los más pequeños.',
+      imageUrl: '/images/gender/ninos.jpg',
     },
   ];
 
@@ -223,11 +223,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. FEATURED COLLECTIONS / MATERIALES */}
+      {/* 4. FEATURED COLLECTIONS / GÉNERO */}
       <section className="container">
         <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
           <span className="badge badge-blue" style={{ marginBottom: '0.5rem' }}>Colecciones</span>
-          <h2 style={{ fontSize: '2.2rem', fontWeight: 800 }}>Líneas de Diseño Exclusivas</h2>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: 800 }}>Encuentra tu Estilo por Género</h2>
         </div>
 
         <div
@@ -237,7 +237,7 @@ export default function HomePage() {
             gap: '2rem',
           }}
         >
-          {materialCollections.map((col) => (
+          {genderCollections.map((col) => (
             <div
               key={col.id}
               className="card group hover:shadow-lg transition-all"
@@ -251,13 +251,13 @@ export default function HomePage() {
               }}
             >
               <Link
-                href={`/catalogo?material=${col.materialParam}`}
-                style={{ height: '220px', width: '100%', overflow: 'hidden', backgroundColor: '#F3F4F6', display: 'block' }}
+                href={`/catalogo?gender=${encodeURIComponent(col.genderParam)}`}
+                style={{ height: '240px', width: '100%', overflow: 'hidden', backgroundColor: '#F3F4F6', display: 'block' }}
               >
                 <img
                   src={col.imageUrl}
                   alt={col.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', transition: 'transform 0.4s ease' }}
                   onError={(e) => { (e.target as HTMLImageElement).src = '/images/collection-titanium.jpg'; }}
                 />
               </Link>
@@ -271,7 +271,7 @@ export default function HomePage() {
                   </p>
                 </div>
                 <Link
-                  href={`/catalogo?material=${col.materialParam}`}
+                  href={`/catalogo?gender=${encodeURIComponent(col.genderParam)}`}
                   className="btn-primary"
                   style={{ padding: '0.6rem 1.5rem', fontSize: '0.9rem', width: 'fit-content', textDecoration: 'none' }}
                 >
