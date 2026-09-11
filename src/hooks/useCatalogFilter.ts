@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { Product } from '@/data/mock';
+import { normalizeText, normalizeGender, normalizeFlex, normalizeSaleType } from '@/lib/products';
 
 interface UseCatalogFilterOptions {
   products: Product[];
@@ -17,6 +18,10 @@ interface FilterState {
   selectedMaterial: string;
   selectedGender: string;
   selectedSize: string;
+  selectedBridge: string;
+  selectedTemple: string;
+  selectedSaleType: string;
+  selectedFlex: string;
   selectedCountry: string;
 }
 
@@ -27,6 +32,10 @@ const INITIAL_STATE: FilterState = {
   selectedMaterial: 'all',
   selectedGender: 'all',
   selectedSize: 'all',
+  selectedBridge: 'all',
+  selectedTemple: 'all',
+  selectedSaleType: 'all',
+  selectedFlex: 'all',
   selectedCountry: 'PA',
 };
 
@@ -50,6 +59,10 @@ export function useCatalogFilter({
       selectedMaterial,
       selectedGender,
       selectedSize,
+      selectedBridge,
+      selectedTemple,
+      selectedSaleType,
+      selectedFlex,
       selectedCountry,
     } = filters;
 
@@ -57,28 +70,57 @@ export function useCatalogFilter({
       if (isFavOnly && !favorites.includes(product.id)) {
         return false;
       }
-      if (
-        searchTerm &&
-        !product.reference.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !product.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !product.description.toLowerCase().includes(searchTerm.toLowerCase())
-      ) {
+      if (searchTerm) {
+        const term = normalizeText(searchTerm);
+        const ref = normalizeText(product.reference);
+        const code = normalizeText(product.code);
+        const desc = normalizeText(product.description);
+        if (!ref.includes(term) && !code.includes(term) && !desc.includes(term)) {
+          return false;
+        }
+      }
+      if (selectedBrand !== 'all' && normalizeText(product.brand) !== normalizeText(selectedBrand)) {
         return false;
       }
-      if (selectedBrand !== 'all' && product.brand !== selectedBrand) {
+      if (selectedCategory !== 'all' && normalizeText(product.category) !== normalizeText(selectedCategory)) {
         return false;
       }
-      if (selectedCategory !== 'all' && product.category !== selectedCategory) {
+      if (selectedMaterial !== 'all') {
+        const pMat = normalizeText(product.material);
+        const sMat = normalizeText(selectedMaterial);
+        if (!pMat.includes(sMat) && !sMat.includes(pMat)) {
+          return false;
+        }
+      }
+      if (selectedGender !== 'all') {
+        const filterGen = normalizeGender(selectedGender);
+        const prodGen = normalizeGender(product.gender);
+        if (filterGen && prodGen !== filterGen) {
+          return false;
+        }
+      }
+      if (selectedSize !== 'all' && product.eyeSize !== parseInt(selectedSize, 10)) {
         return false;
       }
-      if (selectedMaterial !== 'all' && product.material !== selectedMaterial) {
+      if (selectedBridge !== 'all' && product.bridgeSize !== parseInt(selectedBridge, 10)) {
         return false;
       }
-      if (selectedGender !== 'all' && product.gender !== selectedGender) {
+      if (selectedTemple !== 'all' && product.templeLength !== parseInt(selectedTemple, 10)) {
         return false;
       }
-      if (selectedSize !== 'all' && product.eyeSize !== parseInt(selectedSize)) {
-        return false;
+      if (selectedSaleType !== 'all') {
+        const filterSale = normalizeSaleType(selectedSaleType);
+        const prodSale = normalizeSaleType(product.saleType);
+        if (filterSale && prodSale !== filterSale) {
+          return false;
+        }
+      }
+      if (selectedFlex !== 'all') {
+        const filterFlex = normalizeFlex(selectedFlex);
+        const prodFlex = normalizeFlex(product.flex);
+        if (filterFlex !== null && prodFlex !== filterFlex) {
+          return false;
+        }
       }
       if (product.restrictedCountries?.includes(selectedCountry)) {
         return false;
@@ -111,6 +153,14 @@ export function useCatalogFilter({
     setSelectedGender: (v: string) => setFilterField('selectedGender', v),
     selectedSize: filters.selectedSize,
     setSelectedSize: (v: string) => setFilterField('selectedSize', v),
+    selectedBridge: filters.selectedBridge,
+    setSelectedBridge: (v: string) => setFilterField('selectedBridge', v),
+    selectedTemple: filters.selectedTemple,
+    setSelectedTemple: (v: string) => setFilterField('selectedTemple', v),
+    selectedSaleType: filters.selectedSaleType,
+    setSelectedSaleType: (v: string) => setFilterField('selectedSaleType', v),
+    selectedFlex: filters.selectedFlex,
+    setSelectedFlex: (v: string) => setFilterField('selectedFlex', v),
     selectedCountry: filters.selectedCountry,
     setSelectedCountry: (v: string) => setFilterField('selectedCountry', v),
     filteredProducts,

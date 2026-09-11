@@ -7,13 +7,12 @@ import { useAuth, isUserAdmin } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { getAllOrders, OrderRecord } from '@/lib/orders';
 import { supabase } from '@/lib/supabase';
-import erpClients from '@/data/erp_clients.json';
 import { triggerOrderSuccessConfetti } from '@/lib/confetti';
 
 // Modular Dashboard Components
 import { OrderFilters } from '@/components/dashboard/orders/OrderFilters';
 import { OrderListItem } from '@/components/dashboard/orders/OrderListItem';
-import { OrderDetailView } from '@/components/dashboard/orders/OrderDetailView';
+import { OrderDetailView, ProductsValidationData } from '@/components/dashboard/orders/OrderDetailView';
 import {
   OrderBubbleModals,
   ClientFoundData,
@@ -49,6 +48,9 @@ export default function AdminOrdersPage() {
   // Validation States (Tracked per order ID)
   const [validatingProducts, setValidatingProducts] = useState(false);
   const [productsValidated, setProductsValidated] = useState<Record<string, boolean>>({});
+  const [productsValidationData, setProductsValidationData] = useState<
+    Record<string, ProductsValidationData>
+  >({});
   const [validatingClient, setValidatingClient] = useState(false);
   const [clientValidated, setClientValidated] = useState<
     Record<string, { validated: boolean; isNewClient?: boolean; clientCode?: string }>
@@ -142,22 +144,96 @@ export default function AdminOrdersPage() {
     setCurrentPage(1);
   }, [search, statusFilter, dateFrom, dateTo]);
 
-  // Actions: Step 1 Validate Products
-  const handleValidateProducts = async (order: OrderRecord) => {
+  // Actions: Step 1 Validate Products with Switch ERP
+  const handleValidateProducts = async (order: OrderRecord, isManual: boolean = false) => {
     setValidatingProducts(true);
     try {
-      await new Promise((r) => setTimeout(r, 350));
-      setProductsValidated((prev) => ({ ...prev, [order.id]: true }));
+      const res = await fetch('/api/admin/orders/validate-products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order.id,
+          items: order.order_items || [],
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setProductsValidationData((prev) => ({
+          ...prev,
+          [order.id]: data,
+        }));
+
+        if (data.allAvailable) {
+          setProductsValidated((prev) => ({ ...prev, [order.id]: true }));
+          if (isManual) {
+            showToast('✓ Todos los productos validados con stock disponible en Switch ERP.', 'success');
+          }
+        } else {
+          setProductsValidated((prev) => ({ ...prev, [order.id]: false }));
+
+          if (isManual) {
+            const unavailableItems = (data.items || []).filter((i: any) => i.status === 'unavailable');
+            const partialItems = (data.items || []).filter((i: any) => i.status === 'partial');
+
+            const warningList: string[] = [];
+            unavailableItems.forEach((it: any) => {
+              warningList.push(`✕ ${it.reference}: ${it.label}`);
+            });
+            partialItems.forEach((it: any) => {
+              warningList.push(`⚠ ${it.reference}: ${it.label}`);
+            });
+
+            setAlertModal({
+              isOpen: true,
+              type: 'warning',
+              title: '⚠️ Validación con Switch ERP',
+              message: `Se detectaron productos no disponibles o con inventario insuficiente en Switch ERP:`,
+              steps: warningList,
+              actionLabel: 'Entendido',
+            });
+          }
+        }
+      } else if (isManual) {
+        setAlertModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Error de Validación',
+          message: data.error || 'No se pudo validar el inventario con Switch ERP.',
+          actionLabel: 'Cerrar',
+        });
+      }
+    } catch (err: any) {
+      console.error('Error validating products:', err);
+      if (isManual) {
+        setAlertModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Error de Conexión',
+          message: 'No se pudo conectar con el servidor para validar en Switch ERP.',
+          actionLabel: 'Cerrar',
+        });
+      }
     } finally {
       setValidatingProducts(false);
     }
   };
 
+  // Auto-validate products when an order is opened
+  useEffect(() => {
+    if (selectedOrderId && orders.length > 0 && !productsValidationData[selectedOrderId]) {
+      const target = orders.find((o) => o.id === selectedOrderId);
+      if (target) {
+        handleValidateProducts(target, false);
+      }
+    }
+  }, [selectedOrderId, orders, productsValidationData]);
+
   // Actions: Step 2 Validate Client
   const handleValidateClient = async (order: OrderRecord) => {
     setValidatingClient(true);
     try {
-      await new Promise((r) => setTimeout(r, 350));
       const email = (order.customer_email || '').toLowerCase().trim();
 
       let foundCode: string | null = null;
@@ -165,60 +241,35 @@ export default function AdminOrdersPage() {
       let foundVendorId: number = 4;
       let foundName: string = order.company_name || order.customer_name || order.customer_email || '';
 
+      // 1. Check local profile in Supabase
       if (order.user_id) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('erp_client_code, erp_client_id, erp_vendor_id, company_name, full_name')
+          .select('erp_client_code, erp_client_id, erp_vendor_id, company_name, full_name, tax_id')
           .eq('id', order.user_id)
           .single();
 
-        if (profile?.erp_client_id) {
-          foundId = profile.erp_client_id;
+        if (profile?.erp_client_id || profile?.erp_client_code) {
+          foundId = profile.erp_client_id ? Number(profile.erp_client_id) : null;
           foundCode = profile.erp_client_code || String(profile.erp_client_id);
           foundVendorId = profile.erp_vendor_id || 4;
-          foundName = profile.company_name || profile.full_name || foundName;
-        } else if (profile?.erp_client_code) {
-          foundCode = profile.erp_client_code;
-          const matched = (erpClients as any[]).find(
-            (c) => String(c.codigo) === String(foundCode) || String(c.code) === String(foundCode)
-          );
-          if (matched) {
-            foundId = matched.id;
-            foundVendorId = matched.vendedorId || 4;
-          }
           foundName = profile.company_name || profile.full_name || foundName;
         }
       }
 
-      if (!foundCode) {
-        const normEmail = email.toLowerCase().trim();
-        const normName = (order.company_name || order.customer_name || '').toLowerCase().trim();
-        const matched = (erpClients as any[]).find((c) => {
-          const cEmail = (c.email || c.correo || '').toLowerCase().trim();
-          const cName = (c.nombre || c.razonsocial || c.razon_social || '').toLowerCase().trim();
-          const cCode = String(c.codigo || c.code || '').toLowerCase().trim();
-          return (
-            (cEmail && cEmail === normEmail) ||
-            (normName && cName && (cName.includes(normName) || normName.includes(cName))) ||
-            (normName && cCode === normName)
-          );
-        });
+      // 2. If not linked yet, search by email in profiles table
+      if (!foundCode && email) {
+        const { data: profileByEmail } = await supabase
+          .from('profiles')
+          .select('id, erp_client_code, erp_client_id, erp_vendor_id, company_name, full_name')
+          .ilike('email', email)
+          .maybeSingle();
 
-        if (matched) {
-          foundId = matched.id;
-          foundCode = String(matched.codigo || matched.code || matched.id);
-          foundVendorId = matched.vendedorId || 4;
-          foundName = matched.nombre || matched.razonsocial || matched.razon_social || foundName;
-          if (order.user_id) {
-            await supabase
-              .from('profiles')
-              .update({
-                erp_client_code: foundCode,
-                erp_client_id: matched.id,
-                erp_vendor_id: foundVendorId,
-              })
-              .eq('id', order.user_id);
-          }
+        if (profileByEmail?.erp_client_id || profileByEmail?.erp_client_code) {
+          foundId = profileByEmail.erp_client_id ? Number(profileByEmail.erp_client_id) : null;
+          foundCode = profileByEmail.erp_client_code || String(profileByEmail.erp_client_id);
+          foundVendorId = profileByEmail.erp_vendor_id || 4;
+          foundName = profileByEmail.company_name || profileByEmail.full_name || foundName;
         }
       }
 
@@ -517,9 +568,10 @@ export default function AdminOrdersPage() {
             setDeleteError(null);
             setOrderToDelete(o);
           }}
-          onValidateProducts={() => handleValidateProducts(selectedOrder)}
+          onValidateProducts={() => handleValidateProducts(selectedOrder, true)}
           onValidateClient={() => handleValidateClient(selectedOrder)}
           onCreateOrder={() => handleSyncOrderWithERP(selectedOrder.id)}
+          productsValidation={productsValidationData[selectedOrder.id]}
         />
 
         <OrderBubbleModals

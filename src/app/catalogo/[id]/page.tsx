@@ -111,24 +111,74 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {product.description}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                <div>
-                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.model' as any)}</span>
-                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.reference}</span>
-                </div>
-                <div>
-                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.brand' as any)}</span>
-                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.brand}</span>
-                </div>
-                <div>
-                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.material' as any)}</span>
-                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.material}</span>
-                </div>
-                <div>
-                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.size' as any)}</span>
-                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.eyeSize}</span>
-                </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.model' as any)}</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.reference}</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.brand' as any)}</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.brand}</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.material' as any)}</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.material}</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Colección / Género</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.gender}</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Flexibilidad</span>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: product.flex ? '#059669' : 'var(--text-primary)' }}>
+                  {product.flex ? '🔄 Con Flex' : '🔒 Sin Flex'}
+                </span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Tipo de Venta</span>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {product.saleType === 'DOCENA' ? '📦 Por Docena' : '👓 Por Pieza'}
+                </span>
+              </div>
             </div>
+
+            {/* 3D Optical Dimensions Card */}
+            {(product.eyeSize > 0 || product.bridgeSize || product.templeLength || product.frameSize) && (
+              <div
+                style={{
+                  backgroundColor: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-light)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '1rem 1.25rem',
+                  marginBottom: '2rem',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--navy)' }}>
+                    👓 Dimensiones Ópticas (ISO 8624 Boxing System)
+                  </span>
+                  {product.frameSize && (
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, backgroundColor: 'var(--navy)', color: '#FFF', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                      {product.frameSize}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', textAlign: 'center' }}>
+                  <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
+                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👁️ Calibre (Ojo)</span>
+                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.eyeSize ? `${product.eyeSize} mm` : 'N/D'}</strong>
+                  </div>
+                  <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
+                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👃 Puente Nasal</span>
+                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.bridgeSize ? `${product.bridgeSize} mm` : 'N/D'}</strong>
+                  </div>
+                  <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
+                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>📏 Varilla / Patilla</span>
+                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.templeLength ? `${product.templeLength} mm` : 'N/D'}</strong>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div style={{ borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)', padding: '1.5rem 0', marginBottom: '2rem' }}>
               {isLoggedIn ? (

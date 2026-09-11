@@ -1,62 +1,11 @@
-export interface Brand {
-  id: string;
-  name: string;
-  logoUrl?: string;
-  active: boolean;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-}
-
-export interface Collection {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-}
-
-export interface Product {
-  id: string;
-  reference: string;
-  code: string;
-  description: string;
-  price: number;
-  eyeSize: number;
-  brand: string;
-  material: string;
-  gender: 'Hombre' | 'Mujer' | 'Unisex' | 'Niños';
-  saleType: string;
-  category: string;
-  collection?: string;
-  quantity: number;
-  flex: boolean;
-  thumbnailUrl: string;
-  largeImageUrl: string;
-  extraImages?: string[];
-  restrictedCountries?: string[]; // Países donde NO está disponible
-}
-
-export interface BlogPost {
-  id: string;
-  title: string;
-  shortDescription: string;
-  content: string;
-  featuredImageUrl: string;
-  tags: string[];
-  slug: string;
-  publishedAt: string;
-  author: string;
-}
-
-
+export * from '@/types/models';
+import type { BlogPost, Country } from '@/types/models';
 
 import bubbleBlog from './bubble_blog.json';
 
 export const MOCK_BLOG_POSTS: BlogPost[] = bubbleBlog as BlogPost[];
 
-export const LATAM_COUNTRIES = [
+export const LATAM_COUNTRIES: Country[] = [
   { name: 'Panamá', code: 'PA', dialCode: '+507', flag: '🇵🇦' },
   { name: 'Colombia', code: 'CO', dialCode: '+57', flag: '🇨🇴' },
   { name: 'Ecuador', code: 'EC', dialCode: '+593', flag: '🇪🇨' },
@@ -89,22 +38,5 @@ export const LATAM_COUNTRIES = [
   { name: 'Aruba', code: 'AW', dialCode: '+297', flag: '🇦🇼' },
 ];
 
-export interface OrderItem {
-  product: Product;
-  quantity: number;
-}
-
-export interface Order {
-  id: string;
-  orderNumber: string;
-  switchOrderNumber: string;
-  date: string;
-  status: 'Completada' | 'Pendiente' | 'Cancelada';
-  clientName: string;
-  clientEmail: string;
-  clientCode: string;
-  items: OrderItem[];
-  subtotal: number;
-}
 
 

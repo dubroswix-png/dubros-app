@@ -55,6 +55,8 @@ export const dictionaries = {
     // Catalog & Filters
     'catalog.title': 'Catálogo de Lentes',
     'catalog.subtitle': 'Encuentra los armazones perfectos para tu óptica. Filtra por marca, material o tipo de cliente.',
+    'catalog.favorites_title': 'Mis Favoritos',
+    'catalog.favorites_subtitle': 'Revisa las monturas que has marcado como favoritas.',
     'catalog.empty': 'No se encontraron productos',
     'catalog.emptyDesc': 'Intenta cambiando los términos de búsqueda o limpiando los filtros.',
     'catalog.resetFilters': 'Restablecer Filtros',
@@ -192,6 +194,8 @@ export const dictionaries = {
     // Catalog & Filters
     'catalog.title': 'Eyewear Catalog',
     'catalog.subtitle': 'Find the perfect frames for your store. Filter by brand, material, or customer type.',
+    'catalog.favorites_title': 'My Favorites',
+    'catalog.favorites_subtitle': 'Review the frames you have bookmarked as favorites.',
     'catalog.empty': 'No products found',
     'catalog.emptyDesc': 'Try changing your search terms or clearing the filters.',
     'catalog.resetFilters': 'Reset Filters',
@@ -273,3 +277,5 @@ export const dictionaries = {
     'admin.orders.available': 'Available',
   },
 };
+
+export type DictionaryKey = keyof typeof dictionaries.es;

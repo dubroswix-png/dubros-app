@@ -9,9 +9,6 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabase';
-import erpInventory from '@/data/erp_inventory.json';
-import bubbleUsers from '@/data/bubble_users.json';
-import productMetaMap from '@/data/product_meta_map.json';
 
 interface AuditProduct {
   erp_id?: number | string;
@@ -66,10 +63,10 @@ export default function DashboardHomePage() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [stats, setStats] = useState({
-    products: erpInventory.length,
-    brands: 151,
-    totalStock: 455550,
-    users: bubbleUsers.length,
+    products: 0,
+    brands: 0,
+    totalStock: 0,
+    users: 0,
     orders: 0,
     withImage: 0,
     withoutImage: 0,
@@ -99,21 +96,15 @@ export default function DashboardHomePage() {
     noDescription: false,
   });
 
-  // Categories list (dynamic from API or fallback)
-  const [categories, setCategories] = useState<string[]>(() => {
-    const set = new Set<string>();
-    (erpInventory as any[]).forEach((item) => {
-      if (item.category) set.add(item.category.trim());
-    });
-    return Array.from(set).sort();
-  });
+  // Categories list (dynamic from API or database)
+  const [categories, setCategories] = useState<string[]>([]);
 
   const loadDashboardStatsAndAudit = async (refresh = false) => {
     if (refresh) setIsRefreshing(true);
     else setLoading(true);
 
     try {
-      // 1. Try to fetch live Supabase data from /api/admin/audit-products
+      // 1. Fetch live Supabase data from /api/admin/audit-products
       const res = await fetch(`/api/admin/audit-products${refresh ? '?refresh=true' : ''}`);
       if (res.ok) {
         const data = await res.json();
@@ -126,97 +117,26 @@ export default function DashboardHomePage() {
           return;
         }
       }
-      throw new Error('API returned invalid format, falling back to local data');
-    } catch (err) {
-      console.warn('Falling back to local static inventory:', err);
-      // Fallback to static erp_inventory.json if API fails
-      const metaMap = productMetaMap as Record<string, { b?: string; c?: string; q?: number; p?: number; g?: string; m?: string; f?: string; s?: string }>;
-      const erpProductsCount = erpInventory.length;
-      const uniqueBrands = new Set((erpInventory as any[]).map((e) => e.brand).filter(Boolean)).size;
-      const totalStockUnits = (erpInventory as any[]).reduce((sum, item) => sum + (item.quantity || 0), 0);
-
-      let withImageCount = 0;
-      let withoutImageCount = 0;
-
-      const processed: AuditProduct[] = (erpInventory as any[]).map((item) => {
-        const ref = (item.reference || item.code || '').trim();
-        const meta = metaMap[ref] || {};
-
-        const brand = (meta.b || item.brand || '').trim();
-        const category = (meta.c || item.category || '').trim();
-        const material = (meta.m || item.material || '').trim();
-        const gender = (meta.g || item.gender || '').trim();
-        const eyeSize = (meta.s || item.eye_size || item.talla_ocular || '').trim();
-        const flex = (meta.f || item.flex || '').trim();
-        const saleType = (item.sale_type || item.tipo_venta || '').trim();
-        const price = Number(item.price || 0);
-        const quantity = item.quantity !== null && item.quantity !== undefined ? Number(item.quantity) : null;
-        const description = (item.description || '').trim();
-
-        const hasLargeImage = Boolean(
-          item.large_image_url && 
-          !item.large_image_url.includes('placeholder') &&
-          !item.large_image_url.includes('no-image')
-        );
-
-        if (hasLargeImage) withImageCount++;
-        else withoutImageCount++;
-
-        const missing: string[] = [];
-        if (!hasLargeImage) missing.push('Foto Grande');
-        if (!gender || gender === 'all') missing.push('Género');
-        if (!flex) missing.push('Flex');
-        if (!material || material === 'N/A') missing.push('Material');
-        if (!eyeSize || eyeSize === '0') missing.push('Talla Ocular');
-        if (!saleType || saleType === '1' || saleType === 'N/A') missing.push('Tipo Venta');
-        if (!brand || brand === 'SM' || brand === 'GENERAL') missing.push('Marca');
-        if (!category) missing.push('Categoría');
-        if (price <= 0) missing.push('Precio');
-        if (quantity === null || quantity <= 0) missing.push('Stock');
-        if (!description || description === 'Producto importado') missing.push('Descripción');
-
-        return {
-          erp_id: item.erp_id,
-          reference: ref,
-          code: item.code || ref,
-          description,
-          price,
-          quantity: quantity ?? 0,
-          brand,
-          category,
-          material,
-          gender,
-          eyeSize,
-          flex,
-          saleType,
-          hasLargeImage,
-          thumbnail_url: item.thumbnail_url || '',
-          large_image_url: item.large_image_url || '',
-          missingFields: missing,
-        };
-      });
-
+      
+      // Fallback: Query live counts directly from Supabase
       const [
+        { count: productCount },
         { count: userCount },
         { count: orderCount },
       ] = await Promise.all([
+        supabase.from('products').select('*', { count: 'exact', head: true }),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('orders').select('*', { count: 'exact', head: true }),
       ]);
 
-      const finalUsers = Math.max(userCount || 0, bubbleUsers.length);
-
-      setStats({
-        products: erpProductsCount,
-        brands: uniqueBrands || 151,
-        totalStock: totalStockUnits || 455550,
-        users: finalUsers,
-        orders: orderCount || 0,
-        withImage: withImageCount,
-        withoutImage: withoutImageCount,
-      });
-
-      setAuditList(processed);
+      setStats((prev) => ({
+        ...prev,
+        products: productCount || prev.products,
+        users: userCount || prev.users,
+        orders: orderCount || prev.orders,
+      }));
+    } catch (err) {
+      console.warn('Error loading dashboard stats:', err);
     } finally {
       setLoading(false);
       setIsRefreshing(false);

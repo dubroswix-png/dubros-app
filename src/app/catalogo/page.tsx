@@ -3,7 +3,21 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { LATAM_COUNTRIES, Product } from '@/data/mock';
-import { getProducts, getBrands, getCategories, getMaterials, type SupabaseBrand, type SupabaseCategory } from '@/lib/products';
+import {
+  getProducts,
+  getBrands,
+  getCategories,
+  getMaterials,
+  getAvailableEyeSizes,
+  getAvailableBridgeSizes,
+  getAvailableTempleLengths,
+  normalizeText,
+  normalizeGender,
+  normalizeFlex,
+  normalizeSaleType,
+  type SupabaseBrand,
+  type SupabaseCategory,
+} from '@/lib/products';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCatalogFilter } from '@/hooks/useCatalogFilter';
@@ -41,7 +55,18 @@ function CatalogContent() {
   const PAGE_SIZE = 24;
 
   const initialMaterial = searchParams.get('material') || 'all';
-  const initialGender = searchParams.get('gender') || 'all';
+  const rawGender = searchParams.get('gender');
+  const initialGender = rawGender ? (normalizeGender(rawGender) || rawGender) : 'all';
+
+  const rawFlex = searchParams.get('flex');
+  const normInitFlex = rawFlex ? normalizeFlex(rawFlex) : null;
+  const initialFlex = normInitFlex === true ? 'flex' : normInitFlex === false ? 'noflex' : 'all';
+
+  const rawSale = searchParams.get('sale_type') || searchParams.get('saleType');
+  const initialSaleType = rawSale ? (normalizeSaleType(rawSale) || 'all') : 'all';
+
+  const initialBridge = searchParams.get('bridge') || searchParams.get('bridge_size') || 'all';
+  const initialTemple = searchParams.get('temple') || searchParams.get('temple_length') || 'all';
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,12 +76,19 @@ function CatalogContent() {
   const [selectedMaterial, setSelectedMaterial] = useState(initialMaterial);
   const [selectedGender, setSelectedGender] = useState(initialGender);
   const [selectedSize, setSelectedSize] = useState('all');
+  const [selectedBridge, setSelectedBridge] = useState(initialBridge);
+  const [selectedTemple, setSelectedTemple] = useState(initialTemple);
+  const [selectedSaleType, setSelectedSaleType] = useState(initialSaleType);
+  const [selectedFlex, setSelectedFlex] = useState(initialFlex);
+  const [availableSizes, setAvailableSizes] = useState<number[]>([]);
+  const [availableBridges, setAvailableBridges] = useState<number[]>([]);
+  const [availableTemples, setAvailableTemples] = useState<number[]>([]);
   const [selectedCountry, setSelectedCountry] = useState('PA');
   const [selectedPrice, setSelectedPrice] = useState('all');
   const [selectedStock, setSelectedStock] = useState('all');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Sync selectedMaterial & selectedGender if URL search param changes
+  // Sync URL search params with case/accent-insensitive normalization
   useEffect(() => {
     const mat = searchParams.get('material');
     if (mat) {
@@ -64,7 +96,27 @@ function CatalogContent() {
     }
     const gen = searchParams.get('gender');
     if (gen) {
-      setSelectedGender(gen);
+      const normGen = normalizeGender(gen);
+      setSelectedGender(normGen || gen);
+    }
+    const flexParam = searchParams.get('flex');
+    if (flexParam) {
+      const normFlex = normalizeFlex(flexParam);
+      if (normFlex === true) setSelectedFlex('flex');
+      else if (normFlex === false) setSelectedFlex('noflex');
+    }
+    const saleParam = searchParams.get('sale_type') || searchParams.get('saleType');
+    if (saleParam) {
+      const normSale = normalizeSaleType(saleParam);
+      if (normSale) setSelectedSaleType(normSale);
+    }
+    const bridgeParam = searchParams.get('bridge') || searchParams.get('bridge_size');
+    if (bridgeParam) {
+      setSelectedBridge(bridgeParam);
+    }
+    const templeParam = searchParams.get('temple') || searchParams.get('temple_length');
+    if (templeParam) {
+      setSelectedTemple(templeParam);
     }
   }, [searchParams]);
 
@@ -77,6 +129,11 @@ function CatalogContent() {
     selectedCategory !== 'all' ? 1 : 0,
     selectedMaterial !== 'all' ? 1 : 0,
     selectedGender !== 'all' ? 1 : 0,
+    selectedSize !== 'all' ? 1 : 0,
+    selectedBridge !== 'all' ? 1 : 0,
+    selectedTemple !== 'all' ? 1 : 0,
+    selectedSaleType !== 'all' ? 1 : 0,
+    selectedFlex !== 'all' ? 1 : 0,
     selectedPrice !== 'all' ? 1 : 0,
     isAdmin && selectedStock !== 'all' ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
@@ -85,17 +142,23 @@ function CatalogContent() {
   );
   const userCountryName = userCountryObj?.name || userProfile?.country || 'Panamá';
 
-  // Load filter options (brands, categories, materials) once on mount
+  // Load filter options (brands, categories, materials, sizes, bridges, temples) once on mount
   useEffect(() => {
     async function loadFilterOptions() {
-      const [brandsData, categoriesData, materialsData] = await Promise.all([
+      const [brandsData, categoriesData, materialsData, sizesData, bridgesData, templesData] = await Promise.all([
         getBrands(),
         getCategories(),
         getMaterials(),
+        getAvailableEyeSizes(),
+        getAvailableBridgeSizes(),
+        getAvailableTempleLengths(),
       ]);
       setBrands(brandsData);
       setCategories(categoriesData);
       setMaterials(materialsData);
+      setAvailableSizes(sizesData);
+      setAvailableBridges(bridgesData);
+      setAvailableTemples(templesData);
     }
     loadFilterOptions();
   }, []);
@@ -111,7 +174,7 @@ function CatalogContent() {
   // Reset page to 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedPrice, selectedStock]);
+  }, [debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedSize, selectedBridge, selectedTemple, selectedSaleType, selectedFlex, selectedPrice, selectedStock]);
 
   // Load products when page changes or filters change
   const loadProducts = useCallback(async (page: number) => {
@@ -152,6 +215,11 @@ function CatalogContent() {
         categoryName: selectedCategory,
         material: selectedMaterial,
         gender: selectedGender !== 'all' ? selectedGender : undefined,
+        eyeSize: selectedSize !== 'all' ? selectedSize : undefined,
+        bridgeSize: selectedBridge !== 'all' ? selectedBridge : undefined,
+        templeLength: selectedTemple !== 'all' ? selectedTemple : undefined,
+        saleType: selectedSaleType !== 'all' ? selectedSaleType : undefined,
+        flex: selectedFlex !== 'all' ? selectedFlex : undefined,
         minPrice,
         maxPrice,
         minStock,
@@ -166,7 +234,7 @@ function CatalogContent() {
     } finally {
       setLoading(false);
     }
-  }, [collectionId, debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedPrice, selectedStock, isAdmin]);
+  }, [collectionId, debouncedSearch, selectedBrand, selectedCategory, selectedMaterial, selectedGender, selectedSize, selectedBridge, selectedTemple, selectedSaleType, selectedFlex, selectedPrice, selectedStock, isAdmin]);
 
   useEffect(() => {
     loadProducts(currentPage);
@@ -180,6 +248,10 @@ function CatalogContent() {
     setSelectedMaterial('all');
     setSelectedGender('all');
     setSelectedSize('all');
+    setSelectedBridge('all');
+    setSelectedTemple('all');
+    setSelectedSaleType('all');
+    setSelectedFlex('all');
     setSelectedPrice('all');
     setSelectedStock('all');
     setCurrentPage(1);
@@ -236,6 +308,9 @@ function CatalogContent() {
           categoryName: selectedCategory,
           material: selectedMaterial,
           gender: selectedGender !== 'all' ? selectedGender : undefined,
+          eyeSize: selectedSize !== 'all' ? selectedSize : undefined,
+          saleType: selectedSaleType !== 'all' ? selectedSaleType : undefined,
+          flex: selectedFlex !== 'all' ? selectedFlex : undefined,
           minPrice,
           maxPrice,
           minStock,
@@ -254,6 +329,9 @@ function CatalogContent() {
     const summaryParts: string[] = [];
     if (selectedMaterial && selectedMaterial !== 'all') summaryParts.push(`Material: ${selectedMaterial}`);
     if (selectedGender && selectedGender !== 'all') summaryParts.push(`Género: ${selectedGender}`);
+    if (selectedSize && selectedSize !== 'all') summaryParts.push(`Talla: ${selectedSize} mm`);
+    if (selectedSaleType && selectedSaleType !== 'all') summaryParts.push(`Venta: ${selectedSaleType}`);
+    if (selectedFlex && selectedFlex !== 'all') summaryParts.push(`Flex: ${selectedFlex === 'flex' ? 'Con Flex' : 'Sin Flex'}`);
     if (selectedBrand && selectedBrand !== 'all') summaryParts.push(`Marca: ${selectedBrand}`);
     if (selectedCategory && selectedCategory !== 'all') summaryParts.push(`Categoría: ${selectedCategory}`);
     if (selectedStock && selectedStock !== 'all') summaryParts.push(`Stock: ≥ ${selectedStock.replace('+', '')} pcs`);
@@ -382,6 +460,14 @@ function CatalogContent() {
             setSelectedGender={setSelectedGender}
             selectedSize={selectedSize}
             setSelectedSize={setSelectedSize}
+            selectedBridge={selectedBridge}
+            setSelectedBridge={setSelectedBridge}
+            selectedTemple={selectedTemple}
+            setSelectedTemple={setSelectedTemple}
+            selectedSaleType={selectedSaleType}
+            setSelectedSaleType={setSelectedSaleType}
+            selectedFlex={selectedFlex}
+            setSelectedFlex={setSelectedFlex}
             selectedPrice={selectedPrice}
             setSelectedPrice={setSelectedPrice}
             selectedStock={selectedStock}
@@ -391,6 +477,9 @@ function CatalogContent() {
             brands={brands}
             categories={categories}
             materials={materials}
+            sizes={availableSizes}
+            bridges={availableBridges}
+            temples={availableTemples}
           />
         </div>
 
@@ -691,6 +780,14 @@ function CatalogContent() {
                 setSelectedGender={setSelectedGender}
                 selectedSize={selectedSize}
                 setSelectedSize={setSelectedSize}
+                selectedBridge={selectedBridge}
+                setSelectedBridge={setSelectedBridge}
+                selectedTemple={selectedTemple}
+                setSelectedTemple={setSelectedTemple}
+                selectedSaleType={selectedSaleType}
+                setSelectedSaleType={setSelectedSaleType}
+                selectedFlex={selectedFlex}
+                setSelectedFlex={setSelectedFlex}
                 selectedPrice={selectedPrice}
                 setSelectedPrice={setSelectedPrice}
                 selectedStock={selectedStock}
@@ -700,6 +797,9 @@ function CatalogContent() {
                 brands={brands}
                 categories={categories}
                 materials={materials}
+                sizes={availableSizes}
+                bridges={availableBridges}
+                temples={availableTemples}
               />
             </div>
 

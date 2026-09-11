@@ -30,7 +30,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const t = (key: DictionaryKey): string => {
-    return dictionaries[locale][key] || dictionaries['es'][key] || key;
+    return (dictionaries[locale] as Record<string, string>)[key] || (dictionaries.es as Record<string, string>)[key] || key;
   };
 
   return (

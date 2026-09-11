@@ -47,3 +47,9 @@ scratch/
 *.tsbuildinfo
 next-env.d.ts
 
+# OCR models
+*.traineddata
+
+# agent generated rules
+AGENTS.md
+CLAUDE.md

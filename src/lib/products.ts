@@ -21,6 +21,9 @@ export interface SupabaseProduct {
   material: string;
   gender?: string | null;
   eye_size?: number | null;
+  bridge_size?: number | null;
+  temple_length?: number | null;
+  frame_size?: string | null;
   flex?: boolean | null;
   quantity: number;
   sale_type: string;
@@ -53,6 +56,11 @@ export interface GetProductsParams {
   categoryName?: string;
   material?: string;
   gender?: string;
+  eyeSize?: number | string;
+  bridgeSize?: number | string;
+  templeLength?: number | string;
+  saleType?: string;
+  flex?: boolean | string;
   collectionId?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -70,6 +78,87 @@ export interface GetProductsResult {
 import productMetaMap from '@/data/product_meta_map.json';
 
 const metaMap = productMetaMap as Record<string, { b: string; c: string; q: number; p: number; g?: string; m?: string }>;
+
+// ---------------------------------------------------------------------------
+// Normalization Utilities (Case & Accent Insensitive)
+// ---------------------------------------------------------------------------
+
+export function normalizeText(str: string): string {
+  return (str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+export function normalizeGender(val: string | undefined | null): 'Hombre' | 'Mujer' | 'Unisex' | 'Niños' | null {
+  if (!val || val === 'all') return null;
+  const clean = normalizeText(val);
+
+  // 1. Check Mujer / Femenino first (prevents 'femenino' matching 'nin' or 'men')
+  if (
+    clean.includes('muj') ||
+    clean.includes('fem') ||
+    clean.includes('dam') ||
+    clean.includes('lady') ||
+    clean.includes('women') ||
+    clean.includes('girl')
+  ) {
+    return 'Mujer';
+  }
+
+  // 2. Check Kids / Niños
+  if (
+    clean.includes('nin') ||
+    clean.includes('kid') ||
+    clean.includes('infant') ||
+    clean.includes('chico') ||
+    clean.includes('bebe') ||
+    clean.includes('child')
+  ) {
+    return 'Niños';
+  }
+
+  // 3. Check Hombre / Masculino
+  if (
+    clean.includes('hom') ||
+    clean.includes('masc') ||
+    clean.includes('caball') ||
+    clean.includes('varon') ||
+    /\bmen\b/.test(clean) ||
+    clean === 'men' ||
+    clean === 'man' ||
+    clean === 'boy'
+  ) {
+    return 'Hombre';
+  }
+
+  // 4. Check Unisex
+  if (clean.includes('uni')) {
+    return 'Unisex';
+  }
+
+  return null;
+}
+
+export function normalizeFlex(val: boolean | string | undefined | null): boolean | null {
+  if (val === undefined || val === null || val === 'all' || val === '') return null;
+  if (typeof val === 'boolean') return val;
+  const clean = normalizeText(String(val));
+  if (['flex', 'si', 'true', '1', 'con flex', 'con_flex', 'yes'].includes(clean)) return true;
+  if (['noflex', 'no flex', 'no_flex', 'sin flex', 'sin_flex', 'no', 'false', '0'].includes(clean)) return false;
+  if (clean.includes('sin') || clean.includes('no')) return false;
+  if (clean.includes('con') || clean.includes('flex') || clean.includes('si')) return true;
+  return null;
+}
+
+export function normalizeSaleType(val: string | undefined | null): 'DOCENA' | 'PIEZA' | null {
+  if (!val || val === 'all') return null;
+  const clean = normalizeText(String(val));
+  if (clean.includes('doc') || clean === '1') return 'DOCENA';
+  if (clean.includes('piez') || clean.includes('pza') || clean.includes('pz') || clean.includes('unid')) return 'PIEZA';
+  return null;
+}
 
 // Convert Supabase row → Product interface (compatible with existing components)
 // ---------------------------------------------------------------------------
@@ -154,6 +243,7 @@ function resolveCleanGender(ref?: string, desc?: string, dbGender?: string | nul
     /^SK\d/i.test(cleanRef) ||
     cleanRef.includes('KID') ||
     cleanRef.includes('NIÑ') ||
+    cleanRef.includes('NIN') ||
     cleanRef.includes('CHILD') ||
     cleanRef.includes('FLEXXILON') ||
     cleanRef.includes('SMARTKIDS') ||
@@ -161,15 +251,24 @@ function resolveCleanGender(ref?: string, desc?: string, dbGender?: string | nul
     cleanDesc.includes('KID') ||
     cleanDesc.includes('NIÑO') ||
     cleanDesc.includes('NIÑA') ||
+    cleanDesc.includes('NINO') ||
+    cleanDesc.includes('NINA') ||
     cleanDesc.includes('INFANTIL')
   ) {
     return 'Niños';
   }
 
-  if (metaGender && metaGender !== 'Unisex') return metaGender;
-  if (cleanDb && cleanDb !== 'Unisex' && cleanDb !== 'N/A') return cleanDb;
+  if (cleanDb) {
+    const normDb = normalizeGender(cleanDb);
+    if (normDb && normDb !== 'Unisex') return normDb;
+  }
 
-  return metaGender || cleanDb || 'Unisex';
+  if (metaGender) {
+    const normMeta = normalizeGender(metaGender);
+    if (normMeta && normMeta !== 'Unisex') return normMeta;
+  }
+
+  return cleanDb || metaGender || 'Unisex';
 }
 
 function mapSupabaseToProduct(row: SupabaseProduct): Product {
@@ -207,13 +306,16 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
     description: desc,
     price: finalPrice,
     eyeSize: row.eye_size || 0,
+    bridgeSize: row.bridge_size || undefined,
+    templeLength: row.temple_length || undefined,
+    frameSize: row.frame_size || (row.eye_size && row.bridge_size && row.temple_length ? `${row.eye_size}-${row.bridge_size}-${row.temple_length}` : undefined),
     brand: brand,
     material: row.material && row.material !== 'N/A' ? row.material : 'ACETATO / METAL',
     gender: gender as any,
-    saleType: row.sale_type || 'PIEZA',
+    saleType: normalizeSaleType(row.sale_type) || 'PIEZA',
     category: category,
     quantity: quantity,
-    flex: row.flex !== undefined && row.flex !== null ? Boolean(row.flex) : true,
+    flex: normalizeFlex(row.flex) ?? true,
     thumbnailUrl: fixUrl(row.thumbnail_url, ref),
     largeImageUrl: fixUrl(row.large_image_url || row.thumbnail_url, ref),
   };
@@ -231,6 +333,11 @@ export async function getProducts({
   categoryName,
   material,
   gender,
+  eyeSize,
+  bridgeSize,
+  templeLength,
+  saleType,
+  flex,
   collectionId,
   minPrice,
   maxPrice,
@@ -255,7 +362,18 @@ export async function getProducts({
     }
 
     if (material && material !== 'all') {
-      query = query.ilike('material', `%${material}%`);
+      const matClean = normalizeText(material);
+      if (matClean.includes('plastic')) {
+        query = query.or('material.ilike.%Plástico%,material.ilike.%Plastico%');
+      } else if (matClean.includes('acrilic')) {
+        query = query.or('material.ilike.%Acrílico%,material.ilike.%Acrilico%');
+      } else if (matClean.includes('sintet')) {
+        query = query.or('material.ilike.%Sintético%,material.ilike.%Sintetico%');
+      } else if (matClean.includes('poliest')) {
+        query = query.or('material.ilike.%Poliéster%,material.ilike.%Poliester%');
+      } else {
+        query = query.ilike('material', `%${material}%`);
+      }
     }
 
     if (isBrand) {
@@ -267,10 +385,58 @@ export async function getProducts({
     }
 
     if (gender && gender !== 'all') {
-      if (gender.toUpperCase().includes('NIÑ') || gender.toUpperCase().includes('KID')) {
-        query = query.or('gender.ilike.%Niño%,gender.ilike.%Kids%,description.ilike.%KIDS%,description.ilike.%NIÑO%');
+      const normGen = normalizeGender(gender);
+      if (normGen === 'Niños') {
+        query = query.or(
+          'gender.ilike.%Niño%,gender.ilike.%Nino%,gender.ilike.%Kids%,description.ilike.%KIDS%,description.ilike.%NIÑO%,description.ilike.%NINO%,reference.ilike.S%PC%,reference.ilike.SK%'
+        );
+      } else if (normGen === 'Hombre') {
+        query = query.or('gender.ilike.%Hombre%,gender.ilike.%Masculin%,gender.ilike.%Caballer%');
+      } else if (normGen === 'Mujer') {
+        query = query.or('gender.ilike.%Mujer%,gender.ilike.%Femenin%,gender.ilike.%Dama%');
+      } else if (normGen === 'Unisex') {
+        query = query.ilike('gender', '%Unisex%');
       } else {
         query = query.ilike('gender', `%${gender}%`);
+      }
+    }
+
+    if (eyeSize && eyeSize !== 'all') {
+      const sizeNum = parseInt(String(eyeSize), 10);
+      if (!isNaN(sizeNum)) {
+        query = query.eq('eye_size', sizeNum);
+      }
+    }
+
+    if (bridgeSize && bridgeSize !== 'all') {
+      const bNum = parseInt(String(bridgeSize), 10);
+      if (!isNaN(bNum)) {
+        query = query.eq('bridge_size', bNum);
+      }
+    }
+
+    if (templeLength && templeLength !== 'all') {
+      const tNum = parseInt(String(templeLength), 10);
+      if (!isNaN(tNum)) {
+        query = query.eq('temple_length', tNum);
+      }
+    }
+
+    if (saleType && saleType !== 'all') {
+      const normSale = normalizeSaleType(saleType);
+      if (normSale === 'DOCENA') {
+        query = query.or('sale_type.ilike.%DOCENA%,sale_type.eq.1');
+      } else if (normSale === 'PIEZA') {
+        query = query.or('sale_type.ilike.%PIEZA%,sale_type.ilike.%PZA%,sale_type.ilike.%PZ%');
+      } else {
+        query = query.ilike('sale_type', `%${saleType}%`);
+      }
+    }
+
+    if (flex !== undefined && flex !== 'all' && flex !== '') {
+      const normFlex = normalizeFlex(flex);
+      if (normFlex !== null) {
+        query = query.eq('flex', normFlex);
       }
     }
 
@@ -287,7 +453,30 @@ export async function getProducts({
 
     if (search && search.trim()) {
       const s = search.trim();
-      query = query.or(`reference.ilike.%${s}%,code.ilike.%${s}%,description.ilike.%${s}%`);
+      const sClean = normalizeText(s);
+      const variations = Array.from(new Set([s, sClean])).filter(Boolean);
+      const orClauses = variations.flatMap((v) => [
+        `reference.ilike.%${v}%`,
+        `code.ilike.%${v}%`,
+        `description.ilike.%${v}%`,
+      ]);
+      if (sClean.includes('nin') || sClean.includes('kid')) {
+        orClauses.push('gender.ilike.%Niño%', 'gender.ilike.%Kids%');
+      }
+
+      // Check if search matches optical boxing notation e.g. "55-18-143" or "55 18 143"
+      const opticalMatch = s.match(/(\d{2})[-–\s](\d{2})[-–\s](\d{2,3})/);
+      if (opticalMatch) {
+        const eye = opticalMatch[1];
+        const bridge = opticalMatch[2];
+        const temple = opticalMatch[3];
+        orClauses.push(
+          `frame_size.ilike.%${eye}-${bridge}-${temple}%`,
+          `frame_size.ilike.%${eye} ${bridge} ${temple}%`
+        );
+      }
+
+      query = query.or(orClauses.join(','));
     }
 
     // Chronological order from today backwards: newest activity/update first, then created_at, then reference
@@ -318,32 +507,32 @@ export async function getProducts({
   try {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
-    const bUpper = brandName && brandName !== 'all' ? brandName.toUpperCase() : null;
-    const cUpper = categoryName && categoryName !== 'all' ? categoryName.toUpperCase() : null;
-    const mUpper = material && material !== 'all' ? material.toUpperCase() : null;
-    const gUpper = gender && gender !== 'all' ? gender.toUpperCase() : null;
-    const sUpper = search && search.trim() ? search.trim().toUpperCase() : null;
+    const bClean = brandName && brandName !== 'all' ? normalizeText(brandName) : null;
+    const cClean = categoryName && categoryName !== 'all' ? normalizeText(categoryName) : null;
+    const mClean = material && material !== 'all' ? normalizeText(material) : null;
+    const filterGen = gender && gender !== 'all' ? normalizeGender(gender) : null;
+    const filterSale = saleType && saleType !== 'all' ? normalizeSaleType(saleType) : null;
+    const filterFlex = flex !== undefined && flex !== 'all' ? normalizeFlex(flex) : null;
+    const sClean = search && search.trim() ? normalizeText(search) : null;
 
     // LIFO order for fallback as well (Object.keys in reverse order)
     const allRefs = Object.keys(metaMap).reverse();
 
     const matchedRefs = allRefs.filter((ref) => {
       const item = metaMap[ref];
-      if (bUpper && item.b.toUpperCase() !== bUpper) return false;
-      if (cUpper && item.c.toUpperCase() !== cUpper) return false;
-      if (mUpper && item.m && !item.m.toUpperCase().includes(mUpper)) return false;
-      if (gUpper) {
-        const itemGender = (item.g || resolveCleanGender(ref, '', '', '')).toUpperCase();
-        if (gUpper.includes('NIÑ') || gUpper.includes('KID')) {
-          if (!itemGender.includes('NIÑ') && !itemGender.includes('KID')) return false;
-        } else if (itemGender !== gUpper) {
-          return false;
-        }
+      if (bClean && !normalizeText(item.b).includes(bClean)) return false;
+      if (cClean && !normalizeText(item.c).includes(cClean)) return false;
+      if (mClean && item.m && !normalizeText(item.m).includes(mClean)) return false;
+      if (filterGen) {
+        const itemGender = normalizeGender(item.g || resolveCleanGender(ref, '', '', ''));
+        if (itemGender !== filterGen) return false;
       }
+      if (filterSale && filterSale !== 'PIEZA') return false;
+      if (filterFlex !== null && filterFlex !== true) return false;
       if (minPrice !== undefined && item.p < minPrice) return false;
       if (maxPrice !== undefined && item.p > maxPrice) return false;
       if (minStock !== undefined && (item.q || 0) < minStock) return false;
-      if (sUpper && !ref.includes(sUpper) && !item.b.toUpperCase().includes(sUpper)) return false;
+      if (sClean && !normalizeText(ref).includes(sClean) && !normalizeText(item.b).includes(sClean)) return false;
       return true;
     });
 
@@ -634,7 +823,24 @@ export async function getCategories(): Promise<SupabaseCategory[]> {
 // Fetch unique materials from products
 // ---------------------------------------------------------------------------
 
-const CORE_MATERIALS = ['PASTA', 'METAL', 'ACETATO', 'TR90', 'TITANIO', 'SILICONA'];
+const CORE_MATERIALS = [
+  'Acetato',
+  'Metal',
+  'Pasta',
+  'TR90',
+  'Plástico',
+  'Acrílico',
+  'Silicona',
+  'Titanio',
+  'Nylon',
+  'Ultem',
+  'Sintético',
+  'Policarbonato',
+  'Poliéster',
+  'PVC',
+  'Acetato / Metal',
+  'Aluminio',
+];
 
 export async function getMaterials(): Promise<string[]> {
   try {
@@ -643,11 +849,55 @@ export async function getMaterials(): Promise<string[]> {
       .select('material')
       .not('material', 'is', null)
       .not('material', 'eq', 'N/A')
-      .limit(2000);
+      .not('material', 'eq', '0')
+      .not('material', 'eq', 'S-M')
+      .not('material', 'eq', 'SM')
+      .not('material', 'eq', 'GENERAL')
+      .not('material', 'eq', '')
+      .limit(3000);
 
-    const dbMaterials = (data || []).map((d) => d.material?.trim().toUpperCase()).filter(Boolean);
-    const combined = new Set([...CORE_MATERIALS, ...dbMaterials]);
-    return Array.from(combined);
+    if (error || !data || data.length === 0) {
+      return CORE_MATERIALS;
+    }
+
+    const formatMaterial = (m: string) => {
+      const clean = m.trim();
+      const upper = clean.toUpperCase();
+      if (upper === 'TR90') return 'TR90';
+      if (upper === 'PVC') return 'PVC';
+      if (upper === 'ACETATO / METAL') return 'Acetato / Metal';
+      if (upper === 'PLASTICO') return 'Plástico';
+      if (upper === 'ACRILICO') return 'Acrílico';
+      if (upper === 'SINTETICO') return 'Sintético';
+      if (upper === 'POLIESTER') return 'Poliéster';
+      if (upper === 'TITANIUM') return 'Titanio';
+      return clean.charAt(0).toUpperCase() + clean.slice(1);
+    };
+
+    const seen = new Set<string>();
+    const result: string[] = [];
+
+    // Core materials first
+    for (const m of CORE_MATERIALS) {
+      const k = normalizeText(m);
+      if (!seen.has(k)) {
+        seen.add(k);
+        result.push(m);
+      }
+    }
+
+    // Additional materials from DB
+    for (const row of data) {
+      if (!row.material) continue;
+      const formatted = formatMaterial(row.material);
+      const k = normalizeText(formatted);
+      if (!seen.has(k) && k.length > 1) {
+        seen.add(k);
+        result.push(formatted);
+      }
+    }
+
+    return result;
   } catch (e) {
     console.error('[getMaterials] Unexpected error:', e);
     return CORE_MATERIALS;
@@ -781,4 +1031,65 @@ export async function getCollectionProducts(collectionId: string): Promise<Produ
   }
 }
 
+export async function getAvailableEyeSizes(): Promise<number[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('eye_size')
+      .not('eye_size', 'is', null)
+      .gt('eye_size', 0)
+      .limit(5000);
 
+    if (!error && data && data.length > 0) {
+      const distinct = Array.from(new Set(data.map((d: any) => Number(d.eye_size)).filter((n) => !isNaN(n) && n > 0)))
+        .sort((a, b) => a - b);
+      if (distinct.length > 0) return distinct;
+    }
+  } catch (e) {
+    console.error('[getAvailableEyeSizes] Error:', e);
+  }
+  // Standard optical eye sizes fallback (calibres ópticos estándar en mm)
+  return [39, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60];
+}
+
+export async function getAvailableBridgeSizes(): Promise<number[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('bridge_size')
+      .not('bridge_size', 'is', null)
+      .gt('bridge_size', 0)
+      .limit(5000);
+
+    if (!error && data && data.length > 0) {
+      const distinct = Array.from(new Set(data.map((d: any) => Number(d.bridge_size)).filter((n) => !isNaN(n) && n > 0)))
+        .sort((a, b) => a - b);
+      if (distinct.length > 0) return distinct;
+    }
+  } catch (e) {
+    console.error('[getAvailableBridgeSizes] Error:', e);
+  }
+  // Standard optical bridge sizes fallback (ancho de puente nasal estándar en mm)
+  return [14, 15, 16, 17, 18, 19, 20, 21, 22];
+}
+
+export async function getAvailableTempleLengths(): Promise<number[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('temple_length')
+      .not('temple_length', 'is', null)
+      .gt('temple_length', 0)
+      .limit(5000);
+
+    if (!error && data && data.length > 0) {
+      const distinct = Array.from(new Set(data.map((d: any) => Number(d.temple_length)).filter((n) => !isNaN(n) && n > 0)))
+        .sort((a, b) => a - b);
+      if (distinct.length > 0) return distinct;
+    }
+  } catch (e) {
+    console.error('[getAvailableTempleLengths] Error:', e);
+  }
+  // Standard optical temple lengths fallback (longitud de varilla/patilla estándar en mm)
+  return [125, 130, 135, 138, 140, 142, 143, 145, 148, 150];
+}

@@ -1093,7 +1093,7 @@ export default function AdminUsersPage() {
               </p>
               <button
                 disabled={passwordActionLoading}
-                onClick={() => handleSendResetLinkToAdmin(passwordModalUser.email)}
+                onClick={() => handleGenerateRecoveryLink(passwordModalUser.email)}
                 className="btn-primary"
                 style={{
                   padding: '0.55rem 1rem',

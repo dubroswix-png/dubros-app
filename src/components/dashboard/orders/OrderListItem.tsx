@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Package, FileSpreadsheet, Calendar, User, ChevronRight, Trash2 } from 'lucide-react';
+import { Package, FileSpreadsheet, Calendar, User, ChevronRight, Trash2, FileText } from 'lucide-react';
 import { OrderRecord } from '@/lib/orders';
 import { formatPrice, formatDateSpanish } from '@/lib/formatters';
 import { downloadSwitchXLSX } from '@/lib/export-excel';
@@ -169,6 +169,33 @@ export const OrderListItem: React.FC<OrderListItemProps> = ({ order, onClick, is
               </span>
             )}
           </span>
+
+          {order.notes && order.notes.trim() && (
+            <div style={{ marginTop: '0.45rem' }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  fontSize: '0.76rem',
+                  color: '#166534',
+                  backgroundColor: '#DCFCE7',
+                  border: '1px solid #BBF7D0',
+                  padding: '0.2rem 0.55rem',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  maxWidth: '100%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                title={order.notes}
+              >
+                <FileText size={12} color="#166534" style={{ flexShrink: 0 }} />
+                <strong>Nota:</strong> &ldquo;{order.notes.length > 60 ? `${order.notes.slice(0, 60)}...` : order.notes}&rdquo;
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

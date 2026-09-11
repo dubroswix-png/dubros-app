@@ -50,107 +50,41 @@ export async function createOrder({
   whatsappPhone = '',
 }: CreateOrderParams): Promise<{ success: boolean; orderId?: string; orderNumber?: string; whatsappUrl?: string; error?: string }> {
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const user = sessionData?.session?.user;
 
     if (!user) {
       return { success: false, error: 'Debes estar autenticado para realizar un pedido.' };
     }
 
-    // Fetch user profile for metadata
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    const res = await fetch('/api/checkout/create-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        cartItems,
+        shippingAddress,
+        notes,
+        whatsappPhone,
+        userId: user.id,
+        userEmail: user.email,
+      }),
+    });
 
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const orderNumber = `DB-2026-${randomSuffix}`;
-
-    const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-    const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-
-    // 1. Insert order header
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        order_number: orderNumber,
-        user_id: user.id,
-        customer_email: user.email || '',
-        customer_name: profile?.full_name || profile?.name || user.email?.split('@')[0],
-        company_name: profile?.company_name || '',
-        phone: whatsappPhone || profile?.whatsapp || profile?.phone || '',
-        shipping_address: shippingAddress,
-        notes: notes,
-        status: 'Pendiente',
-        total_items: totalItems,
-        total_pieces: totalItems,
-        subtotal: subtotal,
-        total_amount: subtotal,
-      })
-      .select()
-      .single();
-
-    if (orderError || !orderData) {
-      console.error('Error inserting order:', orderError);
-      return { success: false, error: orderError?.message || 'Error al registrar el pedido.' };
-    }
-
-    // 2. Insert order items
-    const isValidUUID = (id?: string | null) => 
-      typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-
-    const itemsToInsert = cartItems.map((item) => {
-      const lineTotal = Number(item.product.price || 0) * Number(item.quantity || 1);
+    const data = await res.json();
+    if (res.ok && data.success) {
       return {
-        order_id: orderData.id,
-        product_id: isValidUUID(item.product.id) ? item.product.id : null,
-        reference: item.product.reference || '',
-        code: item.product.code || '',
-        brand: item.product.brand || '',
-        material: item.product.material || '',
-        unit_price: Number(item.product.price || 0),
-        quantity: Number(item.quantity || 1),
-        item_subtotal: lineTotal,
-        total_price: lineTotal,
+        success: true,
+        orderId: data.orderId,
+        orderNumber: data.orderNumber,
+        whatsappUrl: data.whatsappUrl,
       };
-    });
-
-    const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
-
-    if (itemsError) {
-      console.error('Error inserting order items:', itemsError);
     }
 
-    // 3. Generate WhatsApp summary URL
-    const dubrosWhatsApp = '50762926554'; // Número oficial de ventas (+507 6292-6554)
-    let message = `*NUEVO PEDIDO DUBROS B2B*\n`;
-    message += `📋 *Orden:* #${orderNumber}\n`;
-    message += `🏢 *Empresa:* ${profile?.company_name || 'N/A'}\n`;
-    message += `👤 *Cliente:* ${profile?.name || user.email}\n`;
-    message += `📍 *Dirección:* ${shippingAddress || 'No especificada'}\n`;
-    message += `-------------------------\n`;
-
-    cartItems.forEach((item) => {
-      message += `• ${item.product.brand} ${item.product.reference} (x${item.quantity}) - $${(item.product.price * item.quantity).toFixed(2)}\n`;
-    });
-
-    message += `-------------------------\n`;
-    message += `📦 *Total piezas:* ${totalItems}\n`;
-    message += `💰 *Subtotal:* $${subtotal.toFixed(2)}\n`;
-
-    if (notes) {
-      message += `📝 *Notas:* ${notes}\n`;
-    }
-
-    const whatsappUrl = `https://wa.me/${dubrosWhatsApp}?text=${encodeURIComponent(message)}`;
-
-    return {
-      success: true,
-      orderId: orderData.id,
-      orderNumber,
-      whatsappUrl,
-    };
+    return { success: false, error: data.error || 'Error al procesar la orden en el servidor.' };
   } catch (e: any) {
     console.error('Unexpected error creating order:', e);
     return { success: false, error: e?.message || 'Error inesperado al procesar la orden.' };
