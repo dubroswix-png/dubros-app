@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth, hasAdminAccess } from '@/context/AuthContext';
-import { normalizeText, normalizeGender, normalizeFlex, normalizeSaleType, normalizeCategoryName } from '@/lib/products';
+import { normalizeText, normalizeGender, normalizeFlex, normalizeSaleType, normalizeCategoryName, normalizeBrandName } from '@/lib/products';
 
 interface FilterSidebarProps {
   searchTerm: string;
@@ -83,9 +83,20 @@ export function FilterSidebar({
   const isUserAnAdmin = isAdmin ?? hasAdminAccess(userProfile?.role, userProfile?.email);
   const [showOpticalGuide, setShowOpticalGuide] = React.useState(false);
 
+  const seenBrands = new Set<string>();
   const brandOptions = [
     { label: `${t('catalog.filter.all' as any)}`, value: 'all' },
-    ...brands.map((b) => ({ label: b.name, value: b.name })),
+    ...brands
+      .map((b) => {
+        const canonical = normalizeBrandName(b.name);
+        return canonical ? { label: canonical, value: canonical } : null;
+      })
+      .filter((opt): opt is { label: string; value: string } => {
+        if (!opt) return false;
+        if (seenBrands.has(opt.value)) return false;
+        seenBrands.add(opt.value);
+        return true;
+      }),
   ];
 
   const seenCats = new Set<string>();

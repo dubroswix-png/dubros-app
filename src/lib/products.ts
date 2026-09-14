@@ -206,6 +206,30 @@ export function normalizeCategoryName(rawName: string | undefined | null): strin
   return String(rawName).charAt(0).toUpperCase() + String(rawName).slice(1).toLowerCase();
 }
 
+export function normalizeBrandName(rawName: string | undefined | null): string {
+  if (!rawName) return '';
+  let clean = String(rawName).replace(/\s+/g, ' ').trim().toUpperCase();
+
+  // Filter out test brands or generic noise
+  if (clean.includes('TEST') || clean === 'GENERAL') {
+    return '';
+  }
+
+  // Canonical mappings and merge duplicates requested by user
+  if (clean === 'SM' || clean === 'S-M' || clean === 'S - M' || clean === 'SINMARCA') return 'SIN MARCA';
+  if (clean === 'BESTVIEW' || clean === 'BEST VIEW') return 'BEST VIEW';
+  if (clean === 'TRAVERZO' || clean === 'TRAVERSO') return 'TRAVERSO';
+  if (clean === 'BALDINI' || clean === 'BALDINNI') return 'BALDINNI';
+  if (clean === 'BACHELET' || clean === 'BACHELLET') return 'BACHELLET';
+  if (clean.includes('AGATHA') && clean.includes('RUIZ')) return 'AGATHA RUIZ DE LA PRADA';
+  if (clean === 'CALVIN CLEIN' || clean === 'CALVIN KLEIN') return 'CALVIN KLEIN';
+  if (clean === 'SMART KIDS' || clean === 'SMARTKIDS') return 'SMARTKIDS';
+  if (clean === 'MONT BLANC' || clean === 'MONTBLANC') return 'MONTBLANC';
+  if (clean === 'SCHOOL DAY' || clean === 'SCHOOLDAY') return 'SCHOOL DAY';
+
+  return clean;
+}
+
 // Convert Supabase row → Product interface (compatible with existing components)
 // ---------------------------------------------------------------------------
 
@@ -226,18 +250,26 @@ function getBaseWholesalePrice(brand: string, category: string): number {
 function resolveCleanBrand(dbBrand?: string | null, metaBrand?: string | null, ref?: string, desc?: string): string {
   const cleanRef = (ref || '').toUpperCase();
   const cleanDesc = (desc || '').toUpperCase();
-  const cleanDb = (dbBrand || '').trim();
+  const cleanDb = normalizeBrandName(dbBrand);
+  const cleanMeta = normalizeBrandName(metaBrand);
 
-  // If meta has a specific brand (not generic Dubros/SM), use it!
-  if (metaBrand && metaBrand !== 'Dubros' && metaBrand !== 'SM' && metaBrand !== 'SM Eyewear' && metaBrand !== 'S-M' && metaBrand !== 'GENERAL') {
-    return metaBrand;
+  // If DB brand is valid and not generic Dubros, use it
+  if (cleanDb && cleanDb !== 'DUBROS') {
+    return cleanDb;
+  }
+
+  // If meta has a specific brand, use it
+  if (cleanMeta && cleanMeta !== 'DUBROS') {
+    return cleanMeta;
   }
 
   // Priority detection from Description and Reference
   const KNOWN_BRANDS = [
-    'BELMOR', 'SMARTKIDS', 'SMART KIDS', 'FLEXXILON', 'KIAMIL', 'VELVETT', 
+    'AGATHA RUIZ DE LA PRADA', 'BALDINNI', 'BACHELLET', 'BEST VIEW', 'SIN MARCA', 'TRAVERSO',
+    'CALVIN KLEIN', 'SMARTKIDS', 'MONTBLANC', 'SCHOOL DAY',
+    'BELMOR', 'FLEXXILON', 'KIAMIL', 'VELVETT', 
     'MANTOVANNI', 'ROMANA', 'WEEKEND', 'IBERIA', 'VERONA', 'LCT', 
-    'BELLUNO', 'GREKO', 'GIORDANNI', 'DMOST', 'BEST VIEW', 
+    'BELLUNO', 'GREKO', 'GIORDANNI', 'DMOST', 
     'HI-LINE', 'LOTTO', 'FAZZET', 'NAKARATA', 'MASK', 'VISION KIDS', 
     'VISION', 'STEED', 'POLAR', 'FALCON', 'GUESS', 'LACOSTE', 'RAYBAN',
     'OAKLEY', 'CARRERA', 'VOGUE', 'EMPORIO', 'PRADA', 'TOMMY', 'POLAROID', 'POLO'
@@ -245,37 +277,11 @@ function resolveCleanBrand(dbBrand?: string | null, metaBrand?: string | null, r
 
   for (const b of KNOWN_BRANDS) {
     if (cleanRef.startsWith(b.replace(/\s+/g, '')) || cleanDesc.includes(b)) {
-      if (b === 'LCT') return 'LCT';
-      if (b === 'BELMOR') return 'Belmor';
-      if (b === 'SMARTKIDS' || b === 'SMART KIDS') return 'Smartkids';
-      if (b === 'FLEXXILON') return 'Flexxilon';
-      if (b === 'KIAMIL') return 'Kiamil';
-      if (b === 'VELVETT') return 'Velvett';
-      if (b === 'MANTOVANNI') return 'Mantovanni';
-      if (b === 'ROMANA') return 'Romana';
-      if (b === 'WEEKEND') return 'Weekend';
-      if (b === 'IBERIA') return 'Iberia';
-      if (b === 'VERONA') return 'Verona';
-      if (b === 'BELLUNO') return 'Belluno';
-      if (b === 'GREKO') return 'Greko';
-      if (b === 'GIORDANNI') return 'Giordanni';
-      if (b === 'DMOST') return 'Dmost';
-      if (b === 'BEST VIEW') return 'Best View';
-      if (b === 'HI-LINE') return 'Hi-Line';
-      if (b === 'LOTTO') return 'Lotto';
-      if (b === 'FAZZET') return 'Fazzet';
-      if (b === 'NAKARATA') return 'Nakarata';
-      if (b === 'MASK') return 'Mask';
-      if (b === 'VISION KIDS' || b === 'VISION') return 'Vision';
-      return b.charAt(0) + b.slice(1).toLowerCase();
+      return b;
     }
   }
 
-  if (cleanDb && cleanDb !== 'Dubros' && cleanDb !== 'SM' && cleanDb !== 'S-M' && cleanDb !== 'GENERAL') {
-    return cleanDb;
-  }
-
-  return metaBrand || cleanDb || 'Dubros';
+  return cleanDb || cleanMeta || 'DUBROS';
 }
 
 function resolveCleanGender(ref?: string, desc?: string, dbGender?: string | null, metaGender?: string | null): string {
@@ -424,7 +430,8 @@ export async function getProducts({
     }
 
     if (isBrand) {
-      query = query.ilike('brands.name', `%${brandName}%`);
+      const normBrand = normalizeBrandName(brandName) || brandName;
+      query = query.ilike('brands.name', `%${normBrand}%`);
     }
 
     if (isCategory) {
@@ -817,20 +824,22 @@ const dynamicBrandsMap = new Map<string, SupabaseBrand>();
 
 (bubbleBrandsData as any[]).forEach((b) => {
   if (b.name && b.active !== false) {
-    const clean = b.name.trim();
-    dynamicBrandsMap.set(clean.toUpperCase(), {
-      id: b.id || clean.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-      name: clean,
-      active: true,
-    });
+    const clean = normalizeBrandName(b.name);
+    if (clean) {
+      dynamicBrandsMap.set(clean, {
+        id: b.id || clean.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        name: clean,
+        active: true,
+      });
+    }
   }
 });
 
 Object.values(metaMap).forEach((m) => {
   if (m.b && m.b !== 'Dubros') {
-    const clean = m.b.trim();
-    if (!dynamicBrandsMap.has(clean.toUpperCase())) {
-      dynamicBrandsMap.set(clean.toUpperCase(), {
+    const clean = normalizeBrandName(m.b);
+    if (clean && !dynamicBrandsMap.has(clean)) {
+      dynamicBrandsMap.set(clean, {
         id: clean.toLowerCase().replace(/[^a-z0-9]/g, '-'),
         name: clean,
         active: true,
@@ -860,13 +869,30 @@ export async function getBrands(): Promise<SupabaseBrand[]> {
     const { data, error } = await supabase
       .from('brands')
       .select('id, name, active')
+      .neq('active', false)
       .order('name', { ascending: true });
 
     if (error || !data || data.length === 0) {
       return FALLBACK_BRANDS;
     }
 
-    return data;
+    const cleanBrands: SupabaseBrand[] = [];
+    const seen = new Set<string>();
+    for (const b of data) {
+      if (b.active === false) continue;
+      const upper = normalizeBrandName(b.name);
+      if (!upper) continue;
+      if (!seen.has(upper)) {
+        seen.add(upper);
+        cleanBrands.push({
+          id: b.id,
+          name: upper,
+          active: true,
+        });
+      }
+    }
+
+    return cleanBrands.sort((a, b) => a.name.localeCompare(b.name));
   } catch (e) {
     console.error('[getBrands] Unexpected error:', e);
     return FALLBACK_BRANDS;
