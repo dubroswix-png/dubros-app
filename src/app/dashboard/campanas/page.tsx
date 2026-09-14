@@ -291,18 +291,16 @@ export default function AdminCampaignsPage() {
 
   // 7. Sync with SendGrid Live API
   const handleFetchSendGridTemplates = async () => {
-    if (!syncApiKey.trim()) {
-      setSyncError('Ingresa tu clave de API de SendGrid.');
-      return;
-    }
-
     try {
       setSyncLoading(true);
       setSyncError('');
       setSyncSuccess('');
-      localStorage.setItem('dubros_sendgrid_key', syncApiKey.trim());
+      if (syncApiKey.trim()) {
+        localStorage.setItem('dubros_sendgrid_key', syncApiKey.trim());
+      }
 
-      const res = await fetch(`/api/admin/campaigns/sync?apiKey=${encodeURIComponent(syncApiKey.trim())}`);
+      const q = syncApiKey.trim() ? `?apiKey=${encodeURIComponent(syncApiKey.trim())}` : '';
+      const res = await fetch(`/api/admin/campaigns/sync${q}`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -1252,12 +1250,12 @@ export default function AdminCampaignsPage() {
                   color: 'var(--text-primary)',
                 }}
               >
-                SendGrid API Key *
+                SendGrid API Key (Ya conectada en el servidor para ventas@dubros.com)
               </label>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input
                   type="password"
-                  placeholder="SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  placeholder="Configurada en el servidor (opcional ingresar otra)"
                   value={syncApiKey}
                   onChange={(e) => setSyncApiKey(e.target.value)}
                   style={{
