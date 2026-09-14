@@ -160,6 +160,14 @@ export function normalizeSaleType(val: string | undefined | null): 'DOCENA' | 'P
   return null;
 }
 
+export function isDocena(val: string | undefined | null): boolean {
+  return normalizeSaleType(val) === 'DOCENA';
+}
+
+export function getProductUnitPrice(price: number, saleType?: string | null): number {
+  return isDocena(saleType) ? price * 12 : price;
+}
+
 // Convert Supabase row → Product interface (compatible with existing components)
 // ---------------------------------------------------------------------------
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Globe2, Award, ChevronRight, Heart, Loader2 } from 'lucide-react';
-import { getProductById, getFeaturedProducts } from '@/lib/products';
+import { getProductById, getFeaturedProducts, isDocena } from '@/lib/products';
 import type { Product } from '@/data/mock';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { ProductImageZoom } from '@/components/catalog/ProductImageZoom';
@@ -136,8 +136,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Tipo de Venta</span>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {product.saleType === 'DOCENA' ? '📦 Por Docena' : '👓 Por Pieza'}
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: isDocena(product.saleType) ? '#4338CA' : 'var(--text-primary)' }}>
+                  {isDocena(product.saleType) ? '📦 Por Docena (12 unidades)' : '👓 Por Pieza'}
                 </span>
               </div>
             </div>
@@ -182,17 +182,42 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
             <div style={{ borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)', padding: '1.5rem 0', marginBottom: '2rem' }}>
               {isLoggedIn ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
                   <div>
-                    <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Precio PIEZA</span>
-                    <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>${product.price.toFixed(2)}</span>
+                    <span
+                      style={{
+                        display: 'block',
+                        fontSize: '0.82rem',
+                        fontWeight: isDocena(product.saleType) ? 700 : 500,
+                        color: isDocena(product.saleType) ? '#4338CA' : 'var(--text-tertiary)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      {isDocena(product.saleType) ? 'Precio por DOCENA (12 pzs)' : 'Precio PIEZA'}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+                      <span style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                        ${(isDocena(product.saleType) ? product.price * 12 : product.price).toFixed(2)}
+                      </span>
+                      {isDocena(product.saleType) && (
+                        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                          / docena
+                        </span>
+                      )}
+                    </div>
+                    {isDocena(product.saleType) && (
+                      <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                        (${product.price.toFixed(2)} por pieza)
+                      </span>
+                    )}
                   </div>
                   <button 
                     onClick={() => addToCart(product, 1)}
                     className="btn-primary" 
                     style={{ padding: '0.8rem 2rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                   >
-                    <ShoppingBag size={20} /> Agregar al carrito
+                    <ShoppingBag size={20} /> {isDocena(product.saleType) ? 'Agregar 1 Docena' : 'Agregar al carrito'}
                   </button>
                 </div>
               ) : (

@@ -11,9 +11,38 @@ import { ToastProvider } from "@/context/ToastContext";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 
 export const metadata: Metadata = {
-  title: "Dubros | Distribución Óptica en Latinoamérica",
-  description: "Más de 25 años distribuyendo monturas ópticas y gafas de sol de alta calidad para ópticas y distribuidores en Latinoamérica.",
-  keywords: ["óptica", "monturas", "aros ópticos", "lentes de sol", "distribuidor óptico", "Dubros", "Panamá", "Latinoamérica"],
+  metadataBase: new URL('https://dubros.com'),
+  title: {
+    default: "Dubros Eyewear | Distribución Óptica B2B en Latinoamérica",
+    template: "%s | Dubros Eyewear",
+  },
+  description: "Más de 25 años distribuyendo monturas ópticas y gafas de sol de alta calidad para ópticas y distribuidores en Latinoamérica desde Zona Libre de Colón.",
+  keywords: ["óptica", "monturas", "aros ópticos", "lentes de sol", "distribuidor óptico", "Dubros", "Panamá", "Latinoamérica", "B2B"],
+  icons: {
+    icon: [
+      { url: '/images/logo.svg', type: 'image/svg+xml' },
+      { url: '/images/logo.png', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/images/logo.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  openGraph: {
+    title: "Dubros Eyewear | Distribución Óptica B2B",
+    description: "Catálogo exclusivo para profesionales ópticos y distribuidores mayoristas.",
+    url: "https://dubros.com",
+    siteName: "Dubros Eyewear",
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 800,
+        height: 600,
+        alt: "Dubros Eyewear Logo",
+      },
+    ],
+    locale: "es_PA",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

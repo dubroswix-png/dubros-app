@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { isDocena } from '@/lib/products';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,30 +74,40 @@ export async function POST(request: NextRequest) {
 
     // 2. Recalculate prices against Database products to prevent client price tampering
     let calculatedSubtotal = 0;
-    let totalPieces = 0;
+    let totalOrderUnits = 0;
+    let totalPhysicalPieces = 0;
 
     const validatedItems = await Promise.all(
       cartItems.map(async (item: any) => {
         const qty = Math.max(1, parseInt(item.quantity || 1, 10));
-        totalPieces += qty;
 
         const pId = item.product?.id;
-        let realPrice = Number(item.product?.price || 0);
+        let basePrice = Number(item.product?.price || 0);
+        let saleType = item.product?.saleType || 'PIEZA';
 
         if (isValidUUID(pId)) {
           const { data: dbProd } = await adminSupabase
             .from('products')
-            .select('id, price, reference, code, material, brands(name)')
+            .select('id, price, reference, code, material, sale_type, brands(name)')
             .eq('id', pId)
             .maybeSingle();
 
           if (dbProd && dbProd.price !== null && dbProd.price !== undefined) {
-            realPrice = Number(dbProd.price);
+            basePrice = Number(dbProd.price);
+            if (dbProd.sale_type) {
+              saleType = dbProd.sale_type;
+            }
           }
         }
 
-        const lineTotal = realPrice * qty;
+        const isDoc = isDocena(saleType);
+        const effectiveUnitPrice = isDoc ? basePrice * 12 : basePrice;
+        const physicalPieces = isDoc ? qty * 12 : qty;
+        const lineTotal = effectiveUnitPrice * qty;
+
         calculatedSubtotal += lineTotal;
+        totalOrderUnits += qty;
+        totalPhysicalPieces += physicalPieces;
 
         return {
           productId: isValidUUID(pId) ? pId : null,
@@ -104,8 +115,11 @@ export async function POST(request: NextRequest) {
           code: (item.product?.code || item.code || '').trim(),
           brand: (item.product?.brand || item.brand || '').trim(),
           material: (item.product?.material || item.material || '').trim(),
-          unitPrice: realPrice,
+          saleType: isDoc ? 'DOCENA' : 'PIEZA',
+          unitPrice: effectiveUnitPrice,
+          baseUnitPrice: basePrice,
           quantity: qty,
+          physicalPieces: physicalPieces,
           totalPrice: lineTotal,
         };
       })
@@ -129,8 +143,8 @@ export async function POST(request: NextRequest) {
         shipping_address: shippingAddress || 'A coordinar por WhatsApp (V2)',
         notes: notes || '',
         status: 'Pendiente',
-        total_items: totalPieces,
-        total_pieces: totalPieces,
+        total_items: totalOrderUnits,
+        total_pieces: totalPhysicalPieces,
         subtotal: calculatedSubtotal,
         total_amount: calculatedSubtotal,
       })
@@ -175,11 +189,13 @@ export async function POST(request: NextRequest) {
     message += `-------------------------\n`;
 
     validatedItems.forEach((item) => {
-      message += `• ${item.brand} ${item.reference} (x${item.quantity}) - $${item.totalPrice.toFixed(2)}\n`;
+      const unitLabel = item.saleType === 'DOCENA' ? `${item.quantity} doc (${item.physicalPieces} pzs)` : `x${item.quantity}`;
+      message += `• ${item.brand} ${item.reference} (${unitLabel}) - $${item.totalPrice.toFixed(2)}\n`;
     });
 
     message += `-------------------------\n`;
-    message += `📦 *Total piezas:* ${totalPieces}\n`;
+    message += `📦 *Total artículos:* ${totalOrderUnits}\n`;
+    message += `👓 *Total piezas físicas:* ${totalPhysicalPieces}\n`;
     message += `💰 *Subtotal:* $${calculatedSubtotal.toFixed(2)}\n`;
 
     if (notes) {
@@ -194,7 +210,8 @@ export async function POST(request: NextRequest) {
       orderNumber,
       whatsappUrl,
       subtotal: calculatedSubtotal,
-      totalPieces,
+      totalItems: totalOrderUnits,
+      totalPieces: totalPhysicalPieces,
     });
   } catch (error: any) {
     console.error('[create-order] Unexpected error:', error);

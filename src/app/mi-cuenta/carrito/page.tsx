@@ -10,11 +10,12 @@ import { createOrder } from '@/lib/orders';
 import { formatPrice } from '@/lib/formatters';
 import { resolveProductImageUrl, handleImageFallback } from '@/lib/images';
 import { triggerOrderSuccessConfetti } from '@/lib/confetti';
+import { isDocena } from '@/lib/products';
 
 export default function CartPage() {
   const router = useRouter();
   const { isLoggedIn, isLoading, userProfile } = useAuth();
-  const { cartItems, updateQuantity, removeFromCart, clearCart, totalArticles, subtotal } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, clearCart, totalArticles, totalPieces, subtotal } = useCart();
   
   const [shippingAddress] = useState('A coordinar por WhatsApp (V2)');
   const [notes, setNotes] = useState('');
@@ -168,7 +169,18 @@ export default function CartPage() {
                     Cód: {product.code} {product.eyeSize ? `| Talla ${product.eyeSize}` : ''} {product.material ? `| ${product.material}` : ''}
                   </div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '0.25rem' }}>
-                    {formatPrice(product.price)} por pieza
+                    {isDocena(product.saleType) ? (
+                      <div>
+                        <span style={{ color: '#4338CA', fontWeight: 700 }}>
+                          {formatPrice(product.price * 12)} / docena
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginLeft: '0.35rem' }}>
+                          ({formatPrice(product.price)} por pieza)
+                        </span>
+                      </div>
+                    ) : (
+                      <span>{formatPrice(product.price)} por pieza</span>
+                    )}
                   </div>
                 </div>
 
@@ -182,7 +194,14 @@ export default function CartPage() {
                     >
                       -
                     </button>
-                    <span style={{ padding: '0.4rem 0.9rem', fontSize: '0.9rem', fontWeight: 700 }}>{quantity}</span>
+                    <div style={{ padding: '0.3rem 0.8rem', textAlign: 'center', minWidth: '45px' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, display: 'block' }}>{quantity}</span>
+                      {isDocena(product.saleType) && (
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', display: 'block', lineHeight: 1 }}>
+                          {quantity === 1 ? 'docena' : 'docenas'} ({quantity * 12} pzs)
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={() => updateQuantity(product.id, 1)}
@@ -195,7 +214,7 @@ export default function CartPage() {
                   {/* ITEM TOTAL & DELETE */}
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '1.15rem', fontWeight: 800 }}>
-                      {formatPrice(product.price * quantity)}
+                      {formatPrice((isDocena(product.saleType) ? product.price * 12 : product.price) * quantity)}
                     </div>
                     <button
                       type="button"
@@ -241,12 +260,17 @@ export default function CartPage() {
               </div>
 
               <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1rem', marginBottom: '1.25rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Total de Piezas:</span>
-                  <strong style={{ fontWeight: 700 }}>{totalArticles} piezas</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Unidades de Pedido:</span>
+                  <strong style={{ fontWeight: 700 }}>{totalArticles} {totalArticles === 1 ? 'unidad' : 'unidades'}</strong>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Total de Piezas Físicas:</span>
+                  <strong style={{ fontWeight: 700, color: 'var(--blue)' }}>{totalPieces} piezas</strong>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed var(--border-light)' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Subtotal Estimado:</span>
                   <strong style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                     ${subtotal.toFixed(2)}

@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { X, Trash2, Plus, Minus, ShoppingCart, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { isDocena } from '@/lib/products';
 
 export function CartDrawer() {
-  const { isCartOpen, closeCart, cartItems: items, updateQuantity, removeFromCart, subtotal, totalArticles } = useCart();
+  const { isCartOpen, closeCart, cartItems: items, updateQuantity, removeFromCart, subtotal, totalArticles, totalPieces } = useCart();
   const { t } = useLanguage();
 
   // Prevent scrolling on body when drawer is open
@@ -105,7 +106,14 @@ export function CartDrawer() {
                       <div>
                         <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>{item.product.brand}</span>
                         <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>{item.product.reference}</h4>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{t('cart.perPiece' as any)}: ${item.product.price.toFixed(2)}</span>
+                        {isDocena(item.product.saleType) ? (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                            <strong style={{ color: '#4338CA' }}>${(item.product.price * 12).toFixed(2)}</strong> / docena{' '}
+                            <span style={{ color: 'var(--text-tertiary)' }}>(${item.product.price.toFixed(2)} c/u)</span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{t('cart.perPiece' as any)}: ${item.product.price.toFixed(2)}</span>
+                        )}
                       </div>
                       <button
                         onClick={() => removeFromCart(item.product.id)}
@@ -117,25 +125,32 @@ export function CartDrawer() {
 
                     {/* Quantity Controls */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border-medium)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
-                        <button
-                          onClick={() => updateQuantity(item.product.id, -1)}
-                          style={{ background: 'none', border: 'none', padding: '0.3rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                        >
-                          <Minus size={14} />
-                        </button>
-                        <span style={{ padding: '0 0.5rem', fontSize: '0.85rem', fontWeight: 600, minWidth: '30px', textAlign: 'center' }}>
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => updateQuantity(item.product.id, 1)}
-                          style={{ background: 'none', border: 'none', padding: '0.3rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                        >
-                          <Plus size={14} />
-                        </button>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border-medium)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+                          <button
+                            onClick={() => updateQuantity(item.product.id, -1)}
+                            style={{ background: 'none', border: 'none', padding: '0.3rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span style={{ padding: '0 0.5rem', fontSize: '0.85rem', fontWeight: 600, minWidth: '30px', textAlign: 'center' }}>
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(item.product.id, 1)}
+                            style={{ background: 'none', border: 'none', padding: '0.3rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                        {isDocena(item.product.saleType) && (
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '2px' }}>
+                            {item.quantity * 12} piezas
+                          </span>
+                        )}
                       </div>
                       <span style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '1.05rem' }}>
-                        ${(item.product.price * item.quantity).toFixed(2)}
+                        ${((isDocena(item.product.saleType) ? item.product.price * 12 : item.product.price) * item.quantity).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -148,9 +163,13 @@ export function CartDrawer() {
         {/* Footer (Total and Checkout) */}
         {items.length > 0 && (
           <div style={{ padding: '1.5rem', backgroundColor: '#F9FAFB', borderTop: '1px solid var(--border-medium)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t('cart.references' as any)}:</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{t('cart.references' as any)}:</span>
               <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{totalArticles}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Piezas Totales:</span>
+              <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{totalPieces} piezas</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '1.1rem' }}>{t('cart.subtotal' as any)}:</span>

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Product } from '@/data/mock';
+import { isDocena, getProductUnitPrice } from '@/lib/products';
 
 export interface CartItem {
   product: Product;
@@ -15,7 +16,9 @@ interface CartContextType {
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
   totalArticles: number;
+  totalPieces: number;
   subtotal: number;
+  getItemUnitPrice: (product: Product) => number;
   isCartOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
@@ -88,9 +91,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     updateCartState([]);
   };
 
+  const getItemUnitPrice = (product: Product): number => {
+    return getProductUnitPrice(product.price, product.saleType);
+  };
+
   const totalArticles = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalPieces = cartItems.reduce(
+    (acc, item) => acc + (isDocena(item.product.saleType) ? item.quantity * 12 : item.quantity),
+    0
+  );
   const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.product.price * item.quantity,
+    (acc, item) => acc + getItemUnitPrice(item.product) * item.quantity,
     0
   );
 
@@ -103,7 +114,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         removeFromCart,
         clearCart,
         totalArticles,
+        totalPieces,
         subtotal,
+        getItemUnitPrice,
         isCartOpen,
         openCart,
         closeCart,
