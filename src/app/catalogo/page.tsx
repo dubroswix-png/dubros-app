@@ -15,6 +15,7 @@ import {
   normalizeGender,
   normalizeFlex,
   normalizeSaleType,
+  normalizeCategoryName,
   type SupabaseBrand,
   type SupabaseCategory,
 } from '@/lib/products';
@@ -68,11 +69,14 @@ function CatalogContent() {
   const initialBridge = searchParams.get('bridge') || searchParams.get('bridge_size') || 'all';
   const initialTemple = searchParams.get('temple') || searchParams.get('temple_length') || 'all';
 
+  const rawCategory = searchParams.get('category');
+  const initialCategory = rawCategory ? (normalizeCategoryName(rawCategory) || 'all') : 'all';
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedMaterial, setSelectedMaterial] = useState(initialMaterial);
   const [selectedGender, setSelectedGender] = useState(initialGender);
   const [selectedSize, setSelectedSize] = useState('all');
@@ -98,6 +102,11 @@ function CatalogContent() {
     if (gen) {
       const normGen = normalizeGender(gen);
       setSelectedGender(normGen || gen);
+    }
+    const catParam = searchParams.get('category');
+    if (catParam) {
+      const normCat = normalizeCategoryName(catParam);
+      if (normCat) setSelectedCategory(normCat);
     }
     const flexParam = searchParams.get('flex');
     if (flexParam) {

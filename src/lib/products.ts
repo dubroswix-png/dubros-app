@@ -168,6 +168,44 @@ export function getProductUnitPrice(price: number, saleType?: string | null): nu
   return isDocena(saleType) ? price * 12 : price;
 }
 
+export function normalizeCategoryName(rawName: string | undefined | null): string {
+  if (!rawName) return '';
+  const clean = normalizeText(String(rawName)).trim();
+
+  // Excluded / noise categories requested by user
+  if (
+    clean === '2' ||
+    clean.includes('palo') ||
+    clean.includes('trapera') ||
+    clean.includes('escoba') ||
+    clean.includes('general') ||
+    clean.includes('guia') ||
+    clean.includes('clip') ||
+    clean.includes('espejo') ||
+    clean.includes('limpieza')
+  ) {
+    return '';
+  }
+
+  // Canonical mappings and case/plural normalization
+  if (clean.includes('tornill')) return 'Tornillos';
+  if (clean.includes('exhibid')) return 'Exhibidores';
+  if (clean.includes('nariguer')) return 'Narigueras';
+  if (clean.includes('lente') && clean.includes('sol')) return 'Lentes de Sol';
+  if (clean === 'sol') return 'Lentes de Sol';
+  if (clean.includes('aros') || clean.includes('optico')) return 'Aros Ópticos';
+  if (clean.includes('estuche')) return 'Estuches';
+  if (clean.includes('cordon')) return 'Cordones';
+  if (clean.includes('lectura')) return 'Lectura';
+  if (clean.includes('cartera')) return 'Carteras';
+  if (clean.includes('accesorio')) return 'Accesorios';
+  if (clean.includes('proteccion') || clean.includes('seguridad')) return 'Protección';
+  if (clean.includes('pano') || clean.includes('paño')) return 'Paños';
+  if (clean.includes('brazalete')) return 'Brazaletes';
+
+  return String(rawName).charAt(0).toUpperCase() + String(rawName).slice(1).toLowerCase();
+}
+
 // Convert Supabase row → Product interface (compatible with existing components)
 // ---------------------------------------------------------------------------
 
@@ -301,7 +339,8 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
   const desc = row.description || `Montura oftálmica de alta calidad, referencia ${ref}.`;
 
   const brand = resolveCleanBrand(row.brands?.name, meta?.b, ref, desc);
-  const category = row.categories?.name || meta?.c || 'Aros Ópticos';
+  const rawCat = row.categories?.name || meta?.c || 'Aros Ópticos';
+  const category = normalizeCategoryName(rawCat) || 'Aros Ópticos';
   const quantity = row.quantity || meta?.q || 0;
   const rawPrice = row.price ? Number(row.price) : 0;
   const finalPrice = rawPrice > 0 ? rawPrice : getBaseWholesalePrice(brand, category);
@@ -389,7 +428,36 @@ export async function getProducts({
     }
 
     if (isCategory) {
-      query = query.ilike('categories.name', `%${categoryName}%`);
+      const normCat = normalizeCategoryName(categoryName);
+      if (normCat === 'Tornillos') {
+        query = query.ilike('categories.name', '%Tornill%');
+      } else if (normCat === 'Exhibidores') {
+        query = query.ilike('categories.name', '%Exhibid%');
+      } else if (normCat === 'Narigueras') {
+        query = query.ilike('categories.name', '%Nariguer%');
+      } else if (normCat === 'Lentes de Sol') {
+        query = query.ilike('categories.name', '%Sol%');
+      } else if (normCat === 'Paños') {
+        query = query.or('categories.name.ilike.%PANO%,categories.name.ilike.%Paño%');
+      } else if (normCat === 'Protección') {
+        query = query.or('categories.name.ilike.%PROTECCION%,categories.name.ilike.%Protección%,categories.name.ilike.%Seguridad%');
+      } else if (normCat === 'Estuches') {
+        query = query.ilike('categories.name', '%ESTUCHE%');
+      } else if (normCat === 'Cordones') {
+        query = query.ilike('categories.name', '%CORDON%');
+      } else if (normCat === 'Carteras') {
+        query = query.ilike('categories.name', '%CARTERA%');
+      } else if (normCat === 'Lectura') {
+        query = query.ilike('categories.name', '%LECTURA%');
+      } else if (normCat === 'Accesorios') {
+        query = query.ilike('categories.name', '%ACCESORIO%');
+      } else if (normCat === 'Aros Ópticos') {
+        query = query.ilike('categories.name', '%AROS%');
+      } else if (normCat === 'Brazaletes') {
+        query = query.ilike('categories.name', '%BRAZALETE%');
+      } else {
+        query = query.ilike('categories.name', `%${categoryName}%`);
+      }
     }
 
     if (gender && gender !== 'all') {
@@ -816,11 +884,23 @@ export async function getCategories(): Promise<SupabaseCategory[]> {
       .select('id, name, slug')
       .order('name', { ascending: true });
 
-    if (error || !data || data.length === 0) {
-      return FALLBACK_CATEGORIES;
+    const source = (error || !data || data.length === 0) ? FALLBACK_CATEGORIES : data;
+
+    // Deduplicate and filter out unwanted categories (palo, 2, trapera, escoba, general, guias)
+    const seen = new Map<string, SupabaseCategory>();
+    for (const cat of source) {
+      const canonical = normalizeCategoryName(cat.name);
+      if (!canonical) continue;
+      if (!seen.has(canonical)) {
+        seen.set(canonical, {
+          id: cat.id,
+          name: canonical,
+          slug: cat.slug || canonical.toLowerCase().replace(/\s+/g, '-'),
+        });
+      }
     }
 
-    return data;
+    return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name, 'es'));
   } catch (e) {
     console.error('[getCategories] Unexpected error:', e);
     return FALLBACK_CATEGORIES;
