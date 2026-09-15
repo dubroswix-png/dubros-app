@@ -106,14 +106,17 @@ export async function POST(request: NextRequest) {
     // 3. Map ERP articles to Supabase format
     const mappedProducts = erpArticles.map(mapArticleToProduct);
 
-    const isGenericBrand = (b?: string | null) => {
-      if (!b) return true;
+    const normalizeBrandForSync = (b?: string | null) => {
+      if (!b) return 'SIN MARCA';
       const clean = b.toUpperCase().trim();
-      return clean === 'SIN MARCA' || clean === 'GENERAL' || clean === 'N/A' || clean === 'NONE' || clean === 'SM';
+      if (clean === 'SIN MARCA' || clean === 'SM' || clean === 'S-M' || clean === 'SINMARCA' || clean === 'GENERAL' || clean === 'N/A' || clean === 'NONE') {
+        return 'SIN MARCA';
+      }
+      return b.trim();
     };
 
-    // 4. Ensure real brands exist for this page (excluding generic brands like SIN MARCA)
-    const uniqueBrands = [...new Set(mappedProducts.map(p => p.brand).filter(b => !isGenericBrand(b)))];
+    // 4. Ensure brands exist for this page (conflict target: slug)
+    const uniqueBrands = [...new Set(mappedProducts.map(p => normalizeBrandForSync(p.brand)))];
     for (const brandName of uniqueBrands) {
       const slug = brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       await supabase
@@ -178,13 +181,11 @@ export async function POST(request: NextRequest) {
 
     const productsToUpsert = mappedProducts.map(p => {
       const existing = existingMap.get(p.sku.toUpperCase());
-      const brandClean = isGenericBrand(p.brand) ? null : p.brand;
-      const bSlug = brandClean ? brandClean.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
+      const brandClean = normalizeBrandForSync(p.brand);
+      const bSlug = brandClean.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       const cSlug = p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
 
-      const brandId = brandClean
-        ? (brandMap.get(brandClean.toUpperCase()) || brandMap.get(bSlug) || null)
-        : null;
+      const brandId = brandMap.get(brandClean.toUpperCase()) || brandMap.get(bSlug) || null;
 
       const categoryId = p.category
         ? (categoryMap.get(p.category.toUpperCase()) || categoryMap.get(cSlug) || null)

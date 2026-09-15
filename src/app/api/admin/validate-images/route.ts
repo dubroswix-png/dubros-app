@@ -20,31 +20,33 @@ function getSupabaseAdmin() {
  */
 export async function checkImageExists(reference: string): Promise<{ exists: boolean; url: string; contentType?: string }> {
   const cleanRef = reference.trim();
-  const imageUrl = `${S3_IMAGE_REPO_BASE}/${encodeURIComponent(cleanRef)}.jpg`;
+  const extensions = ['.jpg', '.JPG', '.png', '.PNG', '.jpeg', '.JPEG', '.webp'];
 
-  try {
-    const res = await fetch(imageUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'image/jpeg,image/png,image/*',
-      },
-      cache: 'no-store',
-    });
+  for (const ext of extensions) {
+    const imageUrl = `${S3_IMAGE_REPO_BASE}/${encodeURIComponent(cleanRef)}${ext}`;
+    try {
+      const res = await fetch(imageUrl, {
+        method: 'HEAD',
+        cache: 'no-store',
+      });
 
-    const contentType = res.headers.get('content-type') || '';
-    const isImage = res.ok && contentType.startsWith('image/');
-
-    return {
-      exists: isImage,
-      url: isImage ? imageUrl : '/images/product-placeholder.png',
-      contentType,
-    };
-  } catch (e) {
-    return {
-      exists: false,
-      url: '/images/product-placeholder.png',
-    };
+      if (res.ok) {
+        const contentType = res.headers.get('content-type') || 'image/jpeg';
+        return {
+          exists: true,
+          url: imageUrl,
+          contentType,
+        };
+      }
+    } catch {
+      // try next extension
+    }
   }
+
+  return {
+    exists: false,
+    url: '/images/product-placeholder.png',
+  };
 }
 
 // GET /api/admin/validate-images?reference=1312D -> Validate single image

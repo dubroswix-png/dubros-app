@@ -211,15 +211,10 @@ export function normalizeBrandName(rawName: string | undefined | null): string {
   if (!rawName) return '';
   let clean = String(rawName).replace(/\s+/g, ' ').trim().toUpperCase();
 
-  // Filter out test brands or generic noise (SIN MARCA, SM, GENERAL)
+  // Filter out test brands or generic noise
   if (
     clean.includes('TEST') ||
     clean === 'GENERAL' ||
-    clean === 'SIN MARCA' ||
-    clean === 'SM' ||
-    clean === 'S-M' ||
-    clean === 'S - M' ||
-    clean === 'SINMARCA' ||
     clean === 'N/A' ||
     clean === 'NONE'
   ) {
@@ -227,6 +222,7 @@ export function normalizeBrandName(rawName: string | undefined | null): string {
   }
 
   // Canonical mappings and merge duplicates requested by user
+  if (clean === 'SM' || clean === 'S-M' || clean === 'S - M' || clean === 'SINMARCA' || clean === 'SIN MARCA') return 'SIN MARCA';
   if (clean === 'BESTVIEW' || clean === 'BEST VIEW') return 'BEST VIEW';
   if (clean === 'TRAVERZO' || clean === 'TRAVERSO') return 'TRAVERSO';
   if (clean === 'BALDINI' || clean === 'BALDINNI') return 'BALDINNI';
@@ -275,7 +271,7 @@ function resolveCleanBrand(dbBrand?: string | null, metaBrand?: string | null, r
 
   // Priority detection from Description and Reference
   const KNOWN_BRANDS = [
-    'AGATHA RUIZ DE LA PRADA', 'BALDINNI', 'BACHELLET', 'BEST VIEW', 'TRAVERSO',
+    'AGATHA RUIZ DE LA PRADA', 'BALDINNI', 'BACHELLET', 'BEST VIEW', 'SIN MARCA', 'TRAVERSO',
     'CALVIN KLEIN', 'SMARTKIDS', 'MONTBLANC', 'SCHOOL DAY',
     'BELMOR', 'FLEXXILON', 'KIAMIL', 'VELVETT', 
     'MANTOVANNI', 'ROMANA', 'WEEKEND', 'IBERIA', 'VERONA', 'LCT', 
