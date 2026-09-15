@@ -320,19 +320,12 @@ export async function erpCreateLead(
  * falls back to the ERP's uploaded image URL.
  */
 export function buildProductImageUrl(article: ErpArticle): string {
-  const s3BaseUrl = process.env.ERP_IMAGE_REPO_URL;
-
-  // If S3 repo is configured and article has a reference code, use S3
-  if (s3BaseUrl && article.referencia) {
-    return `${s3BaseUrl}/${article.referencia}.jpg`;
-  }
-
   // If the ERP provides a direct image URL, use it
-  if (article.imagen && !article.imagen.includes('notimage')) {
+  if (article.imagen && !article.imagen.includes('notimage') && !article.imagen.includes('placeholder')) {
     return article.imagen;
   }
 
-  // Default placeholder
+  // Default placeholder until photos are photographed and uploaded
   return '/images/product-placeholder.png';
 }
 

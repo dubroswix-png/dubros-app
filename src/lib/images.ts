@@ -26,8 +26,13 @@ export function resolveProductImageUrl(itemOrRef: any): string {
   const productObj = itemOrRef.product || itemOrRef;
   const directUrl = productObj.thumbnail_url || productObj.thumbnailUrl || productObj.large_image_url || productObj.largeImageUrl;
 
-  if (directUrl && typeof directUrl === 'string' && directUrl.startsWith('http') && !directUrl.includes('placeholder')) {
-    return normalizeLegacyApiUrl(directUrl);
+  if (directUrl && typeof directUrl === 'string') {
+    if (directUrl.includes('placeholder') || directUrl.includes('no-image') || directUrl.includes('notimage')) {
+      return DEFAULT_PRODUCT_PLACEHOLDER;
+    }
+    if (directUrl.startsWith('http://') || directUrl.startsWith('https://')) {
+      return normalizeLegacyApiUrl(directUrl);
+    }
   }
 
   // Case 3: Derive from reference or code

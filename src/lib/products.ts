@@ -65,6 +65,7 @@ export interface GetProductsParams {
   minPrice?: number;
   maxPrice?: number;
   minStock?: number;
+  includeWithoutImages?: boolean;
 }
 
 export interface GetProductsResult {
@@ -210,13 +211,22 @@ export function normalizeBrandName(rawName: string | undefined | null): string {
   if (!rawName) return '';
   let clean = String(rawName).replace(/\s+/g, ' ').trim().toUpperCase();
 
-  // Filter out test brands or generic noise
-  if (clean.includes('TEST') || clean === 'GENERAL') {
+  // Filter out test brands or generic noise (SIN MARCA, SM, GENERAL)
+  if (
+    clean.includes('TEST') ||
+    clean === 'GENERAL' ||
+    clean === 'SIN MARCA' ||
+    clean === 'SM' ||
+    clean === 'S-M' ||
+    clean === 'S - M' ||
+    clean === 'SINMARCA' ||
+    clean === 'N/A' ||
+    clean === 'NONE'
+  ) {
     return '';
   }
 
   // Canonical mappings and merge duplicates requested by user
-  if (clean === 'SM' || clean === 'S-M' || clean === 'S - M' || clean === 'SINMARCA') return 'SIN MARCA';
   if (clean === 'BESTVIEW' || clean === 'BEST VIEW') return 'BEST VIEW';
   if (clean === 'TRAVERZO' || clean === 'TRAVERSO') return 'TRAVERSO';
   if (clean === 'BALDINI' || clean === 'BALDINNI') return 'BALDINNI';
@@ -265,7 +275,7 @@ function resolveCleanBrand(dbBrand?: string | null, metaBrand?: string | null, r
 
   // Priority detection from Description and Reference
   const KNOWN_BRANDS = [
-    'AGATHA RUIZ DE LA PRADA', 'BALDINNI', 'BACHELLET', 'BEST VIEW', 'SIN MARCA', 'TRAVERSO',
+    'AGATHA RUIZ DE LA PRADA', 'BALDINNI', 'BACHELLET', 'BEST VIEW', 'TRAVERSO',
     'CALVIN KLEIN', 'SMARTKIDS', 'MONTBLANC', 'SCHOOL DAY',
     'BELMOR', 'FLEXXILON', 'KIAMIL', 'VELVETT', 
     'MANTOVANNI', 'ROMANA', 'WEEKEND', 'IBERIA', 'VERONA', 'LCT', 
@@ -325,15 +335,17 @@ function resolveCleanGender(ref?: string, desc?: string, dbGender?: string | nul
 
 function mapSupabaseToProduct(row: SupabaseProduct): Product {
   const fixUrl = (url: string | undefined | null, refFallback: string) => {
-    if (url && url.includes('http') && !url.includes('placeholder')) {
+    if (url && (url.includes('placeholder') || url.includes('no-image') || url.includes('notimage'))) {
+      return '/images/product-placeholder.png';
+    }
+    if (url && url.includes('http')) {
       return url.replace(
         'https://baa9ng1ib5.execute-api.us-east-1.amazonaws.com/dev/dubros-image-repository',
         'https://dubros-image-repository.s3.amazonaws.com'
       );
     }
-    const cleanRef = (refFallback || '').trim();
-    if (cleanRef) {
-      return `https://dubros-image-repository.s3.amazonaws.com/${encodeURIComponent(cleanRef)}.jpg`;
+    if (url && url.startsWith('/')) {
+      return url;
     }
     return '/images/product-placeholder.png';
   };
@@ -395,6 +407,7 @@ export async function getProducts({
   minPrice,
   maxPrice,
   minStock,
+  includeWithoutImages = false,
 }: GetProductsParams = {}): Promise<GetProductsResult> {
   try {
     const from = (page - 1) * pageSize;
@@ -409,6 +422,15 @@ export async function getProducts({
     let query = supabase
       .from('products')
       .select(`*, ${brandSelect}, ${catSelect}`, { count: 'exact' });
+
+    // Option A: Hide products without photos from the public catalog
+    if (!includeWithoutImages) {
+      query = query
+        .not('thumbnail_url', 'is', null)
+        .neq('thumbnail_url', '')
+        .not('thumbnail_url', 'ilike', '%placeholder%')
+        .not('thumbnail_url', 'ilike', '%no-image%');
+    }
 
     if (collectionId) {
       query = query.eq('collection_id', collectionId);
@@ -800,6 +822,10 @@ export async function getFeaturedProducts(limit: number = 8): Promise<Product[]>
     const { data, error } = await supabase
       .from('products')
       .select('*, brands(id, name), categories(id, name)')
+      .not('thumbnail_url', 'is', null)
+      .neq('thumbnail_url', '')
+      .not('thumbnail_url', 'ilike', '%placeholder%')
+      .not('thumbnail_url', 'ilike', '%no-image%')
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -1135,6 +1161,10 @@ export async function getCollectionProducts(collectionId: string): Promise<Produ
       .from('products')
       .select('*, brands(id, name), categories(id, name)')
       .eq('collection_id', collectionId)
+      .not('thumbnail_url', 'is', null)
+      .neq('thumbnail_url', '')
+      .not('thumbnail_url', 'ilike', '%placeholder%')
+      .not('thumbnail_url', 'ilike', '%no-image%')
       .limit(50);
 
     if (error || !data) return [];

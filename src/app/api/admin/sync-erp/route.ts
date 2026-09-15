@@ -106,8 +106,14 @@ export async function POST(request: NextRequest) {
     // 3. Map ERP articles to Supabase format
     const mappedProducts = erpArticles.map(mapArticleToProduct);
 
-    // 4. Ensure brands exist for this page (conflict target: slug)
-    const uniqueBrands = [...new Set(mappedProducts.map(p => p.brand).filter(Boolean))];
+    const isGenericBrand = (b?: string | null) => {
+      if (!b) return true;
+      const clean = b.toUpperCase().trim();
+      return clean === 'SIN MARCA' || clean === 'GENERAL' || clean === 'N/A' || clean === 'NONE' || clean === 'SM';
+    };
+
+    // 4. Ensure real brands exist for this page (excluding generic brands like SIN MARCA)
+    const uniqueBrands = [...new Set(mappedProducts.map(p => p.brand).filter(b => !isGenericBrand(b)))];
     for (const brandName of uniqueBrands) {
       const slug = brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       await supabase
@@ -160,23 +166,69 @@ export async function POST(request: NextRequest) {
       return 'Unisex';
     }
 
-    // 7. Prepare products for upsert
+    // 7. Check existing products to protect manually edited fields from being overwritten by Switch ERP
+    const skus = mappedProducts.map(p => p.sku);
+    const { data: existingProducts } = await supabase
+      .from('products')
+      .select('id, reference, thumbnail_url, large_image_url, brand_id, category_id, description, material, gender, flex, sale_type')
+      .in('reference', skus);
+
+    const existingMap = new Map<string, any>();
+    existingProducts?.forEach(p => existingMap.set(p.reference.toUpperCase(), p));
+
     const productsToUpsert = mappedProducts.map(p => {
-      const bSlug = p.brand ? p.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
+      const existing = existingMap.get(p.sku.toUpperCase());
+      const brandClean = isGenericBrand(p.brand) ? null : p.brand;
+      const bSlug = brandClean ? brandClean.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
       const cSlug = p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
+
+      const brandId = brandClean
+        ? (brandMap.get(brandClean.toUpperCase()) || brandMap.get(bSlug) || null)
+        : null;
+
+      const categoryId = p.category
+        ? (categoryMap.get(p.category.toUpperCase()) || categoryMap.get(cSlug) || null)
+        : null;
+
+      if (existing) {
+        // EXISTING PRODUCT: Protect manually entered fields!
+        // Only update price, quantity (stock), cost and updated_at from Switch ERP
+        return {
+          id: existing.id,
+          reference: p.sku,
+          code: p.sku,
+          price: p.price,
+          quantity: p.stock,
+          cost: p.cost,
+          description: existing.description || p.name,
+          material: existing.material || p.material,
+          gender: existing.gender || detectGender(p.name, p.category, p.material),
+          sale_type: existing.sale_type || p.unit,
+          flex: existing.flex ?? true,
+          thumbnail_url: existing.thumbnail_url || p.image_url,
+          large_image_url: existing.large_image_url || p.image_url,
+          brand_id: existing.brand_id || brandId,
+          category_id: existing.category_id || categoryId,
+          updated_at: new Date().toISOString(),
+        };
+      }
+
+      // NEW PRODUCT:
       return {
         reference: p.sku,
         code: p.sku,
         description: p.name,
         price: p.price,
+        cost: p.cost,
         material: p.material,
         gender: detectGender(p.name, p.category, p.material),
         quantity: p.stock,
         sale_type: p.unit,
         thumbnail_url: p.image_url,
         large_image_url: p.image_url,
-        brand_id: brandMap.get(p.brand.toUpperCase()) || brandMap.get(bSlug) || null,
-        category_id: categoryMap.get(p.category.toUpperCase()) || categoryMap.get(cSlug) || null,
+        brand_id: brandId,
+        category_id: categoryId,
+        flex: true,
       };
     });
 
