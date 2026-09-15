@@ -687,7 +687,7 @@ function LoginPageContent() {
 
           <div style={{ paddingTop: '2rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', marginTop: '2rem' }}>
             <span style={{ fontSize: '0.75rem', color: '#64748B', display: 'block' }}>
-              Dubros International S.A. · Zona Libre de Interplaza Piso 4- Local 514, Colón, Panamá.
+              Dubros International S.A. · Zona Libre de Colón Interplaza Piso 4- Local 514, Colón, Panamá.
             </span>
           </div>
         </div>

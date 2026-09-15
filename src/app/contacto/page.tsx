@@ -117,7 +117,7 @@ export default function ContactPage() {
                       Dirección Principal
                     </h3>
                     <p style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                      Zona Libre de Interplaza Piso 4- Local 514, Colón, Panamá
+                      Zona Libre de Colón Interplaza Piso 4- Local 514, Colón, Panamá
                     </p>
                   </div>
                 </div>

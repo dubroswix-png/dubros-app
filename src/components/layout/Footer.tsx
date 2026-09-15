@@ -261,7 +261,7 @@ export function Footer() {
                   <MapPin size={17} color="#FFFFFF" />
                 </div>
                 <p style={{ margin: 0, color: '#FFFFFF', fontSize: '0.95rem', lineHeight: '1.45', maxWidth: '380px' }}>
-                  Zona Libre de Interplaza Piso 4- Local 514, Colón, Panamá
+                  Zona Libre de Colón Interplaza Piso 4- Local 514, Colón, Panamá
                 </p>
               </div>
 
