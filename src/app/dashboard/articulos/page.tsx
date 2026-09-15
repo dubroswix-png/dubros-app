@@ -25,6 +25,7 @@ export default function AdminArticlesPage() {
     description: '',
     price: '',
     eyeSize: '',
+    bridgeSize: '',
     brand: 'LCT',
     material: 'Titanio',
     gender: 'Unisex',
@@ -374,6 +375,7 @@ export default function AdminArticlesPage() {
           description: data.description || '',
           price: String(data.price || ''),
           eyeSize: data.eye_size ? String(data.eye_size) : '',
+          bridgeSize: data.bridge_size ? String(data.bridge_size) : '',
           brand: data.brands?.name || 'LCT',
           material: data.material || 'Acetato',
           gender: data.gender || 'Unisex',
@@ -437,6 +439,7 @@ export default function AdminArticlesPage() {
           description: formData.description.trim(),
           price: parseFloat(formData.price) || 0,
           eye_size: parseInt(formData.eyeSize, 10) || null,
+          bridge_size: parseInt(formData.bridgeSize, 10) || null,
           material: formData.material,
           gender: formData.gender,
           sale_type: formData.saleType,
@@ -592,15 +595,27 @@ export default function AdminArticlesPage() {
                     style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
                   />
                 </div>
-                <div>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>Talla Ocular</label>
-                  <input
-                    type="number"
-                    placeholder="Ej: 52"
-                    value={formData.eyeSize}
-                    onChange={(e) => setFormData({ ...formData, eyeSize: e.target.value })}
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>👁️ Calibre / Ojo</label>
+                    <input
+                      type="number"
+                      placeholder="Hasta 62 mm (ej: 52)"
+                      value={formData.eyeSize}
+                      onChange={(e) => setFormData({ ...formData, eyeSize: e.target.value })}
+                      style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', display: 'block' }}>👃 Puente Nasal</label>
+                    <input
+                      type="number"
+                      placeholder="Hasta 26 mm (ej: 18)"
+                      value={formData.bridgeSize}
+                      onChange={(e) => setFormData({ ...formData, bridgeSize: e.target.value })}
+                      style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--input-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
                 </div>
               </div>
 

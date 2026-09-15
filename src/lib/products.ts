@@ -1146,6 +1146,7 @@ export async function getCollectionProducts(collectionId: string): Promise<Produ
 }
 
 export async function getAvailableEyeSizes(): Promise<number[]> {
+  const standardEyeSizes = [38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62];
   try {
     const { data, error } = await supabase
       .from('products')
@@ -1155,18 +1156,19 @@ export async function getAvailableEyeSizes(): Promise<number[]> {
       .limit(5000);
 
     if (!error && data && data.length > 0) {
-      const distinct = Array.from(new Set(data.map((d: any) => Number(d.eye_size)).filter((n) => !isNaN(n) && n > 0)))
+      const distinct = Array.from(new Set(data.map((d: any) => Number(d.eye_size)).filter((n) => !isNaN(n) && n > 0 && n <= 62)))
         .sort((a, b) => a - b);
-      if (distinct.length > 0) return distinct;
+      return Array.from(new Set([...distinct, ...standardEyeSizes])).sort((a, b) => a - b);
     }
   } catch (e) {
     console.error('[getAvailableEyeSizes] Error:', e);
   }
-  // Standard optical eye sizes fallback (calibres ópticos estándar en mm)
-  return [39, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60];
+  // Standard optical eye sizes fallback (calibres ópticos estándar hasta 62 mm)
+  return standardEyeSizes;
 }
 
 export async function getAvailableBridgeSizes(): Promise<number[]> {
+  const standardBridgeSizes = [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26];
   try {
     const { data, error } = await supabase
       .from('products')
@@ -1176,15 +1178,15 @@ export async function getAvailableBridgeSizes(): Promise<number[]> {
       .limit(5000);
 
     if (!error && data && data.length > 0) {
-      const distinct = Array.from(new Set(data.map((d: any) => Number(d.bridge_size)).filter((n) => !isNaN(n) && n > 0)))
+      const distinct = Array.from(new Set(data.map((d: any) => Number(d.bridge_size)).filter((n) => !isNaN(n) && n > 0 && n <= 26)))
         .sort((a, b) => a - b);
-      if (distinct.length > 0) return distinct;
+      return Array.from(new Set([...distinct, ...standardBridgeSizes])).sort((a, b) => a - b);
     }
   } catch (e) {
     console.error('[getAvailableBridgeSizes] Error:', e);
   }
-  // Standard optical bridge sizes fallback (ancho de puente nasal estándar en mm)
-  return [14, 15, 16, 17, 18, 19, 20, 21, 22];
+  // Standard optical bridge sizes fallback (ancho de puente nasal estándar hasta 26 mm)
+  return standardBridgeSizes;
 }
 
 export async function getAvailableTempleLengths(): Promise<number[]> {

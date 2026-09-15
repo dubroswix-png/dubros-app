@@ -24,6 +24,7 @@ interface AuditProduct {
   material: string;
   gender: string;
   eyeSize: string;
+  bridgeSize?: string;
   flex: string;
   saleType: string;
   hasLargeImage: boolean;
@@ -111,6 +112,7 @@ export default function DashboardHomePage() {
     price: '',
     quantity: '',
     eyeSize: '',
+    bridgeSize: '',
     brand: '',
     material: '',
     gender: 'Unisex',
@@ -188,6 +190,7 @@ export default function DashboardHomePage() {
       price: String(p.price || ''),
       quantity: String(p.quantity ?? ''),
       eyeSize: p.eyeSize || '',
+      bridgeSize: p.bridgeSize || '',
       brand: p.brand || '',
       material: p.material && p.material !== '-' && p.material !== 'N/A' ? p.material : 'ACETATO / METAL',
       gender: p.gender && p.gender !== 'all' ? p.gender : 'Unisex',
@@ -220,6 +223,7 @@ export default function DashboardHomePage() {
           price: Number(editFormData.price) || 0,
           quantity: editFormData.quantity !== '' ? Number(editFormData.quantity) : 0,
           eye_size: editFormData.eyeSize ? Number(editFormData.eyeSize) : null,
+          bridge_size: editFormData.bridgeSize ? Number(editFormData.bridgeSize) : null,
           brand_name: editFormData.brand,
           material: editFormData.material,
           gender: editFormData.gender,
@@ -1025,8 +1029,8 @@ export default function DashboardHomePage() {
                   />
                 </div>
 
-                {/* Row 2: Precio, Stock, Talla Ocular */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                {/* Row 2: Precio, Stock, Calibre / Ojo, Puente Nasal */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(125px, 1fr))', gap: '0.85rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
                       Precio ($) *
@@ -1057,13 +1061,27 @@ export default function DashboardHomePage() {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
-                      Talla Ocular
+                      👁️ Calibre (Ojo)
                     </label>
                     <input
                       type="text"
-                      placeholder="Ej: 52"
+                      placeholder="Hasta 62 mm"
                       value={editFormData.eyeSize}
                       onChange={(e) => setEditFormData({ ...editFormData, eyeSize: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      👃 Puente Nasal
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Hasta 26 mm"
+                      value={editFormData.bridgeSize}
+                      onChange={(e) => setEditFormData({ ...editFormData, bridgeSize: e.target.value })}
                       className="input-field"
                       style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem' }}
                     />

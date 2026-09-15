@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
           .from('products')
           .select(`
             id, reference, code, description, price, quantity,
-            material, gender, eye_size, flex, sale_type,
+            material, gender, eye_size, bridge_size, temple_length, flex, sale_type,
             thumbnail_url, large_image_url,
             brands(id, name), categories(id, name)
           `)
@@ -127,6 +127,8 @@ export async function GET(request: NextRequest) {
         material,
         gender,
         eyeSize,
+        bridgeSize: item.bridge_size ? String(item.bridge_size) : '',
+        templeLength: item.temple_length ? String(item.temple_length) : '',
         flex,
         saleType,
         hasLargeImage,
@@ -177,6 +179,8 @@ export async function PUT(request: NextRequest) {
       material,
       gender,
       eye_size,
+      bridge_size,
+      temple_length,
       flex,
       sale_type,
       brand_name,
@@ -248,6 +252,8 @@ export async function PUT(request: NextRequest) {
     if (material !== undefined) updatePayload.material = String(material).trim();
     if (gender !== undefined) updatePayload.gender = String(gender).trim();
     if (eye_size !== undefined) updatePayload.eye_size = eye_size ? Number(eye_size) : null;
+    if (bridge_size !== undefined) updatePayload.bridge_size = bridge_size ? Number(bridge_size) : null;
+    if (temple_length !== undefined) updatePayload.temple_length = temple_length ? Number(temple_length) : null;
     if (flex !== undefined) updatePayload.flex = flex === true || flex === 'SI' || flex === 'true';
     if (sale_type !== undefined) updatePayload.sale_type = String(sale_type).trim().toUpperCase();
     if (thumbnail_url !== undefined) updatePayload.thumbnail_url = String(thumbnail_url).trim();

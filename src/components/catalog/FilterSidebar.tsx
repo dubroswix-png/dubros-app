@@ -347,8 +347,8 @@ export function FilterSidebar({
             }}
           >
             <strong>Formato Boxing (ej. 55-18-143):</strong>
-            <br />• <strong>Ojo:</strong> Ancho horizontal de la lente (39-60 mm).
-            <br />• <strong>Puente:</strong> Espacio nasal (14-22 mm).
+            <br />• <strong>Ojo / Calibre:</strong> Ancho horizontal de la lente (hasta 62 mm).
+            <br />• <strong>Puente Nasal:</strong> Espacio nasal (hasta 26 mm).
             <br />• <strong>Varilla:</strong> Largo patilla (125-150 mm).
             <br /><span style={{ color: 'var(--blue)', fontWeight: 700 }}>*Cada medida es independiente.</span>
           </div>
