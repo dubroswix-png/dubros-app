@@ -35,7 +35,9 @@ Inventario completo de pantallas y rutas de la aplicación Next.js App Router (4
 |---|---|
 | `/dashboard` | Resumen de métricas de ventas, órdenes pendientes y stock crítico |
 | `/dashboard/articulos` | Maestro de productos con editor de `sale_type` (Pieza/Docena) y precios |
-| `/dashboard/pedidos` | Gestión de estados de órdenes de clientes |
+| `/dashboard/pedidos` | Gestión de estados de órdenes con filtro de "Carrito" (órdenes en armado) |
+| `/dashboard/usuarios` | Gestión de cuentas comerciales (creación habilitada para Administradores y Gerentes) |
+| `/dashboard/campanas` | Envíos masivos y marketing segmentado (Clientes / CRM) con SendGrid |
 | `/dashboard/switch-erp` | Consola de sincronización con Switch ERP |
 | `/dashboard/inventario` | Monitor de stock de bodega |
 | `/dashboard/importar-ocr` | Asistente de importación con OCR de medidas de montura |

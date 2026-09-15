@@ -23,22 +23,23 @@ El proyecto está diseñado de forma modular, separando la lógica de estado de 
 - `/src/hooks/` -> Custom hooks (`useCatalogFilter`, `useTheme`).
 - `/supabase_schema.sql` -> Esquema SQL completo y script de creación (14 tablas).
 
-## 📊 Dashboard de Administración
+## 📊 Dashboard de Administración & Funcionalidades B2B
 
-El sistema incluye un panel de control avanzado (`/dashboard`) con 12 módulos funcionales para gestionar la operación:
+El sistema incluye un panel de control avanzado (`/dashboard`) para gestionar la operación:
 
-1. **KPIs & Inicio**: Vista general de métricas clave.
-2. **Usuarios & Perfiles**: Control de roles y tipos de negocio.
-3. **Gestión de Pedidos**: Sincronización simulada con el ERP Switch.
-4. **Artículos & Catálogo**: Formulario de registro y carga masiva (CSV).
-5. **Restricciones por País**: Matriz geográfica de marcas habilitadas por país en LATAM.
-6. **Almacenamiento S3**: Gestor de imágenes alojadas (mock AWS).
-7. **Control de Duplicados**: Escáner y conciliador de referencias.
-8. **Promociones**: Reglas de descuento dinámico.
-9. **Campañas**: CRM para envíos de correo.
-10. **Leads y Contactos**: Registro comercial.
-11. **Blog CMS**: Gestión de artículos.
-12. **Data Wizard**: Exportador avanzado de catálogos y CSVs.
+1. **KPIs & Auditoría en Vivo**: Métricas clave en tiempo real, auditoría de campos incompletos y control de imágenes en AWS S3.
+2. **Catálogo Exclusivo con Fotos**: Ocultación automática de productos sin fotografía del catálogo público; los artículos nuevos permanecen auditables en el Dashboard bajo "Sin Foto" hasta que se sube su imagen a S3.
+3. **Sincronización Blindada con Switch ERP**:
+   - Sincroniza precio, costo y stock en tiempo real.
+   - Protege de forma estricta los campos editados manualmente (marca, categoría, descripción, fotos, medidas y género).
+   - Soporte para monturas genéricas bajo la marca oficial `SIN MARCA`.
+4. **Usuarios & Perfiles**: Control de roles (Administrador, Gerente, Vendedor, Cliente). Los **Gerentes** tienen permisos para crear y gestionar usuarios.
+5. **Gestión de Pedidos & Filtro de Carrito**: Monitoreo de pedidos en tiempo real con filtro de "Carrito" para hacer seguimiento a órdenes en proceso de armado antes de checkout.
+6. **Filtros Ópticos Extendidos**: Calibre de ojo ampliado hasta 62 mm y puente nasal hasta 26 mm.
+7. **Artículos & Catálogo**: Formulario de registro, edición rápida y carga masiva (CSV).
+8. **Campañas & CRM**: Envío masivo de promociones y boletines segmentados con SendGrid.
+9. **Métodos de Pago**: Aceptación de transferencias bancarias, tarjetas y **Binance Pay**.
+10. **Dirección Principal**: Zona Libre de Colón Interplaza Piso 4- Local 514, Colón, Panamá.
 
 ## ⚙️ Configuración y Despliegue Local
 

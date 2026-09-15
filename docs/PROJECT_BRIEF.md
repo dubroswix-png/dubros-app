@@ -23,14 +23,31 @@
   - El precio mostrado y facturado es el precio unitario directo.
 - **Venta por Docena (`DOCENA`)**:
   - Aplica a estuches (`ST005BROWN`, etc.), cordones (`108RED`, etc.) y monturas específicas presentadas en paquetes de 12 unidades (ej. Prestige, Dreamy, Goretty, etc.).
-  - **Base de Datos y ERP**: Almacenan siempre el precio unitario por pieza individual (ej. \$0.63 por estuche, \$2.25 por montura) para mantener la consistencia del inventario por unidad física en Switch ERP.
+  - **Base de Datos y ERP**: Almacenan siempre el precio unitario por pieza individual para mantener la consistencia del inventario por unidad física en Switch ERP.
   - **Experiencia de Usuario (Frontend)**:
     - Etiqueta clara: `Precio DOCENA (12 pzs)`.
-    - Precio calculado en pantalla: `precio_unitario * 12` (ej. \$7.56 / docena).
-    - Desglose informativo: `($0.63 c/u)`.
+    - Precio calculado en pantalla: `precio_unitario * 12`.
+    - Desglose informativo: `($X.XX c/u)`.
     - El carrito agrega 1 unidad de compra = 1 docena (12 piezas físicas).
   - **Sincronización con Switch ERP**:
-    - El exportador a Excel (`Switch_Pedido_*.xlsx`) exporta automáticamente `CANTIDAD: cantidad_docenas * 12` al precio unitario `precio_pieza`, asegurando que Switch ERP descuente 12 piezas de inventario por cada docena vendida y el total financiero coincida al 100%.
+    - El exportador a Excel (`Switch_Pedido_*.xlsx`) exporta automáticamente `CANTIDAD: cantidad_docenas * 12` al precio unitario `precio_pieza`.
+
+### 2.3. Reglas de Catálogo y Sincronización Switch ERP
+- **Filtrado Automático de Productos sin Foto (Opción A)**:
+  - Los productos recién ingresados en Switch ERP suelen demorar hasta 2 semanas en ser fotografiados. Para proteger la estética profesional del catálogo B2B, **todo artículo sin fotografía real verificada en AWS S3 se oculta automáticamente del catálogo público**, de las colecciones y de los productos destacados.
+  - Los artículos sin foto permanecen activos y auditables en el Dashboard administrativo (`/dashboard`), permitiendo al equipo monitorear qué referencias están pendientes de fotografía y cargar sus imágenes cuando estén listas.
+  - En cuanto se asocia o sube una imagen válida a AWS S3 (con soporte para `.jpg`, `.JPG`, `.png`, `.PNG`, `.jpeg`, `.webp`), el producto se hace visible de inmediato en el catálogo público.
+- **Protección de Campos Manuales**:
+  - La sincronización periódica con Switch ERP (`/api/admin/sync-erp`) **únicamente actualiza precio, costo, stock (`quantity`) y fecha de actualización**.
+  - Los campos editados manualmente por el equipo (`marca`, `categoría`, `descripción`, `fotos`, `material`, `género`, `flex`, `calibre`, `puente`) **nunca son sobreescritos por Switch ERP**.
+- **Gestión de Marca Genérica (`SIN MARCA`)**:
+  - Los productos genéricos o sin marca registrada ingresados en Switch ERP quedan asignados a la marca oficial `SIN MARCA`. Si el equipo edita un producto y le asigna una marca comercial real (como *LCT*, *Verona*, *Mantovanni*), dicha asignación queda protegida.
+- **Medidas Ópticas Ampliadas**:
+  - Calibres de ojo de hasta 62 mm y puentes nasales de hasta 26 mm para abarcar monturas de gran tamaño y acetatos especiales.
+- **Seguimiento de Carritos en Pedidos**:
+  - El módulo de pedidos incluye la vista y filtro de "Carrito", permitiendo al equipo de ventas monitorear las órdenes en armado antes de su confirmación final.
+- **Permisos de Roles**:
+  - Los usuarios con rol de **Gerente** tienen facultades para crear y gestionar usuarios comerciales.
 
 ---
 
