@@ -435,7 +435,8 @@ export function Footer() {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            gap: '2rem',
+            gap: '1.75rem',
+            flexWrap: 'wrap',
           }}
         >
           {/* American Express */}
@@ -489,6 +490,35 @@ export function Footer() {
             }}
           >
             VISA
+          </div>
+
+          {/* Binance Pay */}
+          <div
+            style={{
+              backgroundColor: '#F0B90B',
+              borderRadius: '4px',
+              height: '32px',
+              padding: '0 0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            }}
+            title="Binance Pay"
+          >
+            <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
+              <path d="M16 3.5L21.5 9L16 14.5L10.5 9L16 3.5Z" fill="#000000"/>
+              <path d="M22.5 10L28 15.5L22.5 21L17 15.5L22.5 10Z" fill="#000000"/>
+              <path d="M16 16.5L21.5 22L16 27.5L10.5 22L16 16.5Z" fill="#000000"/>
+              <path d="M9.5 10L15 15.5L9.5 21L4 15.5L9.5 10Z" fill="#000000"/>
+              <path d="M16 12L19.5 15.5L16 19L12.5 15.5L16 12Z" fill="#000000"/>
+            </svg>
+            <span style={{ color: '#000000', fontWeight: 900, fontSize: '0.82rem', letterSpacing: '-0.01em', display: 'flex', alignItems: 'center' }}>
+              BINANCE
+              <span style={{ color: '#FFFFFF', marginLeft: '0.3rem', fontWeight: 900, fontSize: '0.82rem' }}>
+                PAY
+              </span>
+            </span>
           </div>
 
           {/* Logo Extra */}
