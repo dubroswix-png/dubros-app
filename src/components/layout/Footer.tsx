@@ -439,28 +439,6 @@ export function Footer() {
             flexWrap: 'wrap',
           }}
         >
-          {/* American Express */}
-          <div
-            style={{
-              backgroundColor: '#006FCF',
-              color: '#FFFFFF',
-              fontWeight: 900,
-              fontSize: '0.65rem',
-              padding: '0.25rem 0.5rem',
-              borderRadius: '4px',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1,
-              textAlign: 'center',
-              textTransform: 'uppercase',
-              width: '54px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            AMERICAN<br />EXPRESS
-          </div>
 
           {/* MasterCard */}
           <div
