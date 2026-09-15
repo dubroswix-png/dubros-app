@@ -7810,7 +7810,7 @@
     "category": "AROS  OPTICOS",
     "material": "TR90",
     "quantity": 172,
-    "sale_type": "PIEZA",
+    "sale_type": "DOCENA",
     "thumbnail_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS221004.jpg",
     "large_image_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS221004.jpg"
   },
@@ -10885,7 +10885,7 @@
     "category": "AROS  OPTICOS",
     "material": "PASTA",
     "quantity": 89,
-    "sale_type": "PIEZA",
+    "sale_type": "DOCENA",
     "thumbnail_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS131101.jpg",
     "large_image_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS131101.jpg"
   },
@@ -11815,7 +11815,7 @@
     "category": "AROS  OPTICOS",
     "material": "PASTA",
     "quantity": 28,
-    "sale_type": "PIEZA",
+    "sale_type": "DOCENA",
     "thumbnail_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS190302.jpg",
     "large_image_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS190302.jpg"
   },
@@ -11830,7 +11830,7 @@
     "category": "AROS  OPTICOS",
     "material": "PASTA",
     "quantity": 147,
-    "sale_type": "PIEZA",
+    "sale_type": "DOCENA",
     "thumbnail_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS190309.jpg",
     "large_image_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS190309.jpg"
   },
@@ -11845,7 +11845,7 @@
     "category": "AROS  OPTICOS",
     "material": "PASTA",
     "quantity": 138,
-    "sale_type": "PIEZA",
+    "sale_type": "DOCENA",
     "thumbnail_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS190312.jpg",
     "large_image_url": "https://dubros-image-repository.s3.amazonaws.com/SMARTKIDS190312.jpg"
   },
