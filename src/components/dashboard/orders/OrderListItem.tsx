@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Package, FileSpreadsheet, Calendar, User, ChevronRight, Trash2, FileText } from 'lucide-react';
+import { Package, FileSpreadsheet, Calendar, User, ChevronRight, Trash2, FileText, ShoppingCart } from 'lucide-react';
 import { OrderRecord } from '@/lib/orders';
 import { formatPrice, formatDateSpanish } from '@/lib/formatters';
 import { downloadSwitchXLSX } from '@/lib/export-excel';
@@ -47,14 +47,22 @@ export const OrderListItem: React.FC<OrderListItemProps> = ({ order, onClick, is
               width: '40px',
               height: '40px',
               borderRadius: '10px',
-              backgroundColor: order.switch_order_number ? '#ECFDF5' : 'var(--blue-light)',
+              backgroundColor: order.status === 'Carrito'
+                ? '#EFF6FF'
+                : order.switch_order_number
+                ? '#ECFDF5'
+                : 'var(--blue-light)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
             }}
           >
-            <Package size={22} color={order.switch_order_number ? '#047857' : 'var(--blue)'} />
+            {order.status === 'Carrito' ? (
+              <ShoppingCart size={20} color="#2563EB" />
+            ) : (
+              <Package size={22} color={order.switch_order_number ? '#047857' : 'var(--blue)'} />
+            )}
           </div>
 
           <div>

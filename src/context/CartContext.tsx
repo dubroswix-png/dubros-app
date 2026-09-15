@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Product } from '@/data/mock';
 import { isDocena, getProductUnitPrice } from '@/lib/products';
+import { supabase } from '@/lib/supabase';
 
 export interface CartItem {
   product: Product;
@@ -29,27 +30,67 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const syncTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Sync cart to server orders table with status 'Carrito'
+  const syncCartWithServer = (itemsToSync: CartItem[], immediate = false) => {
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+
+    const performSync = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
+        if (!user) return; // Only sync to database for logged in clients
+
+        await fetch('/api/cart/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cartItems: itemsToSync,
+            userId: user.id,
+            userEmail: user.email,
+          }),
+        });
+      } catch (err) {
+        console.error('Error syncing cart with server:', err);
+      }
+    };
+
+    if (immediate) {
+      performSync();
+    } else {
+      syncTimeoutRef.current = setTimeout(performSync, 1200);
+    }
+  };
 
   // Load saved cart on mount
   React.useEffect(() => {
     try {
       const saved = localStorage.getItem('dubros_cart');
       if (saved) {
-        setCartItems(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setCartItems(parsed);
+        // Sync existing cart to server if user is logged in
+        if (parsed.length > 0) {
+          syncCartWithServer(parsed, false);
+        }
       }
     } catch (e) {
       console.error('Error loading cart from localStorage', e);
     }
   }, []);
 
-  // Sync cart to localStorage on change
-  const updateCartState = (newItems: CartItem[]) => {
+  // Sync cart to localStorage and server on change
+  const updateCartState = (newItems: CartItem[], immediate = false) => {
     setCartItems(newItems);
     try {
       localStorage.setItem('dubros_cart', JSON.stringify(newItems));
     } catch (e) {
       console.error('Error saving cart to localStorage', e);
     }
+    syncCartWithServer(newItems, immediate);
   };
 
   const openCart = () => setIsCartOpen(true);
@@ -88,7 +129,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCart = () => {
-    updateCartState([]);
+    updateCartState([], true);
   };
 
   const getItemUnitPrice = (product: Product): number => {

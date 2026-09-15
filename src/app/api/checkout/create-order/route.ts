@@ -159,6 +159,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Clean up any active Carrito order for this customer now that order is confirmed
+    await adminSupabase
+      .from('orders')
+      .delete()
+      .eq('user_id', resolvedUserId)
+      .eq('status', 'Carrito');
+
     // 5. Insert order items
     const itemsToInsert = validatedItems.map((item) => ({
       order_id: orderData.id,

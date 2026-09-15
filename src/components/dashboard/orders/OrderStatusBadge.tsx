@@ -17,6 +17,8 @@ export function getStatusTheme(status: OrderStatusType) {
     case 'Procesado':
     case 'En Proceso':
       return { bg: '#DEF7EC', text: '#03543F', border: '#84E1BC', dot: '#10B981' };
+    case 'Carrito':
+      return { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', dot: '#3B82F6' };
     case 'Cancelada':
       return { bg: '#FEE2E2', text: '#991B1B', border: '#F87171', dot: '#EF4444' };
     case 'Pendiente':

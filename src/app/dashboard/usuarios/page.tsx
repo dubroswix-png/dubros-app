@@ -710,25 +710,27 @@ export default function AdminUsersPage() {
           <Clock size={16} /> Pendientes de Aprobación ({counts.pending})
         </button>
 
-        {/* Solo el Administrador principal ve las pestañas de Clientes Aprobados, Gerentes y Administradores */}
+        {/* Pestaña de Clientes Aprobados (Accesible para Administrador y Gerencia) */}
+        <button
+          onClick={() => setActiveTab('client')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+            borderRadius: 'var(--radius-md)',
+            color: activeTab === 'client' ? '#03543F' : 'var(--text-secondary)',
+            backgroundColor: activeTab === 'client' ? '#DEF7EC' : 'transparent',
+          }}
+        >
+          Clientes Aprobados ({counts.client})
+        </button>
+
+        {/* Solo el Administrador principal ve las pestañas de Gerentes y Administradores */}
         {isAdmin && (
           <>
-            <button
-              onClick={() => setActiveTab('client')}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: '0.5rem 1rem',
-                fontWeight: 700,
-                fontSize: '0.9rem',
-                cursor: 'pointer',
-                borderRadius: 'var(--radius-md)',
-                color: activeTab === 'client' ? '#03543F' : 'var(--text-secondary)',
-                backgroundColor: activeTab === 'client' ? '#DEF7EC' : 'transparent',
-              }}
-            >
-              Clientes Aprobados ({counts.client})
-            </button>
 
             <button
               onClick={() => setActiveTab('manager')}

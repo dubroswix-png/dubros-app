@@ -14,6 +14,7 @@ import {
   Calendar,
   Trash2,
   FileText,
+  ShoppingCart,
 } from 'lucide-react';
 import { OrderRecord } from '@/lib/orders';
 import { resolveProductImageUrl, handleImageFallback } from '@/lib/images';
@@ -206,6 +207,29 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* BANNER INFORMATIVO PARA CARRITOS ACTIVOS */}
+      {order.status === 'Carrito' && (
+        <div
+          style={{
+            padding: '0.85rem 1.25rem',
+            backgroundColor: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            color: '#1E40AF',
+            fontSize: '0.9rem',
+          }}
+        >
+          <ShoppingCart size={20} color="#2563EB" style={{ flexShrink: 0 }} />
+          <span>
+            <strong>Carrito en Armado:</strong> Este pedido corresponde a un carrito activo que el cliente está armando actualmente en la plataforma y que aún no ha finalizado ni enviado.
+          </span>
+        </div>
+      )}
 
       {/* 3-STEP VALIDATION BAR */}
       <div

@@ -59,7 +59,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: 'Artículos', href: '/dashboard/articulos', icon: Tag },
     { label: 'Pedidos', href: '/dashboard/pedidos', icon: PackageCheck },
     { label: 'Colecciones', href: '/dashboard/colecciones', icon: Layers },
-    ...(!isManager ? [{ label: 'Usuarios', href: '/dashboard/usuarios', icon: Users }] : []),
+    { label: 'Usuarios', href: '/dashboard/usuarios', icon: Users },
     { label: 'Blog', href: '/dashboard/blog', icon: FileText },
     { label: 'Imágenes', href: '/dashboard/imagenes', icon: Image },
     { label: 'Duplicados', href: '/dashboard/duplicados', icon: Copy },

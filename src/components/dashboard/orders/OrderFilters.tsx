@@ -107,6 +107,7 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
               }}
             >
               <option value="">Todas</option>
+              <option value="Carrito">🛒 Carrito (En armado)</option>
               <option value="Pendiente">Pendiente</option>
               <option value="En Proceso">En Proceso</option>
               <option value="Completada">Completada</option>
