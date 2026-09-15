@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { 
   Tag, Users, PackageCheck, Image as ImageIcon, ArrowUpRight, TrendingUp, 
   Loader2, Warehouse, Search, Download, AlertTriangle, CheckCircle2, 
-  Filter, FileSpreadsheet, Layers, HelpCircle, Eye, RefreshCw
+  Filter, FileSpreadsheet, Layers, HelpCircle, Eye, RefreshCw, Edit, Trash2, X, AlertCircle
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabase';
+import { getBrands } from '@/lib/products';
 
 interface AuditProduct {
+  id?: string;
   erp_id?: number | string;
   reference: string;
   code: string;
@@ -96,14 +98,44 @@ export default function DashboardHomePage() {
     noDescription: false,
   });
 
-  // Categories list (dynamic from API or database)
+  // Categories and Brands lists (dynamic from API or database)
   const [categories, setCategories] = useState<string[]>([]);
+  const [brandsList, setBrandsList] = useState<string[]>([]);
+
+  // Edit Product Modal State
+  const [editingProduct, setEditingProduct] = useState<AuditProduct | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    reference: '',
+    code: '',
+    description: '',
+    price: '',
+    quantity: '',
+    eyeSize: '',
+    brand: '',
+    material: '',
+    gender: 'Unisex',
+    saleType: 'PIEZA',
+    category: '',
+    flex: 'SI',
+    thumbnail_url: '',
+    large_image_url: '',
+  });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [editSuccess, setEditSuccess] = useState('');
 
   const loadDashboardStatsAndAudit = async (refresh = false) => {
     if (refresh) setIsRefreshing(true);
     else setLoading(true);
 
     try {
+      // Load brands in parallel
+      getBrands().then((brs) => {
+        if (brs && brs.length > 0) {
+          setBrandsList(brs.map((b) => b.name).sort());
+        }
+      }).catch((e) => console.warn('Error loading brands:', e));
+
       // 1. Fetch live Supabase data from /api/admin/audit-products
       const res = await fetch(`/api/admin/audit-products${refresh ? '?refresh=true' : ''}`);
       if (res.ok) {
@@ -147,26 +179,133 @@ export default function DashboardHomePage() {
     loadDashboardStatsAndAudit();
   }, []);
 
+  const handleOpenEditProduct = (p: AuditProduct) => {
+    setEditingProduct(p);
+    setEditFormData({
+      reference: p.reference || '',
+      code: p.code || '',
+      description: p.description || '',
+      price: String(p.price || ''),
+      quantity: String(p.quantity ?? ''),
+      eyeSize: p.eyeSize || '',
+      brand: p.brand || '',
+      material: p.material && p.material !== '-' && p.material !== 'N/A' ? p.material : 'ACETATO / METAL',
+      gender: p.gender && p.gender !== 'all' ? p.gender : 'Unisex',
+      saleType: p.saleType || 'PIEZA',
+      category: p.category || '',
+      flex: p.flex || 'SI',
+      thumbnail_url: p.thumbnail_url || '',
+      large_image_url: p.large_image_url || '',
+    });
+    setEditError('');
+    setEditSuccess('');
+  };
+
+  const handleSaveProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+
+    try {
+      setEditLoading(true);
+      setEditError('');
+
+      const res = await fetch('/api/admin/audit-products', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingProduct.id,
+          reference: editFormData.reference,
+          code: editFormData.code,
+          description: editFormData.description,
+          price: Number(editFormData.price) || 0,
+          quantity: editFormData.quantity !== '' ? Number(editFormData.quantity) : 0,
+          eye_size: editFormData.eyeSize ? Number(editFormData.eyeSize) : null,
+          brand_name: editFormData.brand,
+          material: editFormData.material,
+          gender: editFormData.gender,
+          sale_type: editFormData.saleType,
+          category_name: editFormData.category,
+          flex: editFormData.flex === 'SI',
+          thumbnail_url: editFormData.thumbnail_url,
+          large_image_url: editFormData.large_image_url,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al actualizar producto');
+
+      // Update in local auditList
+      setAuditList((prev) =>
+        prev.map((item) =>
+          item.id === editingProduct.id || item.reference === editingProduct.reference
+            ? { ...item, ...data.product }
+            : item
+        )
+      );
+
+      setEditSuccess('¡Artículo actualizado correctamente!');
+      setTimeout(() => {
+        setEditingProduct(null);
+      }, 900);
+    } catch (err: any) {
+      setEditError(err.message || 'Error al guardar cambios');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!editingProduct) return;
+    if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el producto ${editingProduct.reference}?`)) return;
+
+    try {
+      setEditLoading(true);
+      const res = await fetch(`/api/admin/audit-products?id=${editingProduct.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
+
+      setAuditList((prev) =>
+        prev.filter((item) => item.id !== editingProduct.id && item.reference !== editingProduct.reference)
+      );
+      setEditingProduct(null);
+    } catch (err: any) {
+      setEditError(err.message || 'Error al eliminar');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   // Filter products based on search, category, and missing fields
   const filteredProducts = useMemo(() => {
+    const hasSearch = Boolean(searchTerm.trim());
+    const isAnyMissingCheckboxActive = Object.values(filterMissing).some(Boolean);
+
     return auditList.filter((p) => {
-      // Search
-      if (searchTerm) {
-        const s = searchTerm.toLowerCase();
+      // 1. Search term: if searching, search across ALL products (complete and incomplete)
+      if (hasSearch) {
+        const s = searchTerm.toLowerCase().trim();
         const matchesSearch = 
           p.reference.toLowerCase().includes(s) || 
           p.code.toLowerCase().includes(s) || 
           p.description.toLowerCase().includes(s) ||
           p.brand.toLowerCase().includes(s);
         if (!matchesSearch) return false;
+      } else {
+        // 2. Default Auditoría rule when NO search is active:
+        // "en la auditoria solo mostrar lo que tiene algun faltante o error, lo que esta completo no"
+        if (!isAnyMissingCheckboxActive) {
+          if (p.missingFields.length === 0) return false;
+        }
       }
 
-      // Category
+      // Category filter
       if (selectedCategory !== 'all' && p.category !== selectedCategory) {
         return false;
       }
 
-      // Missing Checkboxes
+      // Specific missing checkboxes filter
       if (filterMissing.noImage && p.hasLargeImage) return false;
       if (filterMissing.noSaleType && p.saleType && p.saleType !== '1' && p.saleType !== 'N/A') return false;
       if (filterMissing.noEyeSize && p.eyeSize && p.eyeSize !== '0') return false;
@@ -561,19 +700,20 @@ export default function DashboardHomePage() {
                 <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Stock</th>
                 <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Descripción</th>
                 <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Faltantes</th>
+                <th style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--text-secondary)', textAlign: 'center' }}>Acción</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
                     <Loader2 size={30} className="animate-spin" style={{ margin: '0 auto 0.5rem auto' }} />
                     Analizando artículos...
                   </td>
                 </tr>
               ) : paginatedProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
                     ✓ No se encontraron artículos con los criterios de filtro seleccionados.
                   </td>
                 </tr>
@@ -581,10 +721,14 @@ export default function DashboardHomePage() {
                 paginatedProducts.map((p, idx) => (
                   <tr
                     key={p.reference + idx}
+                    onClick={() => handleOpenEditProduct(p)}
                     style={{
                       borderBottom: '1px solid var(--border-light)',
                       backgroundColor: !p.hasLargeImage ? '#FFF5F5' : 'transparent',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s ease',
                     }}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-800/40"
                   >
                     {/* Referencia + Aviso */}
                     <td style={{ padding: '0.85rem 1rem' }}>
@@ -651,6 +795,28 @@ export default function DashboardHomePage() {
                           })}
                         </div>
                       )}
+                    </td>
+
+                    {/* Acción */}
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEditProduct(p);
+                        }}
+                        className="btn-secondary"
+                        style={{
+                          padding: '0.35rem 0.75rem',
+                          fontSize: '0.78rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <Edit size={13} /> Editar
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -734,6 +900,386 @@ export default function DashboardHomePage() {
           <ArrowUpRight size={20} color="var(--blue)" />
         </Link>
       </div>
+
+      {/* ======================================================== */}
+      {/* MODAL: EDITAR ARTÍCULO                                  */}
+      {/* ======================================================== */}
+      {editingProduct && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.55)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+          onClick={() => setEditingProduct(null)}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--bg-primary)',
+              borderRadius: 'var(--radius-lg)',
+              width: '100%',
+              maxWidth: '680px',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
+              border: '1px solid var(--border-color)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid var(--border-color)',
+              }}
+            >
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                  ✏️ Editar Artículo
+                </h2>
+                <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)' }}>
+                  Ref: <strong>{editingProduct.reference}</strong> {editingProduct.code ? `• Código: ${editingProduct.code}` : ''}
+                </span>
+              </div>
+              <button
+                onClick={() => setEditingProduct(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-tertiary)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <div style={{ padding: '1.25rem 1.5rem', overflowY: 'auto', maxHeight: 'calc(92vh - 150px)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {editError && (
+                  <div style={{ padding: '0.75rem 1rem', backgroundColor: '#FEE2E2', color: '#991B1B', borderRadius: 'var(--radius-sm)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <AlertCircle size={16} /> {editError}
+                  </div>
+                )}
+                {editSuccess && (
+                  <div style={{ padding: '0.75rem 1rem', backgroundColor: '#DEF7EC', color: '#03543F', borderRadius: 'var(--radius-sm)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <CheckCircle2 size={16} /> {editSuccess}
+                  </div>
+                )}
+
+                {/* Two-column grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                  {/* Referencia */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Referencia *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editFormData.reference}
+                      onChange={(e) => setEditFormData({ ...editFormData, reference: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  {/* Código */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Código
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.code}
+                      onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Descripción */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                    Descripción
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={editFormData.description}
+                    onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                    className="input-field"
+                    style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem', resize: 'vertical' }}
+                  />
+                </div>
+
+                {/* Row 2: Precio, Stock, Talla Ocular */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Precio ($) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={editFormData.price}
+                      onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Stock (Uds)
+                    </label>
+                    <input
+                      type="number"
+                      value={editFormData.quantity}
+                      onChange={(e) => setEditFormData({ ...editFormData, quantity: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Talla Ocular
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: 52"
+                      value={editFormData.eyeSize}
+                      onChange={(e) => setEditFormData({ ...editFormData, eyeSize: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Row 3: Marca, Categoría */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Marca
+                    </label>
+                    <select
+                      value={editFormData.brand.toUpperCase()}
+                      onChange={(e) => setEditFormData({ ...editFormData, brand: e.target.value.toUpperCase() })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem' }}
+                    >
+                      <option value="">Seleccione marca...</option>
+                      {brandsList.map((b) => (
+                        <option key={b} value={b.toUpperCase()}>{b.toUpperCase()}</option>
+                      ))}
+                      {editFormData.brand && !brandsList.includes(editFormData.brand) && (
+                        <option value={editFormData.brand.toUpperCase()}>{editFormData.brand.toUpperCase()}</option>
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Categoría
+                    </label>
+                    <input
+                      type="text"
+                      list="categories-list"
+                      placeholder="OFTALMICO, SOLAR, CLIP ON..."
+                      value={editFormData.category}
+                      onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.88rem' }}
+                    />
+                    <datalist id="categories-list">
+                      <option value="OFTALMICO" />
+                      <option value="SOLAR" />
+                      <option value="CLIP ON" />
+                      <option value="ACCESORIOS" />
+                      <option value="LENTES DE CONTACTO" />
+                      <option value="SEGURIDAD" />
+                    </datalist>
+                  </div>
+                </div>
+
+                {/* Row 4: Material, Género, Tipo Venta, Flex */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Material
+                    </label>
+                    <select
+                      value={editFormData.material}
+                      onChange={(e) => setEditFormData({ ...editFormData, material: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                    >
+                      <option value="ACETATO">ACETATO</option>
+                      <option value="METAL">METAL</option>
+                      <option value="ACETATO / METAL">ACETATO / METAL</option>
+                      <option value="TR-90">TR-90</option>
+                      <option value="TITANIO">TITANIO</option>
+                      <option value="PASTA">PASTA</option>
+                      <option value="OTRO">OTRO</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Género
+                    </label>
+                    <select
+                      value={editFormData.gender}
+                      onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                    >
+                      <option value="Hombre">Hombre</option>
+                      <option value="Mujer">Mujer</option>
+                      <option value="Unisex">Unisex</option>
+                      <option value="Niño">Niño</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Tipo Venta
+                    </label>
+                    <select
+                      value={editFormData.saleType}
+                      onChange={(e) => setEditFormData({ ...editFormData, saleType: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                    >
+                      <option value="PIEZA">PIEZA</option>
+                      <option value="DOCENA">DOCENA</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Flex
+                    </label>
+                    <select
+                      value={editFormData.flex}
+                      onChange={(e) => setEditFormData({ ...editFormData, flex: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                    >
+                      <option value="SI">SI</option>
+                      <option value="NO">NO</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Images */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.25rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Thumbnail URL (Miniatura)
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={editFormData.thumbnail_url}
+                      onChange={(e) => setEditFormData({ ...editFormData, thumbnail_url: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                      Imagen Grande URL (Alta resolución)
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={editFormData.large_image_url}
+                      onChange={(e) => setEditFormData({ ...editFormData, large_image_url: e.target.value })}
+                      className="input-field"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '1rem 1.5rem',
+                  borderTop: '1px solid var(--border-color)',
+                  backgroundColor: 'var(--bg-secondary)',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleDeleteProduct}
+                  disabled={editLoading}
+                  style={{
+                    backgroundColor: '#FEE2E2',
+                    color: '#DC2626',
+                    border: '1px solid #FCA5A5',
+                    padding: '0.55rem 1rem',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                  }}
+                >
+                  <Trash2 size={15} /> Eliminar producto
+                </button>
+
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditingProduct(null)}
+                    className="btn-secondary"
+                    style={{ padding: '0.55rem 1rem', fontSize: '0.85rem' }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={editLoading}
+                    className="btn-primary"
+                    style={{
+                      padding: '0.55rem 1.25rem',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                    }}
+                  >
+                    {editLoading ? <Loader2 className="animate-spin" size={16} /> : 'Guardar Cambios'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

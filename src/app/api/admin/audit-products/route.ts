@@ -162,3 +162,199 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// PUT: Update a single product from audit screen
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const {
+      id,
+      reference,
+      code,
+      description,
+      price,
+      quantity,
+      material,
+      gender,
+      eye_size,
+      flex,
+      sale_type,
+      brand_name,
+      category_name,
+      thumbnail_url,
+      large_image_url,
+    } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'El ID del producto es obligatorio.' }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+
+    // 1. Resolve brand_id if brand_name provided
+    let brandId: string | null = null;
+    if (brand_name && brand_name.trim()) {
+      const cleanBrand = brand_name.trim().toUpperCase();
+      const { data: bRow } = await supabase
+        .from('brands')
+        .select('id')
+        .ilike('name', cleanBrand)
+        .limit(1)
+        .maybeSingle();
+
+      if (bRow) {
+        brandId = bRow.id;
+      } else {
+        const { data: newB } = await supabase
+          .from('brands')
+          .insert({ name: cleanBrand, active: true })
+          .select('id')
+          .single();
+        if (newB) brandId = newB.id;
+      }
+    }
+
+    // 2. Resolve category_id if category_name provided
+    let categoryId: string | null = null;
+    if (category_name && category_name.trim()) {
+      const cleanCat = category_name.trim();
+      const { data: cRow } = await supabase
+        .from('categories')
+        .select('id')
+        .ilike('name', cleanCat)
+        .limit(1)
+        .maybeSingle();
+
+      if (cRow) {
+        categoryId = cRow.id;
+      } else {
+        const slug = cleanCat.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        const { data: newC } = await supabase
+          .from('categories')
+          .insert({ name: cleanCat, slug })
+          .select('id')
+          .single();
+        if (newC) categoryId = newC.id;
+      }
+    }
+
+    // 3. Build update payload
+    const updatePayload: Record<string, any> = {};
+    if (reference !== undefined) updatePayload.reference = String(reference).trim();
+    if (code !== undefined) updatePayload.code = String(code).trim();
+    if (description !== undefined) updatePayload.description = String(description).trim();
+    if (price !== undefined) updatePayload.price = Number(price);
+    if (quantity !== undefined) updatePayload.quantity = Number(quantity);
+    if (material !== undefined) updatePayload.material = String(material).trim();
+    if (gender !== undefined) updatePayload.gender = String(gender).trim();
+    if (eye_size !== undefined) updatePayload.eye_size = eye_size ? Number(eye_size) : null;
+    if (flex !== undefined) updatePayload.flex = flex === true || flex === 'SI' || flex === 'true';
+    if (sale_type !== undefined) updatePayload.sale_type = String(sale_type).trim().toUpperCase();
+    if (thumbnail_url !== undefined) updatePayload.thumbnail_url = String(thumbnail_url).trim();
+    if (large_image_url !== undefined) updatePayload.large_image_url = String(large_image_url).trim();
+    if (brandId) updatePayload.brand_id = brandId;
+    if (categoryId) updatePayload.category_id = categoryId;
+
+    const { data: updatedRow, error: updateError } = await supabase
+      .from('products')
+      .update(updatePayload)
+      .eq('id', id)
+      .select('*, brands(id, name), categories(id, name)')
+      .single();
+
+    if (updateError) {
+      console.error('[Audit Products PUT] Update error:', updateError);
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    // Invalidate cache
+    cachedData = null;
+
+    // Recalculate missingFields
+    const hasLargeImage = Boolean(
+      updatedRow.large_image_url &&
+      !updatedRow.large_image_url.includes('placeholder') &&
+      !updatedRow.large_image_url.includes('no-image')
+    );
+    const itemBrand = (updatedRow.brands?.name || brand_name || '').trim();
+    const itemCategory = (updatedRow.categories?.name || category_name || '').trim();
+    const itemMaterial = (updatedRow.material || '').trim();
+    const itemGender = (updatedRow.gender || '').trim();
+    const itemEyeSize = updatedRow.eye_size ? String(updatedRow.eye_size).trim() : '';
+    const itemFlex = updatedRow.flex !== null && updatedRow.flex !== undefined ? (updatedRow.flex ? 'SI' : 'NO') : '';
+    const itemSaleType = (updatedRow.sale_type || '').trim();
+    const itemPrice = Number(updatedRow.price || 0);
+    const itemQuantity = updatedRow.quantity !== null && updatedRow.quantity !== undefined ? Number(updatedRow.quantity) : null;
+    const itemDesc = (updatedRow.description || '').trim();
+
+    const missingFields: string[] = [];
+    if (!hasLargeImage) missingFields.push('Foto Grande');
+    if (!itemGender || itemGender === 'all') missingFields.push('Género');
+    if (!itemFlex) missingFields.push('Flex');
+    if (!itemMaterial || itemMaterial === 'N/A') missingFields.push('Material');
+    if (!itemEyeSize || itemEyeSize === '0') missingFields.push('Talla Ocular');
+    if (!itemSaleType || itemSaleType === '1' || itemSaleType === 'N/A') missingFields.push('Tipo Venta');
+    if (!itemBrand || itemBrand === 'SM' || itemBrand === 'GENERAL') missingFields.push('Marca');
+    if (!itemCategory) missingFields.push('Categoría');
+    if (itemPrice <= 0) missingFields.push('Precio');
+    if (itemQuantity === null || itemQuantity <= 0) missingFields.push('Stock');
+    if (!itemDesc || itemDesc === 'Producto importado') missingFields.push('Descripción');
+
+    const formattedProduct = {
+      id: updatedRow.id,
+      reference: updatedRow.reference || updatedRow.code || '',
+      code: updatedRow.code || updatedRow.reference || '',
+      description: itemDesc,
+      price: itemPrice,
+      quantity: itemQuantity ?? 0,
+      brand: itemBrand,
+      category: itemCategory,
+      material: itemMaterial,
+      gender: itemGender,
+      eyeSize: itemEyeSize,
+      flex: itemFlex,
+      saleType: itemSaleType,
+      hasLargeImage,
+      thumbnail_url: updatedRow.thumbnail_url || '',
+      large_image_url: updatedRow.large_image_url || '',
+      missingFields,
+    };
+
+    return NextResponse.json({ success: true, product: formattedProduct });
+  } catch (error) {
+    console.error('[Audit Products PUT] Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Error al actualizar producto' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE: Remove a product
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID de producto requerido (?id=...)' }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { error: deleteError } = await supabase.from('products').delete().eq('id', id);
+
+    if (deleteError) {
+      console.error('[Audit Products DELETE] Error:', deleteError);
+      return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    }
+
+    cachedData = null;
+    return NextResponse.json({ success: true, deletedId: id });
+  } catch (error) {
+    console.error('[Audit Products DELETE] Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Error al eliminar producto' },
+      { status: 500 }
+    );
+  }
+}
