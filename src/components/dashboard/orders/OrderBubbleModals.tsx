@@ -13,6 +13,9 @@ export interface OrderCreatedData {
   isOpen: boolean;
   switchOrderNumber: string;
   message: string;
+  includedCount?: number;
+  excludedItems?: Array<{ reference: string; reason?: string }>;
+  adjustedItems?: Array<{ reference: string; requestedQty: number; sentQty: number }>;
 }
 
 export interface ProductsValidatedData {
@@ -179,9 +182,57 @@ export const OrderBubbleModals: React.FC<OrderBubbleModalsProps> = ({
               Número de pedido switch: <strong style={{ color: '#0F172A' }}>{orderCreatedModal.switchOrderNumber}</strong>
             </div>
 
-            <div style={{ fontSize: '1rem', color: '#475569', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '1rem', color: '#475569', marginBottom: (orderCreatedModal.excludedItems?.length || orderCreatedModal.adjustedItems?.length) ? '0.75rem' : '2rem' }}>
               Mensaje: <strong style={{ color: '#0F172A' }}>{orderCreatedModal.message}</strong>
             </div>
+
+            {orderCreatedModal.excludedItems && orderCreatedModal.excludedItems.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  borderRadius: '6px',
+                  padding: '0.65rem 0.85rem',
+                  fontSize: '0.82rem',
+                  color: '#991B1B',
+                  marginBottom: '1rem',
+                  textAlign: 'left',
+                }}
+              >
+                <strong>⚠️ Artículos agotados excluidos ({orderCreatedModal.excludedItems.length}):</strong>
+                <ul style={{ margin: '0.35rem 0 0 1.1rem', padding: 0 }}>
+                  {orderCreatedModal.excludedItems.map((it, idx) => (
+                    <li key={idx}>
+                      <strong>{it.reference}</strong>: {it.reason || 'Sin disponibilidad'}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {orderCreatedModal.adjustedItems && orderCreatedModal.adjustedItems.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: '#FFFBEB',
+                  border: '1px solid #FDE68A',
+                  borderRadius: '6px',
+                  padding: '0.65rem 0.85rem',
+                  fontSize: '0.82rem',
+                  color: '#92400E',
+                  marginBottom: '1rem',
+                  textAlign: 'left',
+                }}
+              >
+                <strong>⚠️ Cantidad ajustada por stock parcial:</strong>
+                <ul style={{ margin: '0.35rem 0 0 1.1rem', padding: 0 }}>
+                  {orderCreatedModal.adjustedItems.map((it, idx) => (
+                    <li key={idx}>
+                      <strong>{it.reference}</strong>: solicitadas {it.requestedQty} → enviadas {it.sentQty} pzs
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <button

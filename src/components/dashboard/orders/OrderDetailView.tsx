@@ -424,7 +424,7 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
           >
             <AlertCircle size={18} color="#DC2626" style={{ flexShrink: 0 }} />
             <div>
-              <strong>Atención:</strong> Hay productos que <strong>no existen en Switch ERP</strong> o no tienen stock disponible. Revisa los mensajes en rojo antes de procesar el pedido.
+              <strong>Creación con disponibilidad:</strong> Hay artículos que <strong>no tienen stock en Switch ERP</strong>. Al procesar el pedido en el <strong>Paso 3</strong>, se creará automáticamente en Switch con las referencias que sí tienen stock disponible, excluyendo los artículos agotados para evitar rechazos del ERP.
             </div>
           </div>
         )}
@@ -691,7 +691,7 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
                       </span>
                     ) : val?.badgeColor === 'red' ? (
                       <span style={{ fontSize: '0.7rem', backgroundColor: '#FDE8E8', color: '#9B1C1C', border: '1px solid #FCA5A5', padding: '0.1rem 0.45rem', borderRadius: '4px', fontWeight: 800 }}>
-                        ● NO DISPONIBLE
+                        ● AGOTADO (SE EXCLUYE DE ERP)
                       </span>
                     ) : null}
                   </div>
@@ -780,7 +780,7 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
                             gap: '0.35rem',
                           }}
                         >
-                          <XCircle size={14} color="#DC2626" /> {val.label}
+                          <XCircle size={14} color="#DC2626" /> {val.label} — Se excluirá del pedido en Switch ERP
                         </span>
                       )
                     ) : (

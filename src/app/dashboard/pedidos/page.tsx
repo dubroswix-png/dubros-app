@@ -344,6 +344,9 @@ export default function AdminOrdersPage() {
           isOpen: true,
           switchOrderNumber: switchNum,
           message: data.message || 'PEDIDO REALIZADO CON EXITO',
+          includedCount: data.includedCount,
+          excludedItems: data.excludedItems,
+          adjustedItems: data.adjustedItems,
         });
 
         await fetchOrders();
