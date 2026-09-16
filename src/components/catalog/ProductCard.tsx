@@ -74,25 +74,9 @@ export function ProductCard({ product }: ProductCardProps) {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--blue)' }}>{product.brand}</span>
-            {isDocena(product.saleType) ? (
-              <span
-                style={{
-                  fontSize: '0.68rem',
-                  fontWeight: 700,
-                  color: '#4338CA',
-                  backgroundColor: '#EEF2FF',
-                  padding: '0.12rem 0.45rem',
-                  borderRadius: '4px',
-                  border: '1px solid #C7D2FE',
-                }}
-              >
-                Docena (12 pzs)
-              </span>
-            ) : (
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                {product.material && product.material !== '0' ? product.material : 'Metal'}
-              </span>
-            )}
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+              {product.material && product.material !== '0' ? product.material : 'Metal'}
+            </span>
           </div>
           <Link href={`/catalogo/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
             <h3
@@ -137,21 +121,16 @@ export function ProductCard({ product }: ProductCardProps) {
                   style={{
                     fontSize: '0.68rem',
                     fontWeight: 700,
-                    color: isDocena(product.saleType) ? '#4338CA' : 'var(--text-tertiary)',
+                    color: 'var(--text-tertiary)',
                     textTransform: 'uppercase',
                     display: 'block',
                   }}
                 >
-                  {isDocena(product.saleType) ? 'Precio DOCENA (12 pzs)' : 'Precio PIEZA'}
+                  Precio Unitario
                 </span>
                 <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>
-                  ${(isDocena(product.saleType) ? product.price * 12 : product.price).toFixed(2)}
+                  ${product.price.toFixed(2)}
                 </div>
-                {isDocena(product.saleType) && (
-                  <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                    (${product.price.toFixed(2)} c/u)
-                  </div>
-                )}
               </div>
               <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                 <button
@@ -182,8 +161,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     e.preventDefault();
                     e.stopPropagation();
                     addToCart(product);
-                    const label = isDocena(product.saleType) ? '1 docena (12 piezas)' : '1 pieza';
-                    showToast(`¡${product.reference} (${label}) agregado al carrito!`, 'success', 2800);
+                    showToast(`¡${product.reference} agregado al carrito!`, 'success', 2800);
                   }}
                   className="btn-primary"
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}

@@ -106,14 +106,9 @@ export function CartDrawer() {
                       <div>
                         <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>{item.product.brand}</span>
                         <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>{item.product.reference}</h4>
-                        {isDocena(item.product.saleType) ? (
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                            <strong style={{ color: '#4338CA' }}>${(item.product.price * 12).toFixed(2)}</strong> / docena{' '}
-                            <span style={{ color: 'var(--text-tertiary)' }}>(${item.product.price.toFixed(2)} c/u)</span>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{t('cart.perPiece' as any)}: ${item.product.price.toFixed(2)}</span>
-                        )}
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          ${item.product.price.toFixed(2)} c/u
+                        </span>
                       </div>
                       <button
                         onClick={() => removeFromCart(item.product.id)}
@@ -143,14 +138,9 @@ export function CartDrawer() {
                             <Plus size={14} />
                           </button>
                         </div>
-                        {isDocena(item.product.saleType) && (
-                          <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '2px' }}>
-                            {item.quantity * 12} piezas
-                          </span>
-                        )}
                       </div>
                       <span style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '1.05rem' }}>
-                        ${((isDocena(item.product.saleType) ? item.product.price * 12 : item.product.price) * item.quantity).toFixed(2)}
+                        ${(item.product.price * item.quantity).toFixed(2)}
                       </span>
                     </div>
                   </div>

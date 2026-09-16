@@ -380,15 +380,6 @@ export function FilterSidebar({
         )}
       </div>
 
-      {setSelectedSaleType && (
-        <Select
-          label="Tipo de Venta"
-          options={saleTypeOptions}
-          value={normalizedSelectedSaleType}
-          onChange={(e) => setSelectedSaleType(e.target.value)}
-        />
-      )}
-
       {setSelectedFlex && (
         <Select
           label="Flexibilidad (Bisagra Flex)"

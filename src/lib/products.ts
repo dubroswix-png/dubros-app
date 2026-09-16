@@ -153,22 +153,16 @@ export function normalizeFlex(val: boolean | string | undefined | null): boolean
   return null;
 }
 
-export function normalizeSaleType(val: string | undefined | null): 'DOCENA' | 'PIEZA' | null {
-  if (!val || val === 'all') return null;
-  const clean = normalizeText(String(val));
-  if (clean.includes('doc')) return 'DOCENA';
-  if (clean.includes('piez') || clean.includes('pza') || clean.includes('pz') || clean.includes('unid') || clean === '1') return 'PIEZA';
+export function normalizeSaleType(_val?: string | undefined | null): 'PIEZA' {
   return 'PIEZA';
 }
 
-export function isDocena(val: string | undefined | null): boolean {
-  if (!val) return false;
-  const clean = normalizeText(String(val));
-  return clean.includes('doc');
+export function isDocena(_val?: string | undefined | null): boolean {
+  return false;
 }
 
-export function getProductUnitPrice(price: number, saleType?: string | null): number {
-  return isDocena(saleType) ? price * 12 : price;
+export function getProductUnitPrice(price: number, _saleType?: string | null): number {
+  return price;
 }
 
 export function normalizeCategoryName(rawName: string | undefined | null): string {
@@ -544,16 +538,7 @@ export async function getProducts({
       }
     }
 
-    if (saleType && saleType !== 'all') {
-      const normSale = normalizeSaleType(saleType);
-      if (normSale === 'DOCENA') {
-        query = query.ilike('sale_type', '%DOCENA%');
-      } else if (normSale === 'PIEZA') {
-        query = query.or('sale_type.ilike.%PIEZA%,sale_type.ilike.%PZA%,sale_type.ilike.%PZ%,sale_type.eq.1,sale_type.is.null');
-      } else {
-        query = query.ilike('sale_type', `%${saleType}%`);
-      }
-    }
+    // All products in catalog are sold per piece
 
     if (flex !== undefined && flex !== 'all' && flex !== '') {
       const normFlex = normalizeFlex(flex);

@@ -169,18 +169,7 @@ export default function CartPage() {
                     Cód: {product.code} {product.eyeSize ? `| Talla ${product.eyeSize}` : ''} {product.material ? `| ${product.material}` : ''}
                   </div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '0.25rem' }}>
-                    {isDocena(product.saleType) ? (
-                      <div>
-                        <span style={{ color: '#4338CA', fontWeight: 700 }}>
-                          {formatPrice(product.price * 12)} / docena
-                        </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginLeft: '0.35rem' }}>
-                          ({formatPrice(product.price)} por pieza)
-                        </span>
-                      </div>
-                    ) : (
-                      <span>{formatPrice(product.price)} por pieza</span>
-                    )}
+                    <span>{formatPrice(product.price)} c/u</span>
                   </div>
                 </div>
 
@@ -196,11 +185,9 @@ export default function CartPage() {
                     </button>
                     <div style={{ padding: '0.3rem 0.8rem', textAlign: 'center', minWidth: '45px' }}>
                       <span style={{ fontSize: '0.9rem', fontWeight: 700, display: 'block' }}>{quantity}</span>
-                      {isDocena(product.saleType) && (
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', display: 'block', lineHeight: 1 }}>
-                          {quantity === 1 ? 'docena' : 'docenas'} ({quantity * 12} pzs)
-                        </span>
-                      )}
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', display: 'block', lineHeight: 1 }}>
+                        {quantity === 1 ? 'pieza' : 'piezas'}
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -214,7 +201,7 @@ export default function CartPage() {
                   {/* ITEM TOTAL & DELETE */}
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '1.15rem', fontWeight: 800 }}>
-                      {formatPrice((isDocena(product.saleType) ? product.price * 12 : product.price) * quantity)}
+                      {formatPrice(product.price * quantity)}
                     </div>
                     <button
                       type="button"

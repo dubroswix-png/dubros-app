@@ -339,7 +339,6 @@ function CatalogContent() {
     if (selectedMaterial && selectedMaterial !== 'all') summaryParts.push(`Material: ${selectedMaterial}`);
     if (selectedGender && selectedGender !== 'all') summaryParts.push(`Género: ${selectedGender}`);
     if (selectedSize && selectedSize !== 'all') summaryParts.push(`Talla: ${selectedSize} mm`);
-    if (selectedSaleType && selectedSaleType !== 'all') summaryParts.push(`Venta: ${selectedSaleType}`);
     if (selectedFlex && selectedFlex !== 'all') summaryParts.push(`Flex: ${selectedFlex === 'flex' ? 'Con Flex' : 'Sin Flex'}`);
     if (selectedBrand && selectedBrand !== 'all') summaryParts.push(`Marca: ${selectedBrand}`);
     if (selectedCategory && selectedCategory !== 'all') summaryParts.push(`Categoría: ${selectedCategory}`);

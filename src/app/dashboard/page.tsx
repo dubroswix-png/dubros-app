@@ -1184,7 +1184,6 @@ export default function DashboardHomePage() {
                       style={{ width: '100%', padding: '0.55rem 0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
                     >
                       <option value="PIEZA">PIEZA</option>
-                      <option value="DOCENA">DOCENA</option>
                     </select>
                   </div>
 

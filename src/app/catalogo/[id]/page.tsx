@@ -137,9 +137,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 </span>
               </div>
               <div>
-                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Tipo de Venta</span>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: isDocena(product.saleType) ? '#4338CA' : 'var(--text-primary)' }}>
-                  {isDocena(product.saleType) ? '📦 Por Docena (12 unidades)' : '👓 Por Pieza'}
+                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Venta</span>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  👓 Por Pieza
                 </span>
               </div>
             </div>
@@ -190,36 +190,26 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       style={{
                         display: 'block',
                         fontSize: '0.82rem',
-                        fontWeight: isDocena(product.saleType) ? 700 : 500,
-                        color: isDocena(product.saleType) ? '#4338CA' : 'var(--text-tertiary)',
+                        fontWeight: 600,
+                        color: 'var(--text-tertiary)',
                         textTransform: 'uppercase',
                         letterSpacing: '0.02em',
                       }}
                     >
-                      {isDocena(product.saleType) ? 'Precio por DOCENA (12 pzs)' : 'Precio PIEZA'}
+                      Precio Unitario
                     </span>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
                       <span style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                        ${(isDocena(product.saleType) ? product.price * 12 : product.price).toFixed(2)}
+                        ${product.price.toFixed(2)}
                       </span>
-                      {isDocena(product.saleType) && (
-                        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                          / docena
-                        </span>
-                      )}
                     </div>
-                    {isDocena(product.saleType) && (
-                      <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                        (${product.price.toFixed(2)} por pieza)
-                      </span>
-                    )}
                   </div>
                   <button 
                     onClick={() => addToCart(product, 1)}
                     className="btn-primary" 
                     style={{ padding: '0.8rem 2rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                   >
-                    <ShoppingBag size={20} /> {isDocena(product.saleType) ? 'Agregar 1 Docena' : 'Agregar al carrito'}
+                    <ShoppingBag size={20} /> Agregar al carrito
                   </button>
                 </div>
               ) : (

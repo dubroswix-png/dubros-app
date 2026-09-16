@@ -137,12 +137,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const totalArticles = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const totalPieces = cartItems.reduce(
-    (acc, item) => acc + (isDocena(item.product.saleType) ? item.quantity * 12 : item.quantity),
-    0
-  );
+  const totalPieces = totalArticles;
   const subtotal = cartItems.reduce(
-    (acc, item) => acc + getItemUnitPrice(item.product) * item.quantity,
+    (acc, item) => acc + item.product.price * item.quantity,
     0
   );
 
