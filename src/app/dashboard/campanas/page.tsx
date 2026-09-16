@@ -75,6 +75,12 @@ export default function AdminCampaignsPage() {
   const [syncError, setSyncError] = useState('');
   const [syncSuccess, setSyncSuccess] = useState('');
 
+  // SendGrid API Key Configuration
+  const [apiKeyOverride, setApiKeyOverride] = useState('');
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [showTestKeyInput, setShowTestKeyInput] = useState(false);
+
   // Notification toast
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -153,19 +159,56 @@ export default function AdminCampaignsPage() {
     return () => clearTimeout(timer);
   }, [searchEmail, searchName]);
 
+  const getActiveSendgridKey = () => {
+    if (apiKeyOverride.trim()) return apiKeyOverride.trim();
+    if (typeof window !== 'undefined') {
+      return (
+        localStorage.getItem('dubros_sendgrid_key')?.trim() ||
+        localStorage.getItem('dubros-sendgrid-api-key')?.trim() ||
+        ''
+      );
+    }
+    return '';
+  };
+
+  const handleSaveApiKey = (keyToSave: string) => {
+    const trimmed = keyToSave.trim();
+    setApiKeyOverride(trimmed);
+    setApiKeyInput(trimmed);
+    setSyncApiKey(trimmed);
+    setSendData((prev) => ({ ...prev, customApiKey: trimmed }));
+    if (typeof window !== 'undefined') {
+      if (trimmed) {
+        localStorage.setItem('dubros_sendgrid_key', trimmed);
+        localStorage.setItem('dubros-sendgrid-api-key', trimmed);
+        showToast('success', 'Clave de SendGrid guardada en el navegador.');
+      } else {
+        localStorage.removeItem('dubros_sendgrid_key');
+        localStorage.removeItem('dubros-sendgrid-api-key');
+        showToast('success', 'Se usará la clave de SendGrid configurada en el servidor.');
+      }
+    }
+    setIsApiKeyModalOpen(false);
+  };
+
   const handleSendToRecipient = async (email: string, name: string) => {
     if (!selectedCampaign) return;
     try {
       setSendingIndividualEmail(email);
+      const activeKey = getActiveSendgridKey();
       const res = await fetch('/api/admin/campaigns/send-bulk', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeKey ? { 'x-sendgrid-key': activeKey } : {}),
+        },
         body: JSON.stringify({
           campaignId: selectedCampaign.id,
           templateId: selectedCampaign.templateId,
           audience: 'specific',
           specificEmail: email,
           specificName: name,
+          customKey: activeKey || undefined,
         }),
       });
       const data = await res.json();
@@ -183,15 +226,20 @@ export default function AdminCampaignsPage() {
     if (!selectedCampaign || !testEmail.trim()) return;
     try {
       setTestSending(true);
+      const activeKey = getActiveSendgridKey();
       const res = await fetch('/api/admin/campaigns/send-bulk', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeKey ? { 'x-sendgrid-key': activeKey } : {}),
+        },
         body: JSON.stringify({
           campaignId: selectedCampaign.id,
           templateId: selectedCampaign.templateId,
           audience: 'specific',
           specificEmail: testEmail.trim(),
           specificName: 'Administrador Dubros',
+          customKey: activeKey || undefined,
         }),
       });
       const data = await res.json();
@@ -210,13 +258,18 @@ export default function AdminCampaignsPage() {
     try {
       setBulkSending(true);
       setBulkResult(null);
+      const activeKey = getActiveSendgridKey();
       const res = await fetch('/api/admin/campaigns/send-bulk', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeKey ? { 'x-sendgrid-key': activeKey } : {}),
+        },
         body: JSON.stringify({
           campaignId: selectedCampaign.id,
           templateId: selectedCampaign.templateId,
           audience: audienceType,
+          customKey: activeKey || undefined,
         }),
       });
       const data = await res.json();
@@ -277,10 +330,17 @@ export default function AdminCampaignsPage() {
 
   useEffect(() => {
     fetchCampaigns();
-    const savedKey = localStorage.getItem('dubros_sendgrid_key');
-    if (savedKey) {
-      setSendData((prev) => ({ ...prev, customApiKey: savedKey }));
-      setSyncApiKey(savedKey);
+    if (typeof window !== 'undefined') {
+      const savedKey =
+        localStorage.getItem('dubros_sendgrid_key') ||
+        localStorage.getItem('dubros-sendgrid-api-key') ||
+        '';
+      if (savedKey) {
+        setApiKeyOverride(savedKey);
+        setApiKeyInput(savedKey);
+        setSendData((prev) => ({ ...prev, customApiKey: savedKey }));
+        setSyncApiKey(savedKey);
+      }
     }
   }, []);
 
@@ -585,6 +645,29 @@ export default function AdminCampaignsPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setApiKeyInput(apiKeyOverride);
+                  setIsApiKeyModalOpen(true);
+                }}
+                className="btn-secondary"
+                style={{
+                  padding: '0.6rem 1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  border: apiKeyOverride ? '1px solid #10B981' : '1px solid var(--border-color)',
+                  color: apiKeyOverride ? '#059669' : 'var(--text-primary)',
+                }}
+                title="Configurar clave API de SendGrid"
+              >
+                <Key size={15} />
+                {apiKeyOverride ? 'Clave SendGrid (Configurada)' : 'Clave SendGrid'}
+              </button>
+
               <button
                 onClick={() => setIsTestModalOpen(true)}
                 className="btn-secondary"
@@ -999,6 +1082,27 @@ export default function AdminCampaignsPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setApiKeyInput(apiKeyOverride);
+                  setIsApiKeyModalOpen(true);
+                }}
+                className="btn-secondary"
+                style={{
+                  padding: '0.65rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontWeight: 600,
+                  border: apiKeyOverride ? '1px solid #10B981' : '1px solid var(--border-color)',
+                  color: apiKeyOverride ? '#059669' : 'var(--text-primary)',
+                }}
+                title="Configurar clave API de SendGrid"
+              >
+                <Key size={16} /> {apiKeyOverride ? 'Clave SendGrid (Configurada)' : 'Clave SendGrid'}
+              </button>
+
               <button
                 onClick={() => setIsSyncModalOpen(true)}
                 className="btn-secondary"
@@ -2075,6 +2179,68 @@ export default function AdminCampaignsPage() {
                 />
               </div>
 
+              {/* SendGrid Key inline configuration */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                    Clave API SendGrid {apiKeyOverride ? '(Guardada en navegador)' : '(Usando clave del servidor)'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowTestKeyInput(!showTestKeyInput)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--blue)',
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {showTestKeyInput ? 'Ocultar' : 'Cambiar / Ingresar clave'}
+                  </button>
+                </div>
+                {showTestKeyInput && (
+                  <div>
+                    <input
+                      type="password"
+                      placeholder="SG.xxxx... (deja vacío para usar la del servidor)"
+                      value={apiKeyOverride}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setApiKeyOverride(val);
+                        setApiKeyInput(val);
+                        setSyncApiKey(val);
+                        if (typeof window !== 'undefined') {
+                          if (val.trim()) {
+                            localStorage.setItem('dubros_sendgrid_key', val.trim());
+                            localStorage.setItem('dubros-sendgrid-api-key', val.trim());
+                          } else {
+                            localStorage.removeItem('dubros_sendgrid_key');
+                            localStorage.removeItem('dubros-sendgrid-api-key');
+                          }
+                        }
+                      }}
+                      className="input-field"
+                      style={{
+                        width: '100%',
+                        padding: '0.6rem 0.85rem',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border-color)',
+                        backgroundColor: 'var(--bg-secondary)',
+                        color: 'var(--text-primary)',
+                        fontSize: '0.85rem',
+                        fontFamily: 'monospace',
+                      }}
+                    />
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
+                      Se guarda en tu navegador y se usa de inmediato para todas las pruebas y envíos.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div
                 style={{
                   backgroundColor: '#EFF6FF',
@@ -2302,6 +2468,97 @@ export default function AdminCampaignsPage() {
                   </button>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CONFIGURAR API KEY SENDGRID */}
+      {isApiKeyModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+          }}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '520px',
+              padding: '1.75rem',
+              backgroundColor: 'var(--bg-primary)',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Key size={20} color="var(--blue)" />
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+                  Configurar API Key de SendGrid
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsApiKeyModalOpen(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', padding: '4px' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+              Si la clave del servidor en Vercel expiró o no está configurada, puedes ingresar una clave activa de SendGrid aquí. Se guardará en este navegador para que todos los envíos (pruebas y masivos) funcionen directamente.
+            </p>
+
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
+                SendGrid API Key (comienza con SG.)
+              </label>
+              <input
+                type="password"
+                placeholder="SG.xxxxxxxx..."
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.7rem 0.9rem',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'var(--bg-secondary)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.85rem',
+                  fontFamily: 'monospace',
+                }}
+              />
+              <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.35rem' }}>
+                Deja este campo en blanco y guarda si prefieres usar la clave configurada en las variables de entorno del servidor.
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => setIsApiKeyModalOpen(false)}
+                className="btn-secondary"
+                style={{ padding: '0.6rem 1.1rem', fontSize: '0.85rem' }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveApiKey(apiKeyInput)}
+                className="btn-primary"
+                style={{ padding: '0.6rem 1.35rem', fontSize: '0.85rem', fontWeight: 700 }}
+              >
+                Guardar Clave
+              </button>
             </div>
           </div>
         </div>

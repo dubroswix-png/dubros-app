@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = customKey?.trim() || process.env.SENDGRID_API_KEY;
+    const customHeaderKey = req.headers.get('x-sendgrid-key');
+    const apiKey = customKey?.trim() || customHeaderKey?.trim() || process.env.SENDGRID_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
@@ -89,6 +90,9 @@ export async function POST(req: NextRequest) {
         parsedError = jsonErr.errors?.[0]?.message || errText;
       } catch {
         // fallback
+      }
+      if (parsedError.toLowerCase().includes('authorization grant is invalid') || res.status === 401) {
+        parsedError = 'La clave API de SendGrid no es válida, expiró o fue revocada. Por favor ingresa una API Key activa de SendGrid en el Dashboard o actualízala en Vercel.';
       }
       return NextResponse.json(
         {

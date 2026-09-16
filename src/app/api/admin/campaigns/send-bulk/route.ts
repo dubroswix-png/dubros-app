@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = customKey?.trim() || process.env.SENDGRID_API_KEY;
+    const customHeaderKey = req.headers.get('x-sendgrid-key');
+    const apiKey = customKey?.trim() || customHeaderKey?.trim() || process.env.SENDGRID_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
@@ -142,7 +143,21 @@ export async function POST(req: NextRequest) {
         } else {
           const errText = await res.text();
           console.error('[SendGrid Batch Error]:', res.status, errText);
-          errors.push(`Error en lote ${Math.floor(i / BATCH_SIZE) + 1}: ${errText}`);
+          let friendlyMsg = errText;
+          try {
+            const parsed = JSON.parse(errText);
+            const rawMsg = parsed.errors?.[0]?.message || '';
+            if (rawMsg.toLowerCase().includes('authorization grant is invalid') || res.status === 401) {
+              friendlyMsg = 'La clave API de SendGrid no es válida, expiró o fue revocada. Por favor ingresa una API Key activa de SendGrid en el Dashboard o actualízala en Vercel.';
+            } else if (rawMsg) {
+              friendlyMsg = rawMsg;
+            }
+          } catch {
+            if (errText.toLowerCase().includes('authorization grant is invalid') || res.status === 401) {
+              friendlyMsg = 'La clave API de SendGrid no es válida, expiró o fue revocada. Por favor ingresa una API Key activa de SendGrid en el Dashboard o actualízala en Vercel.';
+            }
+          }
+          errors.push(`Error en lote ${Math.floor(i / BATCH_SIZE) + 1}: ${friendlyMsg}`);
         }
       } catch (err: any) {
         console.error('[SendGrid Batch Network Error]:', err);
