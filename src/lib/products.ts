@@ -255,29 +255,48 @@ function getBaseWholesalePrice(brand: string, category: string): number {
   return 14.00;
 }
 
+export function resolveCleanMaterial(rawMaterial?: string | null, desc?: string, ref?: string): string {
+  const clean = (rawMaterial || '').trim();
+  if (clean && clean !== '0' && clean !== 'N/A' && clean !== 'null' && clean !== 'undefined') {
+    return clean;
+  }
+  const text = `${desc || ''} ${ref || ''}`.toUpperCase();
+  if (text.includes('TR90') || text.includes('TR-90')) return 'TR90';
+  if (text.includes('TITANIO') || text.includes('TITANIUM')) return 'Titanio';
+  if (text.includes('ULTEM')) return 'Ultem';
+  if (text.includes('SILICONA') || text.includes('SILICONE')) return 'Silicona';
+  if (text.includes('ACETATO') && text.includes('METAL')) return 'Acetato / Metal';
+  if (text.includes('ACETATO')) return 'Acetato';
+  if (text.includes('METAL')) return 'Metal';
+  if (text.includes('PASTA') || text.includes('PLASTICO')) return 'Pasta';
+  return 'Metal';
+}
+
 function resolveCleanBrand(dbBrand?: string | null, metaBrand?: string | null, ref?: string, desc?: string): string {
   const cleanRef = (ref || '').toUpperCase();
   const cleanDesc = (desc || '').toUpperCase();
   const cleanDb = normalizeBrandName(dbBrand);
   const cleanMeta = normalizeBrandName(metaBrand);
 
-  // If DB brand is valid and not generic Dubros, use it
-  if (cleanDb && cleanDb !== 'DUBROS') {
+  // If DB brand is a specific valid brand (not generic Dubros or Sin Marca placeholder), use it
+  if (cleanDb && cleanDb !== 'DUBROS' && cleanDb !== 'SIN MARCA' && cleanDb !== 'SM') {
     return cleanDb;
   }
 
   // If meta has a specific brand, use it
-  if (cleanMeta && cleanMeta !== 'DUBROS') {
+  if (cleanMeta && cleanMeta !== 'DUBROS' && cleanMeta !== 'SIN MARCA') {
     return cleanMeta;
   }
 
   // Priority detection from Description and Reference
   const KNOWN_BRANDS = [
-    'AGATHA RUIZ DE LA PRADA', 'BALDINNI', 'BACHELLET', 'BEST VIEW', 'SIN MARCA', 'TRAVERSO',
+    'AGATHA RUIZ DE LA PRADA', 'BALDINNI', 'BACHELLET', 'BEST VIEW', 'TRAVERSO',
     'CALVIN KLEIN', 'SMARTKIDS', 'MONTBLANC', 'SCHOOL DAY',
     'BELMOR', 'FLEXXILON', 'KIAMIL', 'VELVETT', 
     'MANTOVANNI', 'ROMANA', 'WEEKEND', 'IBERIA', 'VERONA', 'LCT', 
-    'BELLUNO', 'GREKO', 'GIORDANNI', 'DMOST', 
+    'BELLUNO', 'GREKO', 'GIORDANNI', 'DMOST', 'LONTANO', 'BOLOCO', 'KARYNY', 'FAZETT',
+    'ROCHESTER', 'RUSSY', 'SEASON', 'FACIALE', 'EXCLUSIVE', 'PRESTIGE', 'NOVELLY',
+    'POLIOPTICS', 'KLOVER', 'DONATTO', 'BOTTERI', 'MATSUDA', 'ROVER D MONTI',
     'HI-LINE', 'LOTTO', 'FAZZET', 'NAKARATA', 'MASK', 'VISION KIDS', 
     'VISION', 'STEED', 'POLAR', 'FALCON', 'GUESS', 'LACOSTE', 'RAYBAN',
     'OAKLEY', 'CARRERA', 'VOGUE', 'EMPORIO', 'PRADA', 'TOMMY', 'POLAROID', 'POLO'
@@ -289,7 +308,7 @@ function resolveCleanBrand(dbBrand?: string | null, metaBrand?: string | null, r
     }
   }
 
-  return cleanDb || cleanMeta || 'DUBROS';
+  return cleanDb || cleanMeta || 'SIN MARCA';
 }
 
 function resolveCleanGender(ref?: string, desc?: string, dbGender?: string | null, metaGender?: string | null): string {
@@ -373,7 +392,7 @@ function mapSupabaseToProduct(row: SupabaseProduct): Product {
     templeLength: row.temple_length || undefined,
     frameSize: row.frame_size || (row.eye_size && row.bridge_size && row.temple_length ? `${row.eye_size}-${row.bridge_size}-${row.temple_length}` : undefined),
     brand: brand,
-    material: row.material && row.material !== 'N/A' ? row.material : 'ACETATO / METAL',
+    material: resolveCleanMaterial(row.material, desc, ref),
     gender: gender as any,
     saleType: normalizeSaleType(row.sale_type) || 'PIEZA',
     category: category,

@@ -122,7 +122,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.material' as any)}</span>
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.material}</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {product.material && product.material !== '0' ? product.material : 'Metal'}
+                </span>
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Colección / Género</span>
@@ -166,15 +168,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', textAlign: 'center' }}>
                   <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
                     <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👁️ Calibre (Ojo)</span>
-                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.eyeSize ? `${product.eyeSize} mm` : 'N/D'}</strong>
+                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.eyeSize ? `${product.eyeSize} mm` : 'Estándar'}</strong>
                   </div>
                   <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
                     <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👃 Puente Nasal</span>
-                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.bridgeSize ? `${product.bridgeSize} mm` : 'N/D'}</strong>
+                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.bridgeSize ? `${product.bridgeSize} mm` : 'Estándar'}</strong>
                   </div>
                   <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
                     <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>📏 Varilla / Patilla</span>
-                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.templeLength ? `${product.templeLength} mm` : 'N/D'}</strong>
+                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.templeLength ? `${product.templeLength} mm` : 'Estándar'}</strong>
                   </div>
                 </div>
               </div>

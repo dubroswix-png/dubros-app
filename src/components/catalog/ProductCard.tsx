@@ -89,7 +89,9 @@ export function ProductCard({ product }: ProductCardProps) {
                 Docena (12 pzs)
               </span>
             ) : (
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{product.material}</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                {product.material && product.material !== '0' ? product.material : 'Metal'}
+              </span>
             )}
           </div>
           <Link href={`/catalogo/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
