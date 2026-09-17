@@ -25,9 +25,81 @@ export function ProductDetailClient({ product, suggestedProducts }: ProductDetai
 
   return (
     <div style={{ paddingBottom: '4rem' }}>
+      <style>{`
+        .pdp-main-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 3.5rem;
+          align-items: start;
+        }
+        .pdp-suggested-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1.5rem;
+        }
+        .pdp-specs-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.25rem;
+          margin-bottom: 2rem;
+        }
+        .pdp-optical-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1rem;
+          text-align: center;
+        }
+        .pdp-optical-item {
+          background-color: #FFFFFF;
+          padding: 0.6rem;
+          border-radius: var(--radius-sm);
+          border: 1px solid var(--border-medium);
+        }
+        @media (max-width: 960px) {
+          .pdp-main-grid {
+            grid-template-columns: 1fr !important;
+            gap: 2rem !important;
+          }
+          .pdp-suggested-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 1rem !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .pdp-container {
+            padding-top: 1.25rem !important;
+          }
+          .pdp-title {
+            font-size: 1.5rem !important;
+          }
+          .pdp-specs-grid {
+            gap: 0.85rem !important;
+            margin-bottom: 1.5rem !important;
+          }
+          .pdp-optical-grid {
+            gap: 0.4rem !important;
+          }
+          .pdp-optical-item {
+            padding: 0.4rem !important;
+          }
+          .pdp-optical-label {
+            font-size: 0.65rem !important;
+          }
+          .pdp-optical-val {
+            font-size: 0.9rem !important;
+          }
+          .pdp-suggested-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.75rem !important;
+          }
+          .pdp-add-cart-btn {
+            width: 100% !important;
+          }
+        }
+      `}</style>
       {/* Breadcrumbs */}
-      <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1rem 0', borderBottom: '1px solid var(--border-light)' }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
+      <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '0.85rem 0', borderBottom: '1px solid var(--border-light)' }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-tertiary)', flexWrap: 'wrap' }}>
           <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Inicio</Link>
           <ChevronRight size={14} />
           <Link href="/catalogo" style={{ color: 'inherit', textDecoration: 'none' }}>Catálogo</Link>
@@ -36,8 +108,8 @@ export function ProductDetailClient({ product, suggestedProducts }: ProductDetai
         </div>
       </div>
 
-      <div className="container" style={{ paddingTop: '3rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}>
+      <div className="container pdp-container" style={{ paddingTop: '2.5rem' }}>
+        <div className="pdp-main-grid">
           
           {/* Left: Product Images with Interactive Magnifier Zoom */}
           <div>
@@ -69,15 +141,15 @@ export function ProductDetailClient({ product, suggestedProducts }: ProductDetai
               </button>
             </div>
 
-            <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '1rem', lineHeight: 1.2 }}>
+            <h1 className="pdp-title" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.75rem', lineHeight: 1.2 }}>
               {product.reference}
             </h1>
             
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '1.75rem' }}>
               {product.description}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
+            <div className="pdp-specs-grid">
               <div>
                 <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.model' as any)}</span>
                 <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.reference}</span>
@@ -131,18 +203,18 @@ export function ProductDetailClient({ product, suggestedProducts }: ProductDetai
                     </span>
                   )}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', textAlign: 'center' }}>
-                  <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
-                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👁️ Calibre (Ojo)</span>
-                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.eyeSize ? `${product.eyeSize} mm` : 'Estándar'}</strong>
+                <div className="pdp-optical-grid">
+                  <div className="pdp-optical-item">
+                    <span className="pdp-optical-label" style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👁️ Calibre (Ojo)</span>
+                    <strong className="pdp-optical-val" style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.eyeSize ? `${product.eyeSize} mm` : 'Estándar'}</strong>
                   </div>
-                  <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
-                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👃 Puente Nasal</span>
-                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.bridgeSize ? `${product.bridgeSize} mm` : 'Estándar'}</strong>
+                  <div className="pdp-optical-item">
+                    <span className="pdp-optical-label" style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👃 Puente Nasal</span>
+                    <strong className="pdp-optical-val" style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.bridgeSize ? `${product.bridgeSize} mm` : 'Estándar'}</strong>
                   </div>
-                  <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
-                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>📏 Varilla / Patilla</span>
-                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.templeLength ? `${product.templeLength} mm` : 'Estándar'}</strong>
+                  <div className="pdp-optical-item">
+                    <span className="pdp-optical-label" style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>📏 Varilla / Patilla</span>
+                    <strong className="pdp-optical-val" style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.templeLength ? `${product.templeLength} mm` : 'Estándar'}</strong>
                   </div>
                 </div>
               </div>
@@ -172,8 +244,8 @@ export function ProductDetailClient({ product, suggestedProducts }: ProductDetai
                   </div>
                   <button 
                     onClick={() => addToCart(product, 1)}
-                    className="btn-primary" 
-                    style={{ padding: '0.8rem 2rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    className="btn-primary pdp-add-cart-btn" 
+                    style={{ padding: '0.8rem 2rem', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                   >
                     <ShoppingBag size={20} /> Agregar al carrito
                   </button>
@@ -215,22 +287,22 @@ export function ProductDetailClient({ product, suggestedProducts }: ProductDetai
 
       {/* Suggested Products Section */}
       {suggestedProducts.length > 0 && (
-        <div style={{ backgroundColor: 'var(--bg-secondary)', marginTop: '5rem', padding: '4rem 0' }}>
+        <div style={{ backgroundColor: 'var(--bg-secondary)', marginTop: '4rem', padding: '3.5rem 0' }}>
           <div className="container">
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem', color: 'var(--text-primary)', textAlign: 'center' }}>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.75rem', color: 'var(--text-primary)', textAlign: 'center' }}>
               {t('pdp.suggested' as any)}
             </h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+            <div className="pdp-suggested-grid">
               {suggestedProducts.map((sp) => (
                 <Link key={sp.id} href={`/catalogo/${sp.id}`} style={{ textDecoration: 'none' }}>
-                  <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem', textAlign: 'center', height: '100%', transition: 'transform 0.2s', backgroundColor: '#FFF' }}>
-                    <div style={{ width: '100%', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                  <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1rem 0.75rem', textAlign: 'center', height: '100%', transition: 'transform 0.2s', backgroundColor: '#FFF', borderRadius: 'var(--radius-md)' }}>
+                    <div style={{ width: '100%', height: '110px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
                       <img src={sp.thumbnailUrl} alt={sp.reference} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                     </div>
-                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>{sp.brand}</span>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>{sp.reference}</h4>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Talla {sp.eyeSize}</span>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: '0.3rem' }}>{sp.brand}</span>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.35rem 0', wordBreak: 'break-word' }}>{sp.reference}</h4>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Talla {sp.eyeSize}</span>
                   </div>
                 </Link>
               ))}

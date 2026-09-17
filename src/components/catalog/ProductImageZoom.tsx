@@ -40,71 +40,91 @@ export function ProductImageZoom({ mainImage, altText, thumbnails = [] }: Produc
   const allImages = Array.from(new Set([mainImage, ...thumbnails].filter(Boolean)));
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <style>{`
+        .pdp-zoom-container {
+          position: relative;
+          background-color: #FFFFFF;
+          border-radius: var(--radius-lg);
+          padding: 2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid var(--border-light);
+          min-height: 440px;
+          height: 440px;
+          overflow: hidden;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+          user-select: none;
+        }
+        .pdp-zoom-img {
+          width: 100%;
+          max-width: 480px;
+          max-height: 380px;
+          object-fit: contain;
+          pointer-events: none;
+        }
+        .pdp-zoom-badge {
+          position: absolute;
+          bottom: 14px;
+          right: 14px;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background-color: rgba(255, 255, 255, 0.92);
+          backdrop-filter: blur(4px);
+          padding: 0.35rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--text-secondary);
+          border: 1px solid var(--border-medium);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          pointer-events: none;
+        }
+        @media (max-width: 768px) {
+          .pdp-zoom-container {
+            min-height: 260px !important;
+            height: 280px !important;
+            padding: 1rem !important;
+          }
+          .pdp-zoom-img {
+            max-height: 240px !important;
+          }
+          .pdp-zoom-badge {
+            display: none !important;
+          }
+        }
+      `}</style>
       {/* Main Image Container with Magnifier */}
       <div
         ref={containerRef}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        className="pdp-zoom-container"
         style={{
-          position: 'relative',
-          backgroundColor: '#FFFFFF',
-          borderRadius: 'var(--radius-lg)',
-          padding: '2rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px solid var(--border-light)',
-          minHeight: '440px',
-          height: '440px',
-          overflow: 'hidden',
           cursor: isZoomed ? 'crosshair' : 'zoom-in',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
-          userSelect: 'none',
         }}
       >
         {/* Zoomed Image */}
         <img
           src={activeImage}
           alt={altText}
+          className="pdp-zoom-img"
           style={{
-            width: '100%',
-            maxWidth: '480px',
-            maxHeight: '380px',
-            objectFit: 'contain',
             transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
             transform: isZoomed ? 'scale(2.4)' : 'scale(1)',
             transition: isZoomed ? 'transform 0.08s ease-out' : 'transform 0.3s ease-out, transform-origin 0.3s ease-out',
-            pointerEvents: 'none',
           }}
           onError={(e) => {
             (e.target as HTMLImageElement).src = '/images/product-placeholder.png';
           }}
         />
 
-        {/* Floating "Ampliar" Badge */}
+        {/* Floating "Ampliar" Badge (visible on desktop) */}
         {!isZoomed && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '14px',
-              right: '14px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              backgroundColor: 'rgba(255, 255, 255, 0.92)',
-              backdropFilter: 'blur(4px)',
-              padding: '0.35rem 0.75rem',
-              borderRadius: '20px',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: 'var(--text-secondary)',
-              border: '1px solid var(--border-medium)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              pointerEvents: 'none',
-            }}
-          >
+          <div className="pdp-zoom-badge">
             <ZoomIn size={14} color="var(--blue)" />
             Pasa el cursor para ampliar
           </div>
