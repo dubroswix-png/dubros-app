@@ -307,7 +307,7 @@ export async function POST(request: NextRequest) {
     syncNotes.push(`[Sincronizado en Switch ERP #${numeroInterno}]`);
     syncNotes.push(`• Artículos procesados con stock: ${articulos.length} (${articulos.reduce((sum, a) => sum + a.cantidad, 0)} pzs)`);
     if (excludedItems.length > 0) {
-      syncNotes.push(`• Agotados excluidos (${excludedItems.length}): ${excludedItems.map((e) => `${e.reference} (${e.reason})`).join(', ')}`);
+      syncNotes.push(`• Agotados excluidos (${excludedItems.length}): ${excludedItems.map((e) => e.reference).join(', ')}`);
     }
     if (adjustedItems.length > 0) {
       syncNotes.push(`• Cantidad ajustada por stock parcial: ${adjustedItems.map((a) => `${a.reference} (${a.sentQty} de ${a.requestedQty} pzs)`).join(', ')}`);

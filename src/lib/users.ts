@@ -8,7 +8,9 @@ export interface UserProfileRecord {
   name?: string;
   full_name?: string;
   phone?: string;
+  whatsapp?: string;
   country?: string;
+  country_code?: string;
   company_name?: string;
   business_type?: string;
   tax_id?: string;
@@ -28,6 +30,9 @@ export const MOCK_ADMIN_USERS: UserProfileRecord[] = (bubbleUsers as any[]).map(
   name: u.full_name || u.email.split('@')[0],
   company_name: u.company_name || (u.client_code ? `Cliente #${u.client_code}` : 'Óptica / Distribuidor'),
   country: u.country_code || 'PA',
+  country_code: u.country_code || 'PA',
+  phone: u.phone || u.whatsapp || '',
+  whatsapp: u.whatsapp || u.phone || '',
   business_type: u.business_type || 'Óptica',
   role: isUserAdmin(u.email) ? 'admin' : isUserManager(u.email) ? 'manager' : 'client',
   erp_client_id: u.client_code ? Number(u.client_code) : null,
@@ -50,11 +55,24 @@ export async function fetchAllProfiles(): Promise<UserProfileRecord[]> {
     const dbEmails = new Set(dbProfiles.map((p) => p.email.toLowerCase()));
     const missingMocks = MOCK_ADMIN_USERS.filter((m) => !dbEmails.has(m.email.toLowerCase()));
 
-    const all = [...dbProfiles, ...missingMocks].map((p) => ({
-      ...p,
-      name: p.full_name || p.name || p.email.split('@')[0],
-      role: isUserAdmin(p.email) ? 'admin' : isUserManager(p.email) ? 'manager' : (p.role || 'client'),
-    }));
+    const all = [...dbProfiles, ...missingMocks].map((p) => {
+      const canonicalCode = (p.erp_client_code || p.client_code || (p.erp_client_id != null ? String(p.erp_client_id) : ''))?.trim() || null;
+      const phoneVal = (p.whatsapp || p.phone || p.telefono || '')?.trim();
+      const countryVal = p.country || p.country_code || 'PA';
+
+      return {
+        ...p,
+        name: p.full_name || p.name || p.email.split('@')[0],
+        phone: phoneVal,
+        whatsapp: phoneVal,
+        country: countryVal,
+        country_code: p.country_code || countryVal,
+        client_code: canonicalCode,
+        erp_client_code: canonicalCode,
+        erp_client_id: canonicalCode && !isNaN(Number(canonicalCode)) ? Number(canonicalCode) : (p.erp_client_id ?? null),
+        role: isUserAdmin(p.email) ? 'admin' : isUserManager(p.email) ? 'manager' : (p.role || 'client'),
+      };
+    });
 
     return all as UserProfileRecord[];
   } catch (e) {

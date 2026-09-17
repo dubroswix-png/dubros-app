@@ -40,6 +40,9 @@ export async function POST(req: Request) {
 
     const userId = authData.user.id;
 
+    const cleanCode = (erpClientCode || '').trim() || null;
+    const numCode = cleanCode && !isNaN(Number(cleanCode)) ? Number(cleanCode) : null;
+
     // 2. Insert or update profile in public.profiles table
     const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
       id: userId,
@@ -50,7 +53,9 @@ export async function POST(req: Request) {
       country_code: country || 'PA',
       whatsapp: whatsapp || '',
       role: role || 'client',
-      erp_client_code: erpClientCode || null,
+      erp_client_code: cleanCode,
+      client_code: cleanCode,
+      erp_client_id: numCode,
       onboarding_completed: true,
     }, { onConflict: 'id' });
 

@@ -173,10 +173,10 @@ export default function AdminUsersPage() {
       escapeCsv(u.email),
       escapeCsv(u.full_name || u.name || ''),
       escapeCsv(u.company_name || ''),
-      escapeCsv(u.country || ''),
-      escapeCsv(u.phone || ''),
+      escapeCsv(u.country || u.country_code || ''),
+      escapeCsv(u.whatsapp || u.phone || ''),
       escapeCsv(u.role === 'admin' ? 'Administrador' : u.role === 'manager' ? 'Gerente' : u.role === 'client' ? 'Cliente' : 'Pendiente'),
-      escapeCsv(u.erp_client_code || u.client_code || u.erp_client_id || ''),
+      escapeCsv(u.client_code || u.erp_client_code || (u.erp_client_id != null ? String(u.erp_client_id) : '')),
       escapeCsv(u.business_type || ''),
       escapeCsv(u.created_at || '')
     ]);
@@ -331,13 +331,14 @@ export default function AdminUsersPage() {
         const nameMatch = user.name?.toLowerCase().includes(query);
         const emailMatch = user.email?.toLowerCase().includes(query);
         const companyMatch = user.company_name?.toLowerCase().includes(query);
-        const countryMatch = user.country?.toLowerCase().includes(query);
+        const countryMatch = (user.country || user.country_code)?.toLowerCase().includes(query);
+        const phoneMatch = user.whatsapp?.toLowerCase().includes(query) || user.phone?.toLowerCase().includes(query);
         const codeMatch =
           (user.erp_client_id !== undefined && user.erp_client_id !== null && user.erp_client_id.toString().includes(query)) ||
           (user.client_code && user.client_code.toLowerCase().includes(query)) ||
           (user.erp_client_code && user.erp_client_code.toLowerCase().includes(query));
 
-        return nameMatch || emailMatch || companyMatch || countryMatch || codeMatch;
+        return nameMatch || emailMatch || companyMatch || countryMatch || phoneMatch || codeMatch;
       }
 
       return true;
@@ -829,40 +830,28 @@ export default function AdminUsersPage() {
                     </td>
 
                     <td style={{ padding: '1.25rem 1rem' }}>
-                      {user.erp_client_id != null ? (
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            padding: '0.2rem 0.55rem',
-                            borderRadius: '6px',
-                            backgroundColor: '#EFF6FF',
-                            color: '#1D4ED8',
-                            fontWeight: 700,
-                            fontSize: '0.82rem',
-                            border: '1px solid #BFDBFE',
-                          }}
-                        >
-                          #{user.erp_client_id}
-                        </span>
-                      ) : user.client_code ? (
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            padding: '0.2rem 0.55rem',
-                            borderRadius: '6px',
-                            backgroundColor: '#F3F4F6',
-                            color: '#4B5563',
-                            fontWeight: 600,
-                            fontSize: '0.82rem',
-                          }}
-                        >
-                          {user.client_code}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>—</span>
-                      )}
+                      {(() => {
+                        const code = user.client_code || user.erp_client_code || (user.erp_client_id != null ? String(user.erp_client_id) : '');
+                        return code ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              padding: '0.2rem 0.55rem',
+                              borderRadius: '6px',
+                              backgroundColor: '#EFF6FF',
+                              color: '#1D4ED8',
+                              fontWeight: 700,
+                              fontSize: '0.82rem',
+                              border: '1px solid #BFDBFE',
+                            }}
+                          >
+                            {code}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>—</span>
+                        );
+                      })()}
                     </td>
 
                     <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
@@ -870,8 +859,8 @@ export default function AdminUsersPage() {
                     </td>
 
                     <td style={{ padding: '1.25rem 1.5rem' }}>
-                      <div style={{ fontWeight: 600 }}>{user.country || 'No especificado'}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{user.phone || 'Sin teléfono'}</div>
+                      <div style={{ fontWeight: 600 }}>{user.country || user.country_code || 'Panamá'}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{user.whatsapp || user.phone || 'Sin teléfono'}</div>
                     </td>
 
                     <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>

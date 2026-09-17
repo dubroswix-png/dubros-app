@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseAdmin = createClient(
@@ -115,7 +115,9 @@ export async function POST(req: Request) {
               country_code: country,
               whatsapp,
               role,
-              erp_client_code: erpCode,
+              erp_client_code: erpCode || null,
+              client_code: erpCode || null,
+              erp_client_id: erpCode && !isNaN(Number(erpCode)) ? Number(erpCode) : null,
               onboarding_completed: true,
             },
             { onConflict: 'id' }
