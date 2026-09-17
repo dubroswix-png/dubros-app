@@ -65,21 +65,88 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Load saved cart on mount
+  // Restore server cart if local cart is empty
+  const restoreServerCart = async (userId: string) => {
+    try {
+      const { data: serverOrder } = await supabase
+        .from('orders')
+        .select('*, order_items(*, product:products(id, reference, code, description, price, eye_size, material, sale_type, thumbnail_url, large_image_url, brand_id, brands(name)))')
+        .eq('user_id', userId)
+        .eq('status', 'Carrito')
+        .maybeSingle();
+
+      if (serverOrder && serverOrder.order_items && serverOrder.order_items.length > 0) {
+        const items: CartItem[] = serverOrder.order_items.map((oi: any) => ({
+          product: {
+            id: oi.product?.id || oi.product_id,
+            reference: oi.reference,
+            code: oi.code,
+            description: oi.product?.description || '',
+            price: oi.unit_price,
+            eyeSize: oi.product?.eye_size || 0,
+            material: oi.material || 'Metal',
+            saleType: oi.product?.sale_type || 'PIEZA',
+            brand: oi.brand || oi.product?.brands?.name || 'Dubros',
+            quantity: oi.product?.quantity || 10,
+            flex: oi.product?.flex || false,
+            gender: oi.product?.gender || 'Unisex',
+            category: oi.product?.category || 'General',
+            thumbnailUrl: oi.product?.thumbnail_url || '/images/product-placeholder.png',
+            largeImageUrl: oi.product?.large_image_url || oi.product?.thumbnail_url || '/images/product-placeholder.png',
+          },
+          quantity: oi.quantity,
+        }));
+
+        setCartItems(items);
+        try {
+          localStorage.setItem('dubros_cart', JSON.stringify(items));
+        } catch (err) {
+          // ignore
+        }
+      }
+    } catch (e) {
+      console.error('Error restoring server cart:', e);
+    }
+  };
+
+  // Load saved cart on mount and sync with server
   React.useEffect(() => {
+    let localHasItems = false;
     try {
       const saved = localStorage.getItem('dubros_cart');
       if (saved) {
         const parsed = JSON.parse(saved);
-        setCartItems(parsed);
-        // Sync existing cart to server if user is logged in
-        if (parsed.length > 0) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCartItems(parsed);
+          localHasItems = true;
           syncCartWithServer(parsed, false);
         }
       }
     } catch (e) {
       console.error('Error loading cart from localStorage', e);
     }
+
+    // If local cart has no items, check if logged in user has an active server Carrito
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data?.session?.user;
+      if (u && !localHasItems) {
+        restoreServerCart(u.id);
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const saved = localStorage.getItem('dubros_cart');
+        const parsed = saved ? JSON.parse(saved) : [];
+        if (!parsed || parsed.length === 0) {
+          restoreServerCart(session.user.id);
+        }
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   // Sync cart to localStorage and server on change
