@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X, Trash2, Download } from 'lucide-react';
+import { Search, CheckCircle2, Clock, ShieldCheck, UserCheck, AlertCircle, RefreshCw, UserPlus, ArrowLeft, Camera, Loader2, KeyRound, Copy, Check, X, Trash2, Download, Pencil } from 'lucide-react';
 import { fetchAllProfiles, updateUserRole, UserProfileRecord } from '@/lib/users';
 import { UserRole, useAuth, hasAdminAccess, isUserAdmin, isUserManager } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -35,6 +35,22 @@ export default function AdminUsersPage() {
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [passwordModalMsg, setPasswordModalMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Edit User Modal State
+  const [userToEdit, setUserToEdit] = useState<UserProfileRecord | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editCompany, setEditCompany] = useState('');
+  const [editCountry, setEditCountry] = useState('PA');
+  const [editWhatsappCode, setEditWhatsappCode] = useState('+507');
+  const [editWhatsapp, setEditWhatsapp] = useState('');
+  const [editRole, setEditRole] = useState<UserRole>('client');
+  const [editErpCode, setEditErpCode] = useState('');
+  const [editBusinessType, setEditBusinessType] = useState('Óptica');
+  const [editTaxId, setEditTaxId] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   // New User Form State
   const [isCreatingUser, setIsCreatingUser] = useState(false);
@@ -112,6 +128,93 @@ export default function AdminUsersPage() {
       setCreateError('Error de red al conectar con el servidor.');
     } finally {
       setCreatingLoading(false);
+    }
+  };
+
+  const openEditModal = (user: UserProfileRecord) => {
+    setUserToEdit(user);
+    setEditName(user.full_name || user.name || '');
+    setEditEmail(user.email || '');
+    setEditCompany(user.company_name || '');
+
+    // Country and Dial code resolution
+    const countryVal = user.country_code || user.country || 'PA';
+    const countryObj = LATAM_COUNTRIES.find(
+      (c) => c.code.toLowerCase() === countryVal.toLowerCase() || c.name.toLowerCase() === countryVal.toLowerCase()
+    );
+    const resolvedCountryCode = countryObj?.code || 'PA';
+    setEditCountry(resolvedCountryCode);
+
+    // Extract phone dial code & number
+    const rawPhone = (user.whatsapp || user.phone || '').trim();
+    let dialCode = countryObj?.dialCode || '+507';
+    let phoneNum = rawPhone;
+
+    const sortedCountries = [...LATAM_COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length);
+    for (const c of sortedCountries) {
+      if (rawPhone.startsWith(c.dialCode)) {
+        dialCode = c.dialCode;
+        phoneNum = rawPhone.slice(c.dialCode.length).trim();
+        break;
+      }
+    }
+    setEditWhatsappCode(dialCode);
+    setEditWhatsapp(phoneNum);
+
+    setEditRole(user.role || 'client');
+    const code = user.client_code || user.erp_client_code || (user.erp_client_id != null ? String(user.erp_client_id) : '');
+    setEditErpCode(code);
+    setEditBusinessType(user.business_type || 'Óptica');
+    setEditTaxId(user.tax_id || '');
+    setEditAddress(user.address || '');
+    setEditError(null);
+  };
+
+  const handleEditUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userToEdit) return;
+    setEditError(null);
+    setEditLoading(true);
+
+    try {
+      const fullWhatsapp = editWhatsapp ? `${editWhatsappCode} ${editWhatsapp}`.trim() : '';
+
+      const res = await fetch('/api/admin/users/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userToEdit.id,
+          name: editName,
+          email: editEmail,
+          companyName: editCompany,
+          country: editCountry,
+          whatsapp: fullWhatsapp,
+          role: editRole,
+          erpClientCode: editErpCode || null,
+          businessType: editBusinessType,
+          taxId: editTaxId,
+          address: editAddress,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setEditError(data.error || 'Error al actualizar el cliente.');
+      } else {
+        showToast('Cliente actualizado correctamente.', 'success');
+        setNotification({
+          type: 'success',
+          message: `Cliente ${editEmail} actualizado exitosamente.`,
+        });
+        setUserToEdit(null);
+        await loadData();
+        setTimeout(() => setNotification(null), 5000);
+      }
+    } catch {
+      setEditError('Error de red al conectar con el servidor.');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -935,6 +1038,23 @@ export default function AdminUsersPage() {
 
                         <button
                           disabled={processingId === user.id}
+                          onClick={() => openEditModal(user)}
+                          className="btn-secondary"
+                          style={{
+                            padding: '0.35rem 0.75rem',
+                            fontSize: '0.75rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            color: '#0F172A',
+                          }}
+                          title={`Editar datos de ${user.email}`}
+                        >
+                          <Pencil size={13} color="var(--blue)" /> Editar
+                        </button>
+
+                        <button
+                          disabled={processingId === user.id}
                           onClick={() => {
                             setPasswordModalUser(user);
                             setGeneratedLink(null);
@@ -1014,6 +1134,269 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {/* EDIT USER / CLIENT MODAL */}
+      {userToEdit && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '1rem',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              padding: '2rem',
+              maxWidth: '680px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--blue)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Gestión de Clientes
+                </span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0.25rem 0', color: '#0F172A' }}>
+                  Editar Datos del Cliente
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: '#64748B', margin: 0 }}>
+                  ID: <code style={{ fontSize: '0.8rem', backgroundColor: '#F1F5F9', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>{userToEdit.id}</code>
+                </p>
+              </div>
+              <button
+                onClick={() => setUserToEdit(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {editError && (
+              <div
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  marginBottom: '1.25rem',
+                  backgroundColor: '#FEF2F2',
+                  color: '#991B1B',
+                  border: '1px solid #FECACA',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                }}
+              >
+                <AlertCircle size={16} color="#DC2626" />
+                <span>{editError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleEditUserSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    Nombre o Contacto *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Nombre completo"
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    Correo Electrónico *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    placeholder="correo@ejemplo.com"
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    Nombre de la Óptica / Empresa
+                  </label>
+                  <input
+                    type="text"
+                    value={editCompany}
+                    onChange={(e) => setEditCompany(e.target.value)}
+                    placeholder="Ej. Óptica Visión Real"
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    Código ERP / Código Cliente
+                  </label>
+                  <input
+                    type="text"
+                    value={editErpCode}
+                    onChange={(e) => setEditErpCode(e.target.value)}
+                    placeholder="Ej. 2800"
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem' }}
+                  />
+                  <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                    Sincroniza erp_client_code, client_code y erp_client_id.
+                  </span>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    País
+                  </label>
+                  <select
+                    value={editCountry}
+                    onChange={(e) => {
+                      const selectedCode = e.target.value;
+                      setEditCountry(selectedCode);
+                      const countryObj = LATAM_COUNTRIES.find((c) => c.code === selectedCode || c.name === selectedCode);
+                      if (countryObj?.dialCode) {
+                        setEditWhatsappCode(countryObj.dialCode);
+                      }
+                    }}
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem', backgroundColor: '#FFFFFF' }}
+                  >
+                    {LATAM_COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag ? `${c.flag} ` : ''}{c.name} ({c.dialCode})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    WhatsApp / Teléfono
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <input
+                      type="text"
+                      value={editWhatsappCode}
+                      onChange={(e) => setEditWhatsappCode(e.target.value)}
+                      style={{ width: '75px', padding: '0.6rem 0.5rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem', textAlign: 'center' }}
+                    />
+                    <input
+                      type="tel"
+                      value={editWhatsapp}
+                      onChange={(e) => setEditWhatsapp(e.target.value)}
+                      placeholder="Ej. 61234567"
+                      style={{ flex: 1, padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    Tipo de Negocio
+                  </label>
+                  <input
+                    type="text"
+                    value={editBusinessType}
+                    onChange={(e) => setEditBusinessType(e.target.value)}
+                    placeholder="Ej. Óptica, Clínica, Mayorista"
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    RUC / Cédula / Tax ID
+                  </label>
+                  <input
+                    type="text"
+                    value={editTaxId}
+                    onChange={(e) => setEditTaxId(e.target.value)}
+                    placeholder="Ej. 155688223-2-2021"
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem' }}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    Dirección Física / Despacho
+                  </label>
+                  <input
+                    type="text"
+                    value={editAddress}
+                    onChange={(e) => setEditAddress(e.target.value)}
+                    placeholder="Ej. Vía España, Edificio Galerías, Piso 2, Ciudad de Panamá"
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem' }}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    Estado / Rol del Usuario
+                  </label>
+                  <select
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value as UserRole)}
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem', backgroundColor: '#FFFFFF' }}
+                  >
+                    <option value="client">✅ Cliente B2B (Aprobado)</option>
+                    <option value="pending">⏳ Pendiente de Aprobación</option>
+                    {isAdmin && (
+                      <>
+                        <option value="manager">👔 Gerente (Permisos de Gestión)</option>
+                        <option value="admin">🛡️ Administrador del Sistema</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', borderTop: '1px solid #E2E8F0', paddingTop: '1.25rem' }}>
+                <button
+                  type="button"
+                  disabled={editLoading}
+                  onClick={() => setUserToEdit(null)}
+                  className="btn-secondary"
+                  style={{ padding: '0.6rem 1.25rem', fontSize: '0.88rem' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={editLoading}
+                  className="btn-primary"
+                  style={{
+                    padding: '0.6rem 1.5rem',
+                    fontSize: '0.88rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    backgroundColor: '#004A99',
+                  }}
+                >
+                  {editLoading && <Loader2 size={15} className="animate-spin" />}
+                  {editLoading ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* PASSWORD RESET / UPDATE MODAL */}
       {passwordModalUser && (
