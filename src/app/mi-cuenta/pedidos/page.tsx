@@ -205,7 +205,7 @@ export default function MyOrdersPage() {
                       </span>
                     </div>
 
-                    <OrderStatusBadge status={order.status} size="md" />
+                    <OrderStatusBadge status={order.switch_order_number ? 'Completado' : order.status} size="md" />
                   </div>
                 </div>
 

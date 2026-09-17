@@ -17,7 +17,11 @@ export interface OrderListItemProps {
 export const OrderListItem: React.FC<OrderListItemProps> = ({ order, onClick, isAdmin, onDelete }) => {
   const totalPieces = order.total_items || (order.order_items || []).reduce((acc, i) => acc + (i.quantity || 1), 0);
   const clientName = order.company_name || order.customer_name || 'Cliente';
-  const effectiveStatus = order.switch_order_number ? 'Procesado' : (order.status === 'En Proceso' ? 'Procesado' : order.status);
+  const effectiveStatus = order.switch_order_number
+    ? 'Completado'
+    : order.status === 'En Proceso' || order.status === 'Procesado' || order.status === 'Completada'
+    ? 'Completado'
+    : order.status;
 
   return (
     <div

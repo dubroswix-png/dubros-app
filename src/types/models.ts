@@ -67,7 +67,7 @@ export interface OrderItem {
   quantity: number;
 }
 
-export type OrderStatus = 'Completada' | 'Pendiente' | 'Cancelada' | 'En Proceso';
+export type OrderStatus = 'Completado' | 'Completada' | 'Pendiente' | 'Cancelada' | 'Carrito';
 
 export interface Order {
   id: string;

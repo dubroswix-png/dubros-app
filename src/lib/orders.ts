@@ -25,7 +25,7 @@ export interface OrderRecord {
   phone?: string;
   shipping_address?: string;
   notes?: string;
-  status: 'Carrito' | 'Pendiente' | 'En Proceso' | 'Procesando' | 'Completada' | 'Cancelada';
+  status: 'Carrito' | 'Pendiente' | 'Completado' | 'Completada' | 'En Proceso' | 'Procesado' | 'Procesando' | 'Cancelada';
   total_items: number;
   subtotal: number;
   switch_order_number?: string;

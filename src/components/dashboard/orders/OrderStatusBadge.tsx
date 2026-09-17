@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export type OrderStatusType = 'Pendiente' | 'En Proceso' | 'Completada' | 'Cancelada' | 'Procesado' | string;
+export type OrderStatusType = 'Pendiente' | 'Completado' | 'Completada' | 'Procesado' | 'En Proceso' | 'Cancelada' | 'Carrito' | string;
 
 export interface OrderStatusBadgeProps {
   status: OrderStatusType;
@@ -13,6 +13,7 @@ export interface OrderStatusBadgeProps {
 
 export function getStatusTheme(status: OrderStatusType) {
   switch (status) {
+    case 'Completado':
     case 'Completada':
     case 'Procesado':
     case 'En Proceso':
@@ -35,8 +36,11 @@ export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({
 }) => {
   const theme = getStatusTheme(status);
 
-  // Normalize 'En Proceso' to 'Procesado' for clear green visual indicator
-  const displayLabel = status === 'En Proceso' || status === 'Procesado' ? 'Procesado' : (status || 'Pendiente');
+  // Normalize 'En Proceso', 'Procesado', and 'Completada' to 'Completado'
+  const displayLabel =
+    status === 'En Proceso' || status === 'Procesado' || status === 'Completada' || status === 'Completado'
+      ? 'Completado'
+      : (status || 'Pendiente');
 
   const sizeStyles: Record<string, React.CSSProperties> = {
     sm: { padding: '0.2rem 0.6rem', fontSize: '0.72rem' },

@@ -113,7 +113,21 @@ export default function AdminOrdersPage() {
         order.customer_name?.toLowerCase().includes(searchLower) ||
         order.company_name?.toLowerCase().includes(searchLower);
 
-      const matchStatus = !statusFilter || statusFilter === 'Todas' || order.status === statusFilter;
+      const isCompleted =
+        !!order.switch_order_number ||
+        order.status === 'Completado' ||
+        order.status === 'Completada' ||
+        order.status === 'Procesado' ||
+        order.status === 'En Proceso';
+
+      const matchStatus =
+        !statusFilter ||
+        statusFilter === 'Todas' ||
+        (statusFilter === 'Completado'
+          ? isCompleted
+          : statusFilter === 'Pendiente'
+          ? order.status === 'Pendiente' && !order.switch_order_number
+          : order.status === statusFilter);
 
       let matchDate = true;
       if (dateFrom || dateTo) {
@@ -336,7 +350,7 @@ export default function AdminOrdersPage() {
 
         setOrders((prev) =>
           prev.map((o) =>
-            o.id === orderId ? { ...o, switch_order_number: switchNum, status: 'En Proceso' } : o
+            o.id === orderId ? { ...o, switch_order_number: switchNum, status: 'Completado' } : o
           )
         );
 

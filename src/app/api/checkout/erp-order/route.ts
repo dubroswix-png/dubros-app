@@ -324,7 +324,7 @@ export async function POST(request: NextRequest) {
         erp_order_id: pedidoId,
         payment_url: urlswitchpay,
         switch_synced: true,
-        status: 'En Proceso',
+        status: 'Completado',
         notes: updatedNotes,
         updated_at: new Date().toISOString(),
       })

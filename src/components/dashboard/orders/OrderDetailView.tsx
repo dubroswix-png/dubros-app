@@ -494,7 +494,7 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({
           <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.2rem' }}>
             Estado
           </span>
-          <OrderStatusBadge status={order.switch_order_number ? 'Procesado' : order.status} size="sm" />
+          <OrderStatusBadge status={order.switch_order_number ? 'Completado' : order.status} size="sm" />
         </div>
 
         {order.switch_order_number && (
