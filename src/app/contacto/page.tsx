@@ -399,7 +399,15 @@ export default function ContactPage() {
                   </label>
                   <select
                     value={formData.pais}
-                    onChange={(e) => setFormData({ ...formData, pais: e.target.value })}
+                    onChange={(e) => {
+                      const selectedName = e.target.value;
+                      const countryObj = LATAM_COUNTRIES.find((c) => c.name === selectedName || c.code === selectedName);
+                      setFormData((prev) => ({
+                        ...prev,
+                        pais: selectedName,
+                        whatsappCodigo: countryObj?.dialCode || prev.whatsappCodigo,
+                      }));
+                    }}
                     style={{
                       width: '100%',
                       padding: '0.7rem 0.9rem',

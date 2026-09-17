@@ -99,7 +99,10 @@ export default function AdminUsersPage() {
         setNewUserEmail('');
         setNewUserPassword('');
         setNewUserCompany('');
+        setNewUserCountry('PA');
+        setNewUserWhatsappCode('+507');
         setNewUserWhatsapp('');
+        setNewUserRole('client');
         setNewUserErpCode('');
         setIsCreatingUser(false);
         await loadData();
@@ -488,12 +491,19 @@ export default function AdminUsersPage() {
                   </label>
                   <select
                     value={newUserCountry}
-                    onChange={(e) => setNewUserCountry(e.target.value)}
+                    onChange={(e) => {
+                      const selectedCode = e.target.value;
+                      setNewUserCountry(selectedCode);
+                      const countryObj = LATAM_COUNTRIES.find((c) => c.code === selectedCode || c.name === selectedCode);
+                      if (countryObj?.dialCode) {
+                        setNewUserWhatsappCode(countryObj.dialCode);
+                      }
+                    }}
                     style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem', backgroundColor: '#FFFFFF' }}
                   >
                     {LATAM_COUNTRIES.map((c) => (
                       <option key={c.code} value={c.code}>
-                        {c.name}
+                        {c.flag ? `${c.flag} ` : ''}{c.name} ({c.dialCode})
                       </option>
                     ))}
                   </select>
