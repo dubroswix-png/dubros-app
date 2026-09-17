@@ -897,7 +897,7 @@ export async function getBrands(): Promise<SupabaseBrand[]> {
     const { data, error } = await supabase
       .from('brands')
       .select('id, name, active')
-      .neq('active', false)
+      .eq('active', true)
       .order('name', { ascending: true });
 
     if (error || !data || data.length === 0) {
