@@ -1,277 +1,105 @@
-'use client';
-
-import React, { useState, useEffect, use } from 'react';
-import Link from 'next/link';
+import React from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Globe2, Award, ChevronRight, Heart, Loader2 } from 'lucide-react';
-import { getProductById, getFeaturedProducts, isDocena } from '@/lib/products';
-import type { Product } from '@/data/mock';
-import { ProductCard } from '@/components/catalog/ProductCard';
-import { ProductImageZoom } from '@/components/catalog/ProductImageZoom';
-import { useCart } from '@/context/CartContext';
-import { useFavorites } from '@/context/FavoritesContext';
-import { useAuth } from '@/context/AuthContext';
-import { useLanguage } from '@/context/LanguageContext';
+import { getProductById, getFeaturedProducts } from '@/lib/products';
+import { ProductDetailClient } from '@/components/catalog/ProductDetailClient';
 
-export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const { addToCart } = useCart();
-  const { toggleFavorite, isFavorite } = useFavorites();
-  const { isLoggedIn } = useAuth();
-  const { t } = useLanguage();
+interface Props {
+  params: Promise<{ id: string }>;
+}
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [notFoundState, setNotFoundState] = useState(false);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProductById(id);
 
-  useEffect(() => {
-    async function loadProduct() {
-      setLoading(true);
-      const data = await getProductById(resolvedParams.id);
-      if (!data) {
-        setNotFoundState(true);
-      } else {
-        setProduct(data);
-        const featured = await getFeaturedProducts(4);
-        setSuggestedProducts(featured.filter((p) => p.id !== data.id));
-      }
-      setLoading(false);
-    }
-    loadProduct();
-  }, [resolvedParams.id]);
+  if (!product) {
+    return {
+      title: 'Producto no encontrado | Dubros Eyewear',
+      description: 'El modelo o referencia solicitada no está disponible en el catálogo.',
+    };
+  }
 
-  if (notFoundState) {
+  const title = `${product.reference} - ${product.brand} | Montura Óptica B2B`;
+  const description = `${product.description || `Montura de calidad óptica ${product.brand} referencia ${product.reference}. Material: ${product.material || 'Metal'}, Género: ${product.gender || 'Unisex'}. Distribución mayorista B2B desde Zona Libre de Colón.`}`;
+  const imageUrl = product.largeImageUrl || product.thumbnailUrl || 'https://dubros.com/images/logo.png';
+
+  return {
+    title,
+    description,
+    keywords: [
+      product.brand,
+      product.reference,
+      product.material || 'óptica',
+      'monturas ópticas',
+      'lentes B2B',
+      'distribución óptica mayorista',
+    ],
+    openGraph: {
+      title: `${title} | Dubros Eyewear`,
+      description,
+      url: `https://dubros.com/catalogo/${product.id}`,
+      siteName: 'Dubros Eyewear',
+      images: [
+        {
+          url: imageUrl,
+          width: 800,
+          height: 600,
+          alt: `${product.brand} ${product.reference}`,
+        },
+      ],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | Dubros Eyewear`,
+      description,
+      images: [imageUrl],
+    },
+  };
+}
+
+export default async function ProductDetailPage({ params }: Props) {
+  const { id } = await params;
+  const product = await getProductById(id);
+
+  if (!product) {
     notFound();
   }
 
-  if (loading || !product) {
-    return (
-      <div className="container" style={{ padding: '6rem 1.5rem', textAlign: 'center' }}>
-        <Loader2 size={40} color="var(--blue)" style={{ animation: 'spin 1s linear infinite', margin: '0 auto 1rem auto' }} />
-        <p style={{ color: 'var(--text-secondary)' }}>Cargando detalle del producto...</p>
-        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
+  const featured = await getFeaturedProducts(4);
+  const suggestedProducts = featured.filter((p) => p.id !== product.id);
 
-  const isFav = isFavorite(product.id);
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: `${product.brand} ${product.reference}`,
+    image: product.largeImageUrl || product.thumbnailUrl,
+    description: product.description || `Montura óptica ${product.brand} modelo ${product.reference}`,
+    sku: product.code || product.reference,
+    mpn: product.reference,
+    brand: {
+      '@type': 'Brand',
+      name: product.brand,
+    },
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'USD',
+      price: product.price,
+      availability: product.quantity > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'Dubros Eyewear',
+      },
+    },
+  };
 
   return (
-    <div style={{ paddingBottom: '4rem' }}>
-      {/* Breadcrumbs */}
-      <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1rem 0', borderBottom: '1px solid var(--border-light)' }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
-          <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Inicio</Link>
-          <ChevronRight size={14} />
-          <Link href="/catalogo" style={{ color: 'inherit', textDecoration: 'none' }}>Catálogo</Link>
-          <ChevronRight size={14} />
-          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{product.reference}</span>
-        </div>
-      </div>
-
-      <div className="container" style={{ paddingTop: '3rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}>
-          
-          {/* Left: Product Images with Interactive Magnifier Zoom */}
-          <div>
-            <ProductImageZoom
-              mainImage={product.largeImageUrl || product.thumbnailUrl}
-              altText={product.reference}
-              thumbnails={[product.largeImageUrl, product.thumbnailUrl, ...(product.extraImages || [])]}
-            />
-          </div>
-
-          {/* Right: Product Details */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <span style={{ backgroundColor: 'var(--text-primary)', color: '#FFF', padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, borderRadius: 'var(--radius-sm)' }}>
-                {product.brand}
-              </span>
-              <button
-                onClick={() => toggleFavorite(product.id)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: isFav ? 'var(--error)' : 'var(--text-tertiary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                <Heart size={24} fill={isFav ? 'currentColor' : 'none'} />
-              </button>
-            </div>
-
-            <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '1rem', lineHeight: 1.2 }}>
-              {product.reference}
-            </h1>
-            
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-              {product.description}
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.model' as any)}</span>
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.reference}</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.brand' as any)}</span>
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.brand}</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>{t('pdp.material' as any)}</span>
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {product.material && product.material !== '0' ? product.material : 'Metal'}
-                </span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Colección / Género</span>
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{product.gender}</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Flexibilidad</span>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: product.flex ? '#059669' : 'var(--text-primary)' }}>
-                  {product.flex ? '🔄 Con Flex' : '🔒 Sin Flex'}
-                </span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>Venta</span>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  👓 Por Pieza
-                </span>
-              </div>
-            </div>
-
-            {/* 3D Optical Dimensions Card */}
-            {(product.eyeSize > 0 || product.bridgeSize || product.templeLength || product.frameSize) && (
-              <div
-                style={{
-                  backgroundColor: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-light)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '1rem 1.25rem',
-                  marginBottom: '2rem',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--navy)' }}>
-                    👓 Dimensiones Ópticas (ISO 8624 Boxing System)
-                  </span>
-                  {product.frameSize && (
-                    <span style={{ fontSize: '0.75rem', fontWeight: 800, backgroundColor: 'var(--navy)', color: '#FFF', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
-                      {product.frameSize}
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', textAlign: 'center' }}>
-                  <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
-                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👁️ Calibre (Ojo)</span>
-                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.eyeSize ? `${product.eyeSize} mm` : 'Estándar'}</strong>
-                  </div>
-                  <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
-                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>👃 Puente Nasal</span>
-                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.bridgeSize ? `${product.bridgeSize} mm` : 'Estándar'}</strong>
-                  </div>
-                  <div style={{ backgroundColor: '#FFF', padding: '0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-medium)' }}>
-                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>📏 Varilla / Patilla</span>
-                    <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{product.templeLength ? `${product.templeLength} mm` : 'Estándar'}</strong>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div style={{ borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)', padding: '1.5rem 0', marginBottom: '2rem' }}>
-              {isLoggedIn ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div>
-                    <span
-                      style={{
-                        display: 'block',
-                        fontSize: '0.82rem',
-                        fontWeight: 600,
-                        color: 'var(--text-tertiary)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.02em',
-                      }}
-                    >
-                      Precio Unitario
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
-                      <span style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                        ${product.price.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => addToCart(product, 1)}
-                    className="btn-primary" 
-                    style={{ padding: '0.8rem 2rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                  >
-                    <ShoppingBag size={20} /> Agregar al carrito
-                  </button>
-                </div>
-              ) : (
-                <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.9rem', color: 'var(--text-tertiary)', display: 'block', marginBottom: '0.75rem' }}>
-                    {t('common.price.locked.full' as any)}
-                  </span>
-                  <Link href="/login" className="btn-secondary" style={{ padding: '0.5rem 1.5rem', display: 'inline-block' }}>
-                    {t('nav.login' as any)}
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <Globe2 size={20} color="var(--blue)" />
-                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('pdp.benefit.shipping' as any)}</span>
-              </li>
-              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <ShieldCheck size={20} color="var(--blue)" />
-                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('pdp.benefit.warranty' as any)}</span>
-              </li>
-              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <Award size={20} color="var(--blue)" />
-                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('pdp.benefit.durability' as any)}</span>
-              </li>
-              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <Truck size={20} color="var(--blue)" />
-                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('pdp.benefit.support' as any)}</span>
-              </li>
-            </ul>
-
-          </div>
-        </div>
-      </div>
-
-      {/* Suggested Products Section */}
-      {suggestedProducts.length > 0 && (
-        <div style={{ backgroundColor: 'var(--bg-secondary)', marginTop: '5rem', padding: '4rem 0' }}>
-          <div className="container">
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem', color: 'var(--text-primary)', textAlign: 'center' }}>
-              {t('pdp.suggested' as any)}
-            </h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
-              {suggestedProducts.map((sp) => (
-                <Link key={sp.id} href={`/catalogo/${sp.id}`} style={{ textDecoration: 'none' }}>
-                  <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem', textAlign: 'center', height: '100%', transition: 'transform 0.2s', backgroundColor: '#FFF' }}>
-                    <div style={{ width: '100%', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-                      <img src={sp.thumbnailUrl} alt={sp.reference} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                    </div>
-                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>{sp.brand}</span>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>{sp.reference}</h4>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Talla {sp.eyeSize}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <ProductDetailClient product={product} suggestedProducts={suggestedProducts} />
+    </>
   );
 }

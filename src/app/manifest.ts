@@ -1,0 +1,40 @@
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Dubros Eyewear | Distribución Óptica B2B',
+    short_name: 'Dubros',
+    description: 'Distribución mayorista de monturas ópticas y gafas de sol para ópticas y distribuidores en Latinoamérica.',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#FFFFFF',
+    theme_color: '#071D3A',
+    icons: [
+      {
+        src: '/favicon-16x16.png',
+        sizes: '16x16',
+        type: 'image/png',
+      },
+      {
+        src: '/favicon-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+      {
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+      {
+        src: '/apple-touch-icon.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+    ],
+  };
+}
