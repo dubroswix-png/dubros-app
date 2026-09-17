@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contacto y Asesoría Comercial B2B | Dubros Eyewear',
+  title: 'Contacto y Asesoría Comercial B2B',
   description: 'Contáctanos para abrir tu cuenta mayorista o solicitar cotizaciones para tu óptica. Distribución desde Zona Libre de Colón para toda Latinoamérica.',
   keywords: [
     'contacto Dubros Eyewear',

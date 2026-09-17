@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Blog y Novedades del Sector Óptico | Dubros Eyewear',
+  title: 'Blog y Novedades del Sector Óptico',
   description: 'Artículos, tendencias, materiales de monturas y consejos comerciales para profesionales y distribuidores del sector óptico en Latinoamérica.',
   keywords: [
     'blog óptica',

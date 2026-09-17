@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Catálogo Mayorista de Monturas Ópticas y Gafas de Sol | Dubros Eyewear',
+  title: 'Catálogo Mayorista de Monturas Ópticas y Gafas de Sol',
   description: 'Explora nuestro catálogo exclusivo B2B con más de 500 referencias de monturas ópticas y lentes de sol de alta calidad para ópticas y distribuidores mayoristas en Latinoamérica.',
   keywords: [
     'catálogo óptico mayorista',
