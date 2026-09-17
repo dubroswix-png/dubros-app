@@ -14,10 +14,16 @@ erDiagram
         string email
         string full_name
         string company_name
-        string ruc
+        string business_type
+        string country_code
         string phone
-        string country
+        string whatsapp
+        string tax_id
+        string address
         string role
+        string client_code
+        string erp_client_code
+        date birth_date
         timestamp created_at
     }
 
@@ -157,12 +163,33 @@ Contiene las más de 5,440 referencias ópticas sincronizadas con Switch ERP.
 | `customer_email`| `VARCHAR(255)`| NO | Correo del comprador mayorista |
 | `company_name` | `VARCHAR(255)`| SÍ | Razón social de la óptica o distribuidora |
 | `total_items` | `INTEGER` | NO | Cantidad de paquetes/unidades de compra en carrito |
-| `total_pieces`| `INTEGER` | NO | Total de piezas físicas reales (docenas multiplicadas x12) |
+| `total_pieces`| `INTEGER` | NO | Total de piezas físicas reales |
 | `subtotal` | `NUMERIC(10,2)`| NO | Total monetario calculado en USD |
-| `status` | `VARCHAR(30)` | NO | `'Pendiente'`, `'En Proceso'`, `'Completada'`, `'Cancelada'` |
+| `status` | `VARCHAR(30)` | NO | Flujo simplificado: `'Carrito'`, `'Pendiente'`, `'Completado'`, `'Cancelado'` |
 | `switch_order_number` | `VARCHAR(50)` | SÍ | Número de orden generado al sincronizar con Switch ERP |
 
-### 2.3. `order_items` (Líneas de Detalle de Pedido)
+### 2.3. `profiles` (Usuarios y Clientes Comerciales B2B)
+| Columna | Tipo | Nulo | Descripción |
+|---|---|---|---|
+| `id` | `UUID` | NO | Llave primaria (corresponde a `auth.users.id`) |
+| `email` | `VARCHAR(255)`| NO | Correo corporativo del usuario |
+| `full_name` | `VARCHAR(255)`| SÍ | Nombre de contacto comercial |
+| `company_name` | `VARCHAR(255)`| SÍ | Razón social de la óptica o cadena |
+| `business_type`| `VARCHAR(100)`| SÍ | Tipo de negocio (Óptica, Clínica, Mayorista, etc.) |
+| `country_code` | `VARCHAR(10)` | SÍ | Prefijo telefónico internacional (ej. `+507`) |
+| `whatsapp` | `VARCHAR(50)` | SÍ | Teléfono / WhatsApp con formato internacional |
+| `tax_id` | `VARCHAR(100)`| SÍ | RUC, NIT, RFC, CUIT u homologado según el país |
+| `address` | `TEXT` | SÍ | Dirección de entrega / despacho de pedidos |
+| `role` | `VARCHAR(20)` | NO | `'admin'`, `'manager'`, `'client'`, `'pending'` |
+| `client_code` | `VARCHAR(50)` | SÍ | Código interno asignado al cliente |
+| `erp_client_code` | `VARCHAR(50)` | SÍ | Código único sincronizado con Switch ERP |
+| `erp_client_id` | `INTEGER` | SÍ | ID numérico del cliente en Switch ERP |
+| `birth_date` | `DATE` | SÍ | Fecha de nacimiento para felicitaciones de cumpleaños y promociones |
+| `onboarding_completed` | `BOOLEAN` | NO | Indica si completó el proceso inicial de bienvenida |
+| `created_at` | `TIMESTAMP` | NO | Fecha y hora de registro |
+| `updated_at` | `TIMESTAMP` | NO | Última modificación del perfil |
+
+### 2.4. `order_items` (Líneas de Detalle de Pedido)
 | Columna | Tipo | Nulo | Descripción |
 |---|---|---|---|
 | `id` | `UUID` | NO | Llave primaria |

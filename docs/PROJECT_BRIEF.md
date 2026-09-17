@@ -17,37 +17,49 @@
 - **Administrador**:
   - Acceso al dashboard interno de gestión (`/dashboard`), control de inventario Switch ERP, importaciones masivas OCR, auditoría de precios y exportación de pedidos en formato XLSX nativo de Switch.
 
-### 2.2. Unidades de Venta y Regla de Precios (`PIEZA` vs `DOCENA`)
-- **Venta por Pieza (`PIEZA`)**:
-  - La unidad mínima de compra es 1 unidad física.
-  - El precio mostrado y facturado es el precio unitario directo.
-- **Venta por Docena (`DOCENA`)**:
-  - Aplica a estuches (`ST005BROWN`, etc.), cordones (`108RED`, etc.) y monturas específicas presentadas en paquetes de 12 unidades (ej. Prestige, Dreamy, Goretty, etc.).
-  - **Base de Datos y ERP**: Almacenan siempre el precio unitario por pieza individual para mantener la consistencia del inventario por unidad física en Switch ERP.
-  - **Experiencia de Usuario (Frontend)**:
-    - Etiqueta clara: `Precio DOCENA (12 pzs)`.
-    - Precio calculado en pantalla: `precio_unitario * 12`.
-    - Desglose informativo: `($X.XX c/u)`.
-    - El carrito agrega 1 unidad de compra = 1 docena (12 piezas físicas).
-  - **Sincronización con Switch ERP**:
-    - El exportador a Excel (`Switch_Pedido_*.xlsx`) exporta automáticamente `CANTIDAD: cantidad_docenas * 12` al precio unitario `precio_pieza`.
+### 2.2. Unidades de Venta y Catálogo Unificado
+- **Venta Unificada por Pieza Individual (`PIEZA`)**:
+  - Todo el catálogo mayorista opera con venta y tarificación transparente por pieza individual, facilitando la selección de referencias y combinación de modelos para ópticas y cadenas.
+  - Se sincroniza con Switch ERP manteniendo el precio unitario y cantidad física exacta en inventario.
+  - En la creación de órdenes de Switch ERP, solo se incluyen productos que cuenten con stock confirmado en bodega.
 
 ### 2.3. Reglas de Catálogo y Sincronización Switch ERP
-- **Filtrado Automático de Productos sin Foto (Opción A)**:
-  - Los productos recién ingresados en Switch ERP suelen demorar hasta 2 semanas en ser fotografiados. Para proteger la estética profesional del catálogo B2B, **todo artículo sin fotografía real verificada en AWS S3 se oculta automáticamente del catálogo público**, de las colecciones y de los productos destacados.
-  - Los artículos sin foto permanecen activos y auditables en el Dashboard administrativo (`/dashboard`), permitiendo al equipo monitorear qué referencias están pendientes de fotografía y cargar sus imágenes cuando estén listas.
-  - En cuanto se asocia o sube una imagen válida a AWS S3 (con soporte para `.jpg`, `.JPG`, `.png`, `.PNG`, `.jpeg`, `.webp`), el producto se hace visible de inmediato en el catálogo público.
+- **Filtrado Automático de Productos sin Foto**:
+  - Todo artículo sin fotografía real verificada en AWS S3 se oculta automáticamente del catálogo público, manteniéndose auditable en el Dashboard administrativo bajo "Sin Foto" hasta que se cargue su imagen.
+  - En cuanto se asocia una foto válida (`.jpg`, `.JPG`, `.png`, `.PNG`, `.webp`), el artículo se publica inmediatamente.
+- **Filtrado Dinámico de Marcas**:
+  - En los filtros del catálogo público solo se listan aquellas marcas que tienen stock físico real disponible en inventario.
+- **Persistencia y Restauración Automática del Carrito**:
+  - Al iniciar sesión, el sistema detecta y restaura automáticamente el carrito que el cliente tenía activo en el servidor (`orders` con estado `Carrito`).
 - **Protección de Campos Manuales**:
-  - La sincronización periódica con Switch ERP (`/api/admin/sync-erp`) **únicamente actualiza precio, costo, stock (`quantity`) y fecha de actualización**.
-  - Los campos editados manualmente por el equipo (`marca`, `categoría`, `descripción`, `fotos`, `material`, `género`, `flex`, `calibre`, `puente`) **nunca son sobreescritos por Switch ERP**.
+  - La sincronización periódica con Switch ERP (`/api/admin/sync-erp`) únicamente actualiza precio, costo, stock (`quantity`) y fecha de actualización.
+  - Los campos editados manualmente (`marca`, `categoría`, `descripción`, `fotos`, `material`, `género`, `flex`, `calibre`, `puente`) nunca son sobreescritos.
 - **Gestión de Marca Genérica (`SIN MARCA`)**:
-  - Los productos genéricos o sin marca registrada ingresados en Switch ERP quedan asignados a la marca oficial `SIN MARCA`. Si el equipo edita un producto y le asigna una marca comercial real (como *LCT*, *Verona*, *Mantovanni*), dicha asignación queda protegida.
+  - Los productos sin marca registrada se asignan a `SIN MARCA` y pueden reasignarse comercialmente sin riesgo de sobreescritura.
 - **Medidas Ópticas Ampliadas**:
-  - Calibres de ojo de hasta 62 mm y puentes nasales de hasta 26 mm para abarcar monturas de gran tamaño y acetatos especiales.
-- **Seguimiento de Carritos en Pedidos**:
-  - El módulo de pedidos incluye la vista y filtro de "Carrito", permitiendo al equipo de ventas monitorear las órdenes en armado antes de su confirmación final.
+  - Calibres de ojo de hasta 62 mm y puentes nasales de hasta 26 mm.
+
+### 2.4. Ciclo de Vida de Pedidos Simplificado
+- **Flujo Directo**: `Carrito` ➔ `Pendiente` ➔ `Completado` (o `Cancelado`).
+  - `Carrito`: Orden en construcción por parte del cliente.
+  - `Pendiente`: Pedido formal enviado por el cliente para revisión y despacho de bodega.
+  - `Completado`: Pedido confirmado, facturado y despachado por administración (reemplaza al anterior término "Procesado").
+  - Se omite el estado redundante "En Proceso" para una operación más ágil.
+
+### 2.5. Gestión Integral de Clientes, CRM y Cumpleaños
+- **Captura de Fecha de Nacimiento / Cumpleaños**:
+  - Registro en creación de usuario, edición administrativa y en el perfil de cliente (`/mi-cuenta/perfil`).
+  - Visualización directa en listados (`🎂 YYYY-MM-DD`) y exportación en CSV para campañas de felicitaciones y beneficios de aniversario.
+- **Edición y Formalización de Perfiles**:
+  - Modificación completa de RUC/Tax ID, tipo de negocio, dirección de entrega física, prefijo telefónico internacional automático y rol.
+  - Asignación y unificación de códigos de cliente con Switch ERP (`erp_client_code` / `client_code`).
 - **Permisos de Roles**:
-  - Los usuarios con rol de **Gerente** tienen facultades para crear y gestionar usuarios comerciales.
+  - Administradores y Gerentes disponen de permisos para crear, editar y auditar cuentas comerciales.
+
+### 2.6. Dominio Oficial y Presencia SEO
+- **Dominio Canónico**: Redirección 301 forzada de `dubros-app.vercel.app` hacia `https://www.dubros.com`.
+- **Google OAuth**: Redirección directa y segura a `www.dubros.com/catalogo`.
+- **Suite SEO**: Sitemap XML dinámico, robots.txt, manifest para PWA, favicons vectoriales y metadatos JSON-LD Schema.org / Open Graph sin redundancias en títulos.
 
 ---
 

@@ -24,19 +24,19 @@ Inventario completo de pantallas y rutas de la aplicación Next.js App Router (4
 | `/login` | Inicio de sesión con Supabase Auth |
 | `/registro` | Registro para clientes mayoristas y ópticas |
 | `/mi-cuenta` | Panel general del cliente |
-| `/mi-cuenta/carrito` | Carrito de pedidos con desglose de docenas, piezas físicas y envío WhatsApp |
-| `/mi-cuenta/pedidos` | Historial de pedidos realizados con estados y exportación |
+| `/mi-cuenta/carrito` | Carrito de pedidos mayoristas por pieza física, sincronización de servidor y envío WhatsApp |
+| `/mi-cuenta/pedidos` | Historial de pedidos con ciclo simplificado (Pendiente ➔ Completado) y exportación |
 | `/mi-cuenta/pedidos/[id]` | Detalle de orden con opciones de descarga XLSX/CSV |
 | `/mi-cuenta/favoritos` | Lista de referencias guardadas |
-| `/mi-cuenta/perfil` | Datos fiscales de la empresa (RUC, dirección de entrega) |
+| `/mi-cuenta/perfil` | Datos fiscales de la empresa (RUC, NIT, etc.), dirección y fecha de cumpleaños |
 
 ### 1.3. Dashboard de Administración (`/dashboard`)
 | Ruta | Descripción |
 |---|---|
 | `/dashboard` | Resumen de métricas de ventas, órdenes pendientes y stock crítico |
-| `/dashboard/articulos` | Maestro de productos con editor de `sale_type` (Pieza/Docena) y precios |
-| `/dashboard/pedidos` | Gestión de estados de órdenes con filtro de "Carrito" (órdenes en armado) |
-| `/dashboard/usuarios` | Gestión de cuentas comerciales (creación habilitada para Administradores y Gerentes) |
+| `/dashboard/articulos` | Maestro de productos con filtros de fotografía, stock y sincronización ERP |
+| `/dashboard/pedidos` | Gestión ágil de órdenes (Pendiente ➔ Completado), filtro de "Carrito" y exportación |
+| `/dashboard/usuarios` | Gestión de cuentas con creación, modal de edición integral, prefijos telefónicos, cumpleaños (`🎂`) y CSV |
 | `/dashboard/campanas` | Envíos masivos y marketing segmentado (Clientes / CRM) con SendGrid |
 | `/dashboard/switch-erp` | Consola de sincronización con Switch ERP |
 | `/dashboard/inventario` | Monitor de stock de bodega |
