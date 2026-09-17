@@ -23,6 +23,7 @@ export async function POST(req: Request) {
       businessType,
       taxId,
       address,
+      birthDate,
     } = body;
 
     if (!userId) {
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
  full_name: name?.trim() || '',
  company_name: companyName?.trim() || '',
  whatsapp: whatsapp?.trim() || '',
+ ...(birthDate !== undefined ? { birth_date: birthDate || null } : {}),
  },
  };
 
@@ -104,16 +106,32 @@ export async function POST(req: Request) {
  address: address?.trim() || null,
  };
 
+ if (birthDate !== undefined) {
+ profilePayload.birth_date = birthDate || null;
+ }
+
  if (cleanEmail) {
  profilePayload.email = cleanEmail;
  }
 
- const { data: updatedProfile, error: profileError } = await supabaseAdmin
+ let { data: updatedProfile, error: profileError } = await supabaseAdmin
  .from('profiles')
  .update(profilePayload)
  .eq('id', userId)
  .select()
  .maybeSingle();
+
+ if (profileError && profileError.message.includes('birth_date')) {
+ delete profilePayload.birth_date;
+ const retry = await supabaseAdmin
+ .from('profiles')
+ .update(profilePayload)
+ .eq('id', userId)
+ .select()
+ .maybeSingle();
+ updatedProfile = retry.data;
+ profileError = retry.error;
+ }
 
  if (profileError) {
  console.error('[AdminUpdateUser] profiles update error:', profileError);

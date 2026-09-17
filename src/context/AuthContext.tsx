@@ -16,6 +16,7 @@ export interface UserProfile {
   businessType?: string;
   taxId?: string;
   address?: string;
+  birthDate?: string;
 }
 
 interface AuthContextType {
@@ -139,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           businessType: data.business_type || undefined,
           taxId: data.tax_id || undefined,
           address: data.address || undefined,
+          birthDate: data.birth_date || (user.user_metadata?.birth_date as string) || undefined,
         };
         setUserProfile(profile);
         setIsLoggedIn(true);
@@ -348,11 +350,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.businessType !== undefined) payload.business_type = data.businessType;
     if (data.taxId !== undefined) payload.tax_id = data.taxId;
     if (data.address !== undefined) payload.address = data.address;
+    if (data.birthDate !== undefined) payload.birth_date = data.birthDate || null;
 
-    const { error } = await supabase
+    let { error } = await supabase
       .from('profiles')
       .update(payload)
       .eq('id', user.id);
+
+    if (error && error.message.includes('birth_date')) {
+      delete payload.birth_date;
+      const retry = await supabase
+        .from('profiles')
+        .update(payload)
+        .eq('id', user.id);
+      error = retry.error;
+    }
+
+    if (data.birthDate !== undefined) {
+      await supabase.auth.updateUser({
+        data: { birth_date: data.birthDate || null },
+      });
+    }
 
     if (error) {
       console.error('Error updating profile in Supabase:', error);

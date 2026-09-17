@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password, companyName, country, whatsapp, role, erpClientCode } = await req.json();
+    const { name, email, password, companyName, country, whatsapp, role, erpClientCode, birthDate } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email y contraseña son obligatorios.' }, { status: 400 });
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
         full_name: name,
         company_name: companyName,
         whatsapp,
+        birth_date: birthDate || null,
       },
     });
 
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     const numCode = cleanCode && !isNaN(Number(cleanCode)) ? Number(cleanCode) : null;
 
     // 2. Insert or update profile in public.profiles table
-    const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+    const profileData: Record<string, any> = {
       id: userId,
       email,
       full_name: name || email.split('@')[0],
@@ -57,7 +58,16 @@ export async function POST(req: Request) {
       client_code: cleanCode,
       erp_client_id: numCode,
       onboarding_completed: true,
-    }, { onConflict: 'id' });
+      birth_date: birthDate || null,
+    };
+
+    let { error: profileError } = await supabaseAdmin.from('profiles').upsert(profileData, { onConflict: 'id' });
+
+    if (profileError && profileError.message.includes('birth_date')) {
+      delete profileData.birth_date;
+      const retry = await supabaseAdmin.from('profiles').upsert(profileData, { onConflict: 'id' });
+      profileError = retry.error;
+    }
 
     if (profileError) {
       console.error('Profile upsert warning:', profileError);

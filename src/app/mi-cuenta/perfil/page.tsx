@@ -70,6 +70,7 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('');
   const [taxId, setTaxId] = useState('');
   const [address, setAddress] = useState('');
+  const [birthDate, setBirthDate] = useState('');
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -96,6 +97,7 @@ export default function ProfilePage() {
         setPhone(userProfile.phone || '');
         setTaxId(userProfile.taxId || '');
         setAddress(userProfile.address || '');
+        setBirthDate(userProfile.birthDate || '');
       }
     }
   }, [isLoggedIn, isLoading, userProfile, router]);
@@ -131,6 +133,7 @@ export default function ProfilePage() {
       phone,
       taxId,
       address,
+      birthDate: birthDate || undefined,
     });
 
     setLoadingProfile(false);
@@ -431,6 +434,30 @@ export default function ProfilePage() {
                     outline: 'none',
                   }}
                 />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span>🎂</span> Fecha de Nacimiento / Cumpleaños <span style={{ color: '#94A3B8', fontWeight: 400, fontSize: '0.75rem' }}>(Opcional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 0.9rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-medium)',
+                    backgroundColor: 'var(--input-bg)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.9rem',
+                    outline: 'none',
+                  }}
+                />
+                <span style={{ fontSize: '0.75rem', color: '#64748B', display: 'block', marginTop: '0.25rem' }}>
+                  Para enviarte felicitaciones y beneficios exclusivos en tu cumpleaños.
+                </span>
               </div>
 
               <div style={{ gridColumn: '1 / -1' }}>

@@ -49,6 +49,7 @@ export default function AdminUsersPage() {
   const [editBusinessType, setEditBusinessType] = useState('Óptica');
   const [editTaxId, setEditTaxId] = useState('');
   const [editAddress, setEditAddress] = useState('');
+  const [editBirthDate, setEditBirthDate] = useState('');
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -63,6 +64,7 @@ export default function AdminUsersPage() {
   const [newUserWhatsapp, setNewUserWhatsapp] = useState('');
   const [newUserRole, setNewUserRole] = useState<UserRole>('client');
   const [newUserErpCode, setNewUserErpCode] = useState('');
+  const [newUserBirthDate, setNewUserBirthDate] = useState('');
   const [creatingLoading, setCreatingLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -97,6 +99,7 @@ export default function AdminUsersPage() {
           whatsapp: fullWhatsapp,
           role: newUserRole,
           erpClientCode: newUserErpCode || null,
+          birthDate: newUserBirthDate || null,
         }),
       });
 
@@ -120,6 +123,7 @@ export default function AdminUsersPage() {
         setNewUserWhatsapp('');
         setNewUserRole('client');
         setNewUserErpCode('');
+        setNewUserBirthDate('');
         setIsCreatingUser(false);
         await loadData();
         setTimeout(() => setNotification(null), 5000);
@@ -167,6 +171,7 @@ export default function AdminUsersPage() {
     setEditBusinessType(user.business_type || 'Óptica');
     setEditTaxId(user.tax_id || '');
     setEditAddress(user.address || '');
+    setEditBirthDate(user.birth_date || '');
     setEditError(null);
   };
 
@@ -194,6 +199,7 @@ export default function AdminUsersPage() {
           businessType: editBusinessType,
           taxId: editTaxId,
           address: editAddress,
+          birthDate: editBirthDate || null,
         }),
       });
 
@@ -265,6 +271,7 @@ export default function AdminUsersPage() {
       'Rol',
       'Código ERP',
       'Tipo de Negocio',
+      'Fecha de Nacimiento (Cumpleaños)',
       'Fecha Creación'
     ];
 
@@ -284,6 +291,7 @@ export default function AdminUsersPage() {
       escapeCsv(u.role === 'admin' ? 'Administrador' : u.role === 'manager' ? 'Gerente' : u.role === 'client' ? 'Cliente' : 'Pendiente'),
       escapeCsv(u.client_code || u.erp_client_code || (u.erp_client_id != null ? String(u.erp_client_id) : '')),
       escapeCsv(u.business_type || ''),
+      escapeCsv(u.birth_date || ''),
       escapeCsv(u.created_at || '')
     ]);
 
@@ -665,6 +673,21 @@ export default function AdminUsersPage() {
                     style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
                   />
                 </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>
+                    🎂 Fecha de Nacimiento (Opcional - Cumpleaños)
+                  </label>
+                  <input
+                    type="date"
+                    value={newUserBirthDate}
+                    onChange={(e) => setNewUserBirthDate(e.target.value)}
+                    style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', fontSize: '0.9rem', backgroundColor: '#FFFFFF' }}
+                  />
+                  <span style={{ fontSize: '0.75rem', color: '#64748B', display: 'block', marginTop: '0.25rem' }}>
+                    Para enviar felicitaciones y promociones especiales en su cumpleaños.
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -940,6 +963,11 @@ export default function AdminUsersPage() {
                       <div style={{ fontSize: '0.8rem', color: 'var(--blue)', fontWeight: 600 }}>
                         {user.company_name || 'Particular / Óptica'}
                       </div>
+                      {user.birth_date && (
+                        <div style={{ fontSize: '0.75rem', color: '#6366F1', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.2rem' }}>
+                          <span>🎂</span> {user.birth_date}
+                        </div>
+                      )}
                     </td>
 
                     <td style={{ padding: '1.25rem 1rem' }}>
@@ -1343,6 +1371,21 @@ export default function AdminUsersPage() {
                     placeholder="Ej. Vía España, Edificio Galerías, Piso 2, Ciudad de Panamá"
                     style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem' }}
                   />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: '#475569' }}>
+                    🎂 Fecha de Nacimiento (Cumpleaños)
+                  </label>
+                  <input
+                    type="date"
+                    value={editBirthDate}
+                    onChange={(e) => setEditBirthDate(e.target.value)}
+                    style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.88rem', backgroundColor: '#FFFFFF' }}
+                  />
+                  <span style={{ fontSize: '0.75rem', color: '#64748B', display: 'block', marginTop: '0.25rem' }}>
+                    Fecha de cumpleaños para felicitaciones y beneficios comerciales.
+                  </span>
                 </div>
 
                 <div style={{ gridColumn: '1 / -1' }}>

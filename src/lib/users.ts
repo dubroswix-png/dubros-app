@@ -15,6 +15,7 @@ export interface UserProfileRecord {
   business_type?: string;
   tax_id?: string;
   address?: string;
+  birth_date?: string | null;
   created_at?: string;
   erp_client_id?: number | null;
   erp_client_code?: string | null;
@@ -70,6 +71,7 @@ export async function fetchAllProfiles(): Promise<UserProfileRecord[]> {
         client_code: canonicalCode,
         erp_client_code: canonicalCode,
         erp_client_id: canonicalCode && !isNaN(Number(canonicalCode)) ? Number(canonicalCode) : (p.erp_client_id ?? null),
+        birth_date: p.birth_date || null,
         role: isUserAdmin(p.email) ? 'admin' : isUserManager(p.email) ? 'manager' : (p.role || 'client'),
       };
     });
